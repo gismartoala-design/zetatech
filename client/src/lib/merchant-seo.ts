@@ -9,7 +9,7 @@ export function getMerchantShippingServiceSchema() {
     "@type": "ShippingService",
     "@id": MERCHANT_SHIPPING_ID,
     name: "Envíos Zetatech",
-    description: "Entrega coordinada de flores, arreglos florales y regalos dentro de Guayaquil. El costo y horario se confirman según sector antes del despacho.",
+    description: "Entrega coordinada de gadgets, accesorios y equipos tecnológicos dentro de Guayaquil. El costo y horario se confirman según sector antes del despacho.",
     fulfillmentType: "https://schema.org/FulfillmentTypeDelivery",
     shippingConditions: {
       "@type": "ShippingConditions",
@@ -46,7 +46,7 @@ export function getMerchantReturnPolicySchema() {
 
 export function getMerchantOrganizationSchema() {
   return {
-    "@type": "Florist",
+    "@type": "ElectronicsStore",
     "@id": MERCHANT_ORGANIZATION_ID,
     name: DEFAULT_COMPANY.name,
     url: canonicalUrl("/"),

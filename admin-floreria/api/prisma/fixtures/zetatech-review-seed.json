@@ -1,0 +1,95 @@
+{
+  "_comment": "Datos de EJEMPLO para revisar el editor CMS de Zetatech en la base de prueba zetatech-review-db (puerto 5433). Ningún precio/stock es real; reemplazar vía el panel admin cuando haya catálogo definitivo.",
+  "company": {
+    "name": "Zetatech",
+    "slug": "zetatech-review",
+    "email": "admin@zetatech.test",
+    "phone": "+593 99 000 0000",
+    "website": "https://zetatech.test",
+    "isActive": true,
+    "isSetup": true,
+    "allowedDomains": ["localhost:5173", "localhost:5000"],
+    "settings": { "acceptOrders": true }
+  },
+  "admin": {
+    "email": "admin@zetatech.test",
+    "passwordPlain": "ZetatechReview123!",
+    "name": "Admin Zetatech",
+    "role": "ADMIN",
+    "isActive": true
+  },
+  "products": [
+    {
+      "name": "Audífonos inalámbricos Zetatech Pulse",
+      "description": "Audífonos in-ear con cancelación de ruido activa y hasta 30 horas de batería con estuche.",
+      "price": 89.99,
+      "image": "/assets/zetatech-audio.jpg",
+      "category": "Audio",
+      "stock": 24,
+      "featured": true
+    },
+    {
+      "name": "Smartwatch Zetatech Orbit",
+      "description": "Reloj inteligente con pantalla AMOLED, monitor de ritmo cardíaco y resistencia al agua 5ATM.",
+      "price": 199.0,
+      "image": "/assets/zetatech-watch.jpg",
+      "category": "Wearables",
+      "stock": 15,
+      "featured": true
+    },
+    {
+      "name": "Parlante Bluetooth Zetatech Boom",
+      "description": "Parlante portátil resistente al agua IPX6 con 12 horas de reproducción continua.",
+      "price": 129.0,
+      "image": "/assets/zetatech-audio.jpg",
+      "category": "Audio",
+      "stock": 18,
+      "featured": false
+    },
+    {
+      "name": "Mouse gamer Zetatech Strike",
+      "description": "Mouse óptico de alta precisión con iluminación RGB configurable y 6 botones programables.",
+      "price": 49.99,
+      "image": "/assets/zetatech-watch.jpg",
+      "category": "Accesorios",
+      "stock": 40,
+      "featured": true
+    },
+    {
+      "name": "Teclado mecánico Zetatech Type-X",
+      "description": "Teclado mecánico compacto con switches táctiles y retroiluminación por tecla.",
+      "price": 79.99,
+      "image": "/assets/zetatech-audio.jpg",
+      "category": "Accesorios",
+      "stock": 22,
+      "featured": false
+    },
+    {
+      "name": "Power bank Zetatech Volt 20000",
+      "description": "Batería externa de 20000 mAh con carga rápida de 22.5W y dos puertos USB-C.",
+      "price": 34.99,
+      "image": "/assets/zetatech-watch.jpg",
+      "category": "Accesorios",
+      "stock": 50,
+      "featured": false
+    },
+    {
+      "name": "Cámara web Zetatech Vision 2K",
+      "description": "Webcam 2K con enfoque automático y micrófono dual con reducción de ruido.",
+      "price": 59.99,
+      "image": "/assets/zetatech-audio.jpg",
+      "category": "Accesorios",
+      "stock": 12,
+      "featured": false
+    },
+    {
+      "name": "Auriculares gamer Zetatech Arena",
+      "description": "Auriculares con sonido envolvente 7.1 y micrófono desmontable con cancelación de ruido.",
+      "price": 69.99,
+      "image": "/assets/zetatech-watch.jpg",
+      "category": "Audio",
+      "stock": 20,
+      "featured": true
+    }
+  ]
+}

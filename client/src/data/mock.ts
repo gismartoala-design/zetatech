@@ -1,8 +1,3 @@
-export const ADMIN_CREDENTIALS = {
-  username: "admin",
-  password: "password123"
-};
-
 export interface Product {
   id: string;
   name: string;
@@ -20,136 +15,97 @@ export interface Product {
   includes: string;
 }
 
-export const CATEGORIES = [
-  { 
-    name: "Ramos de rosas", 
-    slug: "ramos-de-rosas", 
-    image: "/assets/product1.png" 
-  },
-  { 
-    name: "Flores mixtas", 
-    slug: "flores-mixtas", 
-    image: "/assets/banner_collage.webp" 
-  },
-  { 
-    name: "Desayunos sorpresa", 
-    slug: "desayunos-sorpresa", 
-    image: "/assets/Desayunos sorpresa para aniversario, con minitorta  en Guayaquil..jpeg" 
-  },
-  { 
-    name: "Regalos con vino", 
-    slug: "regalos-con-vino", 
-    image: "/assets/banner_collage.webp" 
-  },
-  { 
-    name: "Cumpleaños", 
-    slug: "cumpleanos", 
-    image: "/assets/Ramo de rosas con rosas rosadas para 15 años en Guayaquil.jpeg" 
-  },
-  { 
-    name: "Amor y aniversario", 
-    slug: "amor-y-aniversario", 
-    image: "/assets/Ramo de flores para aniversario, con rosas rojas, vino, ferrero , en Guayaquil..jpeg" 
-  }
-];
-
+/**
+ * Catálogo de respaldo para cuando el backend de administración no responde
+ * (ver server/index.ts: tryHandlePublicApiFallback). No se muestra si la API
+ * de productos funciona con normalidad.
+ */
 export const INITIAL_PRODUCTS: Product[] = [
   {
     id: "1",
-    name: "Ramo de Rosas Rojas Premium",
-    description: "Elegante ramo de 24 rosas rojas frescas de exportación, envueltas en papel decorativo y lazo de seda. Ideal para expresar amor profundo.",
-    category: "Ramos de rosas",
-    price: "$45.00",
-    image: "/assets/product1.png",
-    additionalImages: ["/assets/product1.png"],
+    name: "Audífonos Inalámbricos Zetatech Pulse",
+    description: "Audífonos in-ear con cancelación de ruido activa, estuche de carga y hasta 30 horas de batería.",
+    category: "Audio y Audífonos",
+    price: "$89.99",
+    image: "/assets/zetatech-audio.jpg",
+    additionalImages: ["/assets/zetatech-audio.jpg"],
     isBestSeller: true,
-    stock: 15,
+    stock: 24,
     deliveryTime: "2-3 horas",
-    size: "50cm x 35cm",
-    includes: "24 Rosas rojas de exportación, tarjeta de dedicatoria, papel decorativo y lazo."
+    size: "Estándar",
+    includes: "Audífonos, estuche de carga, cable USB-C y guía rápida."
   },
   {
     id: "2",
-    name: "Arreglo Primaveral Mixto",
-    description: "Combinación vibrante de lirios, margaritas y claveles en tonos pasteles. Una explosión de frescura para cualquier ocasión.",
-    category: "Flores mixtas",
-    price: "$38.00",
-    image: "/assets/banner_collage.webp",
-    additionalImages: ["/assets/banner_collage.webp"],
+    name: "Smartwatch Zetatech Orbit",
+    description: "Reloj inteligente con pantalla AMOLED, monitor de ritmo cardíaco y resistencia al agua 5ATM.",
+    category: "Smartwatches",
+    price: "$199.00",
+    image: "/assets/zetatech-watch.jpg",
+    additionalImages: ["/assets/zetatech-watch.jpg"],
     isBestSeller: true,
-    stock: 12,
+    stock: 15,
     deliveryTime: "2-4 horas",
-    size: "40cm x 30cm",
-    includes: "Lirios, margaritas, claveles, follaje seco y florero de vidrio."
+    size: "42mm",
+    includes: "Smartwatch, cargador magnético y correa adicional."
   },
   {
     id: "3",
-    name: "Cesta Sorpresa Gourmet",
-    description: "Completo desayuno que incluye café premium, croissants recién horneados, ensalada de frutas frescas, jugo de naranja y un mini bouquet decorativo.",
-    category: "Desayunos sorpresa",
-    price: "$55.00",
-    image: "/assets/Desayunos sorpresa para aniversario, con minitorta  en Guayaquil..jpeg",
-    additionalImages: [
-      "/assets/Desayunos sorpresa para aniversario, con minitorta  en Guayaquil..jpeg",
-      "/assets/Desayuno sorpresa con flores para aniversario en Guayaquil.jpeg",
-      "/assets/banner_collage.webp",
-    ],
-    isBestSeller: true,
-    stock: 8,
-    deliveryTime: "En la mañana (6am - 10am)",
-    size: "Cesta Estándar",
-    includes: "Café, 2 croissants, ensalada de frutas, jugo natural, mini arreglo floral."
+    name: "Parlante Bluetooth Zetatech Boom",
+    description: "Parlante portátil resistente al agua IPX6 con 12 horas de reproducción continua y sonido envolvente.",
+    category: "Audio y Audífonos",
+    price: "$129.00",
+    image: "/assets/zetatech-audio.jpg",
+    additionalImages: ["/assets/zetatech-audio.jpg"],
+    isBestSeller: false,
+    stock: 18,
+    deliveryTime: "2-4 horas",
+    size: "Compacto",
+    includes: "Parlante, cable de carga USB-C y correa de transporte."
   },
   {
     id: "4",
-    name: "Caja de Rosas Bouquet Royal",
-    description: "Caja de lujo con 12 rosas seleccionadas y follaje decorativo. Un regalo sofisticado y duradero.",
-    category: "Amor y aniversario",
-    price: "$32.00",
-    image: "/assets/Ramo de flores para aniversario, con rosas rojas, vino, ferrero , en Guayaquil..jpeg",
-    additionalImages: [
-      "/assets/Ramo de flores para aniversario, con rosas rojas, vino, ferrero , en Guayaquil..jpeg",
-      "/assets/banner_collage.webp",
-    ],
+    name: "Mouse Gamer Zetatech Strike",
+    description: "Mouse óptico de alta precisión con iluminación RGB configurable y seis botones programables.",
+    category: "Gaming",
+    price: "$49.99",
+    image: "/assets/zetatech-watch.jpg",
+    additionalImages: ["/assets/zetatech-watch.jpg"],
     isBestSeller: false,
-    stock: 20,
+    stock: 40,
     deliveryTime: "2-3 horas",
-    size: "25cm x 25cm",
-    includes: "12 Rosas seleccionadas, caja de lujo cuadrada, lazo de raso."
+    size: "Estándar",
+    includes: "Mouse, cable trenzado y pesas de ajuste."
   },
   {
     id: "5",
-    name: "Vino & Flores Selection",
-    description: "Caja de regalo que incluye una botella de vino tinto Cabernet Sauvignon y un pequeño arreglo de flores complementario.",
-    category: "Regalos con vino",
-    price: "$65.00",
-    image: "/assets/banner_collage.webp",
-    additionalImages: ["/assets/banner_collage.webp"],
+    name: "Power Bank Zetatech Volt 20000",
+    description: "Batería externa de 20000 mAh con carga rápida de 22.5W y dos puertos USB-C simultáneos.",
+    category: "Accesorios",
+    price: "$34.99",
+    image: "/assets/zetatech-audio.jpg",
+    additionalImages: ["/assets/zetatech-audio.jpg"],
     isBestSeller: false,
-    stock: 5,
-    deliveryTime: "3-5 horas",
-    size: "Caja de Regalo Grande",
-    includes: "Vino Cabernet Sauvignon 750ml, arreglo floral lateral, caja rígida decorada."
+    stock: 50,
+    deliveryTime: "2-4 horas",
+    size: "Compacto",
+    includes: "Power bank y cable USB-C a USB-C."
   },
   {
     id: "6",
-    name: "Bouquet Cumpleaños Alegre",
-    description: "Arreglo colorido con globos metalizados y flores mixtas. La mejor forma de desear un feliz día.",
-    category: "Cumpleaños",
-    price: "$40.00",
-    image: "/assets/Ramo de rosas con rosas rosadas para 15 años en Guayaquil.jpeg",
-    additionalImages: [
-      "/assets/Ramo de rosas con rosas rosadas para 15 años en Guayaquil.jpeg",
-      "/assets/banner_collage.webp",
-    ],
+    name: "Teclado Mecánico Zetatech Type-X",
+    description: "Teclado mecánico compacto con switches táctiles y retroiluminación RGB por tecla.",
+    category: "Productividad",
+    price: "$79.99",
+    image: "/assets/zetatech-watch.jpg",
+    additionalImages: ["/assets/zetatech-watch.jpg"],
     isBestSeller: false,
-    stock: 10,
-    deliveryTime: "2-4 horas",
-    size: "45cm x 35cm",
-    includes: "Flores mixtas brillantes, globo metálico con helio, envoltura festiva."
+    stock: 22,
+    deliveryTime: "2-3 horas",
+    size: "Compacto 75%",
+    includes: "Teclado, cable USB-C desmontable y keycaps de repuesto."
   }
 ];
-
 
 export const SALES_DATA = [
   { month: "Ene", sales: 8500 },
@@ -170,7 +126,7 @@ export const TESTIMONIALS = [
   {
     name: "María Fernanda G.",
     role: "Cliente Frecuente",
-    content: "Los mejores arreglos de Guayaquil. El servicio a domicilio es impecable.",
+    content: "Excelente calidad en los productos y la entrega a domicilio en Guayaquil es impecable.",
     stars: 5
   }
 ];
@@ -178,7 +134,7 @@ export const TESTIMONIALS = [
 export const COMPANY_INFO = {
   description: "Tienda de tecnología con gadgets, accesorios y equipos para trabajar, crear y disfrutar mejor.",
   history: "Zetatech: acercando tecnología útil y confiable a cada persona desde 2024.",
-  frescura: "Calidad Garantizada: Productos seleccionados y probados para tu día a día.",
+  calidad: "Calidad Garantizada: Productos seleccionados y probados para tu día a día.",
   personalizacion: "Asesoría Zetatech: Te ayudamos a elegir lo que realmente necesitas."
 };
 
@@ -194,21 +150,6 @@ export const FAQS = [
   {
     question: "¿Aceptan pagos con tarjeta?",
     answer: "Aceptamos todas las tarjetas de crédito, transferencias y pagos por WhatsApp."
-  }
-];
-
-export const CARE_GUIDE = [
-  {
-    step: "Corte los tallos",
-    description: "Corte 2cm de los tallos en diagonal al recibir sus flores."
-  },
-  {
-    step: "Agua fresca",
-    description: "Cambie el agua del florero cada dos días y asegúrese de que esté limpia."
-  },
-  {
-    step: "Ubicación ideal",
-    description: "Mantenga las flores en un lugar fresco, lejos de la luz solar directa y corrientes de aire."
   }
 ];
 

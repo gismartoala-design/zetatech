@@ -236,56 +236,31 @@ exports.createProduct = async (req, res, next) => {
         });
       }
     }
+    // La empresa y el usuario del producto SIEMPRE salen de la sesión
+    // autenticada, nunca de un valor fijo ni del cuerpo de la petición: antes
+    // esta función buscaba (o creaba) una compañía "difiori" y un admin con
+    // contraseña sin hashear, así que cada producto nuevo terminaba asignado
+    // a esa empresa en vez de a la del admin que lo creó.
+    const authenticatedAdmin = await prisma.users.findUnique({
+      where: { id: req.user.adminId },
+      select: { id: true, companyId: true },
+    });
+
+    if (!authenticatedAdmin) {
+      return res.status(401).json({ status: "error", message: "No autorizado" });
+    }
+
     console.log("Creating product with data:", validation.data);
     // Crear producto con variantes en una transacción
     const productResponse = await prisma.$transaction(async (tx) => {
-      // Buscar o crear compañía DIFIORI
-      let company = await tx.company.findFirst({
-        where: { slug: "difiori" }
-      });
-
-      if (!company) {
-        company = await tx.company.create({
-          data: {
-            name: "Difiori Floristería",
-            slug: "difiori",
-            email: "ventas@difiori.com.ec",
-            phone: "+593 99 798 4583",
-            isActive: true,
-            isSetup: true,
-          }
-        });
-        console.log("🏢 Created company:", company.name);
-      }
-
-      // Buscar o crear usuario admin
-      let adminUser = await tx.users.findFirst({
-        where: { email: "admin@difiori.com" }
-      });
-
-      if (!adminUser) {
-        adminUser = await tx.users.create({
-          data: {
-            email: "admin@difiori.com",
-            name: "Admin Difiori",
-            password: "admin123", // Esto debería ser hasheado en producción
-            role: "ADMIN",
-            companyId: company.id,
-            isActive: true,
-          }
-        });
-        console.log("👤 Created admin user:", adminUser.email);
-      }
-
-      // Usar userId del body o el admin creado
-      const userId = validation.data.userId || adminUser.id;
+      const userId = authenticatedAdmin.id;
 
       // Crear el producto
       const newProduct = await tx.product.create({
-        data: { 
-          ...validation.data, 
+        data: {
+          ...validation.data,
           userId,
-          companyId: company.id,
+          companyId: authenticatedAdmin.companyId,
           isLimited: false,
           priceIncludesTax: true,
         },

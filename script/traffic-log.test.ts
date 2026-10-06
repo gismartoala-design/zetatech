@@ -51,7 +51,7 @@ comprobar("No cuenta como visita lo que no es una página", () => {
 comprobar("Separa a los rastreadores de las personas", () => {
   registrarVisita("/", NAVEGADOR, false);
   registrarVisita("/", GOOGLEBOT, false);
-  registrarVisita("/", "DIFIORI-Watchdog/1.0 (+monitoreo)", false);
+  registrarVisita("/", "Zetatech-Watchdog/1.0 (+monitoreo)", false);
 
   const r = obtenerResumen(7);
   assert.strictEqual(r.visitasDePersonas, 1, "solo una persona real");

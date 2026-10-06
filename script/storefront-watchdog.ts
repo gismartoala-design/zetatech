@@ -1,5 +1,5 @@
 /**
- * Vigilante de la tienda DIFIORI.
+ * Vigilante de la tienda Zetatech.
  *
  * Comprueba, desde fuera y como lo haría un cliente, que la tienda se pueda
  * comprar ahora mismo: que cargue, que el catálogo tenga productos, que acepte
@@ -23,11 +23,11 @@ type Resultado = {
   ms: number;
 };
 
-const BASE_URL = normalizarBase(process.env.WATCHDOG_BASE_URL || "https://difiori.com.ec");
+const BASE_URL = normalizarBase(process.env.WATCHDOG_BASE_URL || "https://www.zetatech.ec");
 const TIMEOUT_MS = Number(process.env.WATCHDOG_TIMEOUT_MS || 15000);
 const LENTO_MS = Number(process.env.WATCHDOG_LENTO_MS || 4000);
 const SOLO_JSON = process.argv.includes("--json");
-const USER_AGENT = "DIFIORI-Watchdog/1.0 (+monitoreo; no-analytics-bot)";
+const USER_AGENT = "Zetatech-Watchdog/1.0 (+monitoreo; no-analytics-bot)";
 const WATCHDOG_TOKEN = process.env.WATCHDOG_TOKEN || "";
 
 // Parámetros que añaden Facebook, Instagram y Google a cada clic de anuncio.
@@ -135,7 +135,7 @@ const comprobaciones: Array<() => Promise<Resultado>> = [
     medir("La tienda carga", "CRITICO", async () => {
       const { status, cuerpo } = await pedir("/");
       if (status !== 200) return { ok: false, detalle: `respondió ${status}` };
-      if (!cuerpo.includes("DIFIORI")) return { ok: false, detalle: "la página no trae contenido de la tienda" };
+      if (!cuerpo.includes("Zetatech")) return { ok: false, detalle: "la página no trae contenido de la tienda" };
       return { ok: true, detalle: `${Math.round(cuerpo.length / 1024)} KB` };
     }),
 
@@ -361,7 +361,7 @@ async function main() {
       ),
     );
   } else {
-    console.log(`Vigilante de tienda DIFIORI — ${BASE_URL}`);
+    console.log(`Vigilante de tienda Zetatech — ${BASE_URL}`);
     console.log(new Date().toLocaleString("es-EC"));
     console.log("");
 

@@ -126,7 +126,7 @@ const BACKEND_ORIGIN = normalizeUrl(
 );
 const SITE_URL =
   normalizeUrl(process.env.APP_PUBLIC_SITE_URL || process.env.SITE_URL || process.env.VITE_SITE_URL) ||
-  "https://difiori.com.ec";
+  "https://www.zetatech.ec";
 const ASSET_BASE_URL =
   normalizeUrl(process.env.APP_PUBLIC_ASSET_URL || process.env.ASSET_BASE_URL || process.env.VITE_ASSET_BASE_URL) ||
   "";
@@ -313,12 +313,12 @@ function getPublicCategoriesFallback() {
 function getHomeHeroFallback() {
   return {
     id: 0,
-    title: "Sorprende hoy. Nosotros lo entregamos por ti.",
-    description: "Historias reales de alegria en Guayaquil",
+    title: "Tu mundo. Más conectado.",
+    description: "Tecnología que se mueve contigo, entregada en Guayaquil",
     images: [
       {
-        url: "/assets/banner_collage_mobile.webp",
-        alt: "Floreria DIFIORI en Guayaquil",
+        url: "/assets/zetatech-hero.png",
+        alt: "Zetatech, tienda de tecnología en Guayaquil",
       },
     ],
     backgroundType: "carousel" as const,
@@ -436,9 +436,9 @@ function getFallbackSeoState(path: string): SeoState {
   if (path === "/") {
     return {
       ...DEFAULT_SEO_STATE,
-      title: "Flores y Ramos a Domicilio en Guayaquil | DIFIORI",
-      description: "Compra flores frescas, ramos y arreglos florales en Guayaquil con entrega a domicilio, pagos seguros y atención rápida por WhatsApp.",
-      keywords: "flores en guayaquil, floreria guayaquil, ramos de flores guayaquil, arreglos florales guayaquil, flores a domicilio guayaquil",
+      title: "Gadgets y Tecnología a Domicilio en Guayaquil | Zetatech",
+      description: "Compra audífonos, smartwatches, accesorios y tecnología en Guayaquil con entrega a domicilio, pagos seguros y atención rápida por WhatsApp.",
+      keywords: "tecnologia en guayaquil, tienda de tecnologia guayaquil, audifonos guayaquil, smartwatch guayaquil, accesorios tecnologicos guayaquil",
       path,
     };
   }
@@ -446,8 +446,8 @@ function getFallbackSeoState(path: string): SeoState {
   if (path === "/contacto") {
     return {
       ...DEFAULT_SEO_STATE,
-      title: "Contacto | Floreria DIFIORI en Guayaquil",
-      description: "Escríbenos por WhatsApp o correo para pedidos de flores, arreglos y regalos a domicilio en Guayaquil. Atención todos los días.",
+      title: "Contacto | Zetatech Guayaquil",
+      description: "Escríbenos por WhatsApp o correo para pedidos de gadgets y accesorios tecnológicos a domicilio en Guayaquil. Atención todos los días.",
       path,
     };
   }
@@ -455,8 +455,8 @@ function getFallbackSeoState(path: string): SeoState {
   if (path === "/checkout") {
     return {
       ...DEFAULT_SEO_STATE,
-      title: "Checkout | DIFIORI",
-      description: "Proceso de checkout de DIFIORI.",
+      title: "Checkout | Zetatech",
+      description: "Proceso de checkout de Zetatech.",
       path,
       robots: "noindex, nofollow",
     };
@@ -465,8 +465,8 @@ function getFallbackSeoState(path: string): SeoState {
   if (path === "/payment-gateway") {
     return {
       ...DEFAULT_SEO_STATE,
-      title: "Pago con tarjeta | DIFIORI",
-      description: "Completa tu pago seguro con DIFIORI.",
+      title: "Pago con tarjeta | Zetatech",
+      description: "Completa tu pago seguro con Zetatech.",
       path,
       robots: "noindex, nofollow",
     };
@@ -475,8 +475,8 @@ function getFallbackSeoState(path: string): SeoState {
   if (path === "/payment-result") {
     return {
       ...DEFAULT_SEO_STATE,
-      title: "Resultado de pago | DIFIORI",
-      description: "Resultado del proceso de pago en DIFIORI.",
+      title: "Resultado de pago | Zetatech",
+      description: "Resultado del proceso de pago en Zetatech.",
       path,
       robots: "noindex, nofollow",
     };
@@ -493,7 +493,6 @@ function shouldSsrPath(path: string) {
     path === "/" ||
     path === "/shop" ||
     path === "/contacto" ||
-    SEO_LANDING_PATHS.includes(path) ||
     path.startsWith("/categoria/") ||
     path.startsWith("/producto/")
   );
@@ -550,15 +549,6 @@ async function prefetchSsrRouteData(queryClient: QueryClient, path: string, base
         queryFn: () => fetchProducts({ limit: HOME_CATALOG_PRODUCTS, summary: true }, baseUrl),
       }),
     ]);
-
-    return 200;
-  }
-
-  if (SEO_LANDING_PATHS.includes(path)) {
-    await queryClient.prefetchQuery({
-      queryKey: productsQueryKey(),
-      queryFn: () => fetchProducts(undefined, baseUrl),
-    });
 
     return 200;
   }
@@ -1025,7 +1015,7 @@ function sendGone(res: Response, path: string) {
   <head>
     <meta charset="utf-8" />
     <meta name="robots" content="noindex, nofollow" />
-    <title>Contenido retirado | DIFIORI</title>
+    <title>Contenido retirado | Zetatech</title>
   </head>
   <body>
     <main style="font-family: sans-serif; max-width: 40rem; margin: 4rem auto; line-height: 1.6; padding: 0 1.5rem;">
@@ -1046,7 +1036,10 @@ type PublicProduct = {
   image?: string;
 };
 
-const SEO_LANDING_PATHS = [
+// Landings SEO de la antigua floristería: el contenido se retiró con el
+// rebranding a Zetatech. Redirigen 301 al catálogo en vez de 404 para no
+// perder de golpe el tráfico que aún llega desde buscadores o enlaces viejos.
+const RETIRED_FLORIST_SEO_PATHS = [
   "/flores-guayaquil",
   "/floreria-guayaquil",
   "/florerias-en-guayaquil",
@@ -1066,6 +1059,7 @@ const LEGACY_STORE_PATHS = new Set([
   "/desayunos",
   "/ofrendas",
   "/ocasiones.php",
+  ...RETIRED_FLORIST_SEO_PATHS,
 ]);
 
 async function fetchPublicProducts(): Promise<PublicProduct[]> {
@@ -1221,11 +1215,11 @@ app.get("/robots.txt", (_req, res) => {
 app.get("/llms.txt", (_req, res) => {
   res.type("text/plain");
   res.send([
-    "# DIFIORI",
+    "# Zetatech",
     "",
-    "> Floreria en Guayaquil, Ecuador. Venta online de flores, ramos, arreglos florales y regalos con entrega a domicilio.",
+    "> Tienda de tecnologia en Guayaquil, Ecuador. Venta online de gadgets, accesorios y equipos tecnologicos con entrega a domicilio.",
     "",
-    "Sitio ecommerce en espanol para descubrir productos, categorias y paginas canonicas de DIFIORI.",
+    "Sitio ecommerce en espanol para descubrir productos, categorias y paginas canonicas de Zetatech.",
     "Cobertura principal: Guayaquil, Ecuador.",
     "Idioma principal: es-EC.",
     "",
@@ -1234,12 +1228,6 @@ app.get("/llms.txt", (_req, res) => {
     `- [Catalogo](${buildSiteUrl("/shop")}): Vista general de productos disponibles.`,
     `- [Sitemap](${buildSiteUrl("/sitemap.xml")}): URLs canonicas indexables del sitio.`,
     `- [Robots](${buildSiteUrl("/robots.txt")}): Reglas de rastreo publicas.`,
-    "",
-    "## Key Pages",
-    `- [Flores en Guayaquil](${buildSiteUrl("/flores-guayaquil")}): Landing SEO principal sobre flores y entregas en Guayaquil.`,
-    `- [Floreria Guayaquil](${buildSiteUrl("/floreria-guayaquil")}): Landing SEO de marca y servicio.`,
-    `- [Ramos de flores](${buildSiteUrl("/ramos-de-flores")}): Landing SEO para ramos.`,
-    `- [Arreglos de flores Guayaquil](${buildSiteUrl("/arreglos-de-flores-guayaquil")}): Landing SEO para arreglos florales.`,
     "",
     "## Product Discovery",
     `- [Productos canonicos](${buildSiteUrl("/shop")}): Las URLs canonicas de producto usan el formato /producto/<slug>.`,
@@ -1315,11 +1303,11 @@ app.get("/merchant-feed.xml", async (_req, res) => {
       <g:availability>in_stock</g:availability>
       <g:price>${precio.toFixed(2)} USD</g:price>
       <g:condition>new</g:condition>
-      <g:brand>DIFIORI</g:brand>
-      <g:mpn>${escapeXml(`DIFIORI-${product.id}`)}</g:mpn>
+      <g:brand>Zetatech</g:brand>
+      <g:mpn>${escapeXml(`ZETATECH-${product.id}`)}</g:mpn>
       <g:identifier_exists>no</g:identifier_exists>
       <g:product_type>${escapeXml(product.category)}</g:product_type>
-      <g:google_product_category>Home &amp; Garden &gt; Decor &gt; Flowers</g:google_product_category>
+      <g:google_product_category>Electronics</g:google_product_category>
       <g:shipping>
         <g:country>EC</g:country>
         <g:service>Entrega en Guayaquil</g:service>
@@ -1334,9 +1322,9 @@ app.get("/merchant-feed.xml", async (_req, res) => {
     res.type("application/xml").send(`<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">
   <channel>
-    <title>DIFIORI - Flores y regalos a domicilio en Guayaquil</title>
+    <title>Zetatech - Gadgets y tecnología a domicilio en Guayaquil</title>
     <link>${escapeXml(buildSiteUrl("/"))}</link>
-    <description>Catálogo de flores, arreglos, desayunos y regalos con entrega en Guayaquil.</description>
+    <description>Catálogo de gadgets, accesorios y equipos tecnológicos con entrega en Guayaquil.</description>
 ${items}
   </channel>
 </rss>`);
@@ -1362,7 +1350,6 @@ app.get("/sitemap.xml", async (_req, res) => {
     const imageByPath = new Map<string, string>([
       ["/", buildSiteUrl("/opengraph.jpg")],
       ["/shop", buildSiteUrl("/opengraph.jpg")],
-      ...SEO_LANDING_PATHS.map((path) => [path, buildSiteUrl("/opengraph.jpg")] as const),
     ]);
 
     for (const product of products) {
@@ -1382,7 +1369,6 @@ app.get("/sitemap.xml", async (_req, res) => {
         "/",
         "/shop",
         "/contacto",
-        ...SEO_LANDING_PATHS,
         ...categoryUrls,
         ...productUrls,
       ]),
@@ -1390,7 +1376,7 @@ app.get("/sitemap.xml", async (_req, res) => {
 
     const priorityForPath = (path: string) => {
       if (path === "/") return "1.0";
-      if (path === "/shop" || SEO_LANDING_PATHS.includes(path)) return "0.9";
+      if (path === "/shop") return "0.9";
       if (path.startsWith("/producto/")) return "0.8";
       if (path.startsWith("/categoria/")) return "0.7";
       return "0.6";
@@ -1507,7 +1493,7 @@ app.use((req, res, next) => {
   // cookies, ni nada que identifique a la persona.
   app.use((req, _res, next) => {
     if (req.method === "GET") {
-      registrarVisita(req.path, String(req.get("user-agent") || ""), SEO_LANDING_PATHS.includes(req.path));
+      registrarVisita(req.path, String(req.get("user-agent") || ""), false);
     }
     next();
   });

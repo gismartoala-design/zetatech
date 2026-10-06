@@ -25,10 +25,8 @@ function encodePublicPath(objectName) {
 }
 
 function getMinioConfig() {
-  const bucketName = process.env.MINIO_BUCKET || "difiori";
-  const publicBaseUrl =
-    normalizePublicBaseUrl(process.env.MINIO_PUBLIC_URL) ||
-    `http://66.94.98.69:9000/${bucketName}`;
+  const bucketName = process.env.MINIO_BUCKET || "zetatech";
+  const publicBaseUrl = normalizePublicBaseUrl(process.env.MINIO_PUBLIC_URL);
 
   return { bucketName, publicBaseUrl };
 }

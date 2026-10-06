@@ -53,7 +53,7 @@ export function CategorySidebar({
     return (
       <div className="w-full lg:w-72">
         <div className="surface-card hidden h-[28rem] animate-pulse lg:block" />
-        <div className="h-20 animate-pulse rounded-2xl border border-[#D9C6EA] bg-white lg:hidden" />
+        <div className="h-20 animate-pulse rounded-2xl border border-primary/40 bg-white lg:hidden" />
       </div>
     );
   }
@@ -64,7 +64,7 @@ export function CategorySidebar({
         <div className="lg:hidden w-full relative group">
           <button
             onClick={() => setIsOpen((current) => !current)}
-            className="w-full flex items-center justify-between gap-4 rounded-2xl border border-[#D9C6EA] bg-white p-6 shadow-lg text-foreground transition-all active:scale-95"
+            className="w-full flex items-center justify-between gap-4 rounded-2xl border border-primary/40 bg-white p-6 shadow-lg text-foreground transition-all active:scale-95"
           >
             <div className="min-w-0 flex items-center gap-3 text-left">
               <Filter className="h-5 w-5 shrink-0 text-[#6F4D95]" />
@@ -133,7 +133,7 @@ export function CategorySidebar({
       <div className="lg:hidden w-full relative group">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full flex items-center justify-between gap-4 rounded-2xl border border-[#D9C6EA] bg-white p-6 shadow-lg text-foreground transition-all active:scale-95"
+          className="w-full flex items-center justify-between gap-4 rounded-2xl border border-primary/40 bg-white p-6 shadow-lg text-foreground transition-all active:scale-95"
         >
           <div className="min-w-0 flex items-center gap-3 text-left">
             <Filter className="h-5 w-5 shrink-0 text-[#6F4D95]" />

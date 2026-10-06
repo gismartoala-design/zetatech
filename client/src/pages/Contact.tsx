@@ -43,7 +43,7 @@ export default function Contact() {
     <div className="page-shell">
       <Seo
         title="Contacto | Zetatech"
-        description="Escríbenos por WhatsApp o correo para pedidos de flores, arreglos y regalos a domicilio en Guayaquil. Atención todos los días."
+        description="Escríbenos por WhatsApp o correo para pedidos de gadgets y accesorios tecnológicos a domicilio en Guayaquil. Atención todos los días."
         path="/contacto"
       />
 
@@ -142,7 +142,7 @@ export default function Contact() {
                 <textarea
                   value={message}
                   onChange={(event) => setMessage(event.target.value)}
-                  placeholder="Ej: un ramo de rosas para entregar mañana en Urdesa"
+                  placeholder="Ej: quiero unos audífonos inalámbricos, entregar mañana en Urdesa"
                   className="h-36 w-full resize-none rounded-2xl border border-primary/25 bg-white px-4 py-3 font-medium text-foreground outline-none transition focus:border-accent"
                 />
               </label>

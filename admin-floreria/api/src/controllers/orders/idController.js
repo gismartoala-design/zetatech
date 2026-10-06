@@ -4,10 +4,8 @@ const { orderEvents } = require("../../events/orderEvents");
 const minioClient = require("../../lib/s3Config");
 const { businessLog, businessError } = require("../../utils/logger");
 
-const PROOFS_BUCKET_NAME = process.env.MINIO_BUCKET || "difiori";
-const PROOFS_PUBLIC_URL = String(
-  process.env.MINIO_PUBLIC_URL || `http://66.94.98.69:9000/${PROOFS_BUCKET_NAME}`
-)
+const PROOFS_BUCKET_NAME = process.env.MINIO_BUCKET || "zetatech";
+const PROOFS_PUBLIC_URL = String(process.env.MINIO_PUBLIC_URL || "")
   .trim()
   .replace(/\/+$/g, "");
 
