@@ -52,7 +52,7 @@ function AnimatedBlock({block,children}:{block:SiteBlock;children:ReactNode}) {
 }
 export interface CarouselProduct {
   id: string; name: string; price: string; image: string; href: string;
-  description?: string; onAdd?: () => void; addLabel?: string;
+  description?: string; onAdd?: () => void; addLabel?: string; linkLabel?: string; badge?: string;
 }
 export function ProductCarousel({products,resolveImage=(url)=>url}:{products:CarouselProduct[];resolveImage?:(url:string)=>string}) {
   const trackRef=useRef<HTMLDivElement>(null);
@@ -136,12 +136,13 @@ export function ProductCarousel({products,resolveImage=(url)=>url}:{products:Car
     <div className="zt-spotlight-track" ref={trackRef}>{products.map(p=>
       <article className="zt-spotlight-slide" key={p.id}>
         <div className="zt-spotlight-copy">
+          {p.badge&&<span className="zt-spotlight-badge">{p.badge}</span>}
           <h3>{p.name}</h3>
           {p.description&&<p>{p.description}</p>}
           <strong className="zt-spotlight-price">{p.price}</strong>
           <div className="zt-spotlight-actions">
             {p.onAdd&&<button type="button" className="zt-button" onClick={p.onAdd}>{p.addLabel||'Añadir al carrito'}</button>}
-            <a className="zt-spotlight-link" href={p.href}>Ver detalles <span aria-hidden="true">↗</span></a>
+            <a className="zt-spotlight-link" href={p.href}>{p.linkLabel||'Ver detalles'} <span aria-hidden="true">↗</span></a>
           </div>
         </div>
         <div className="zt-spotlight-media"><img src={resolveImage(p.image)} alt={p.name} loading="lazy"/></div>

@@ -3,13 +3,14 @@ import { defaultSite, type SiteBlock } from '@shared/website';
 import { useWebsite } from '@/hooks/useWebsite';
 import { useQuery } from '@tanstack/react-query';
 import { resolveApiUrl } from '@/lib/api';
-import type { Product } from '@/data/mock';
+import { INITIAL_PRODUCTS, type Product } from '@/data/mock';
 import { Seo } from '@/components/Seo';
 import { useCart } from '@/context/CartContext';
 import { useCompany } from '@/hooks/useCompany';
 import { useToast } from '@/hooks/use-toast';
 import { toPublicImageUrl } from '@/lib/media';
 import { getProductPath } from '@shared/catalog';
+import { DEFAULT_COMPANY } from '@/lib/site';
 function Products({block}:{block:SiteBlock}) {
   const {data=[],isLoading,isError}=useQuery<Product[]>({queryKey:['website','products'],queryFn:async()=>{
     const response=await fetch(resolveApiUrl('/api/external/website/products'));
@@ -20,19 +21,28 @@ function Products({block}:{block:SiteBlock}) {
   const {data:company}=useCompany();
   const {toast}=useToast();
   const acceptOrders=company?.settings?.acceptOrders!==false;
-  const eligible=data.filter(p=>(!block.category||p.category===block.category)&&(!block.featured||p.isBestSeller));
-  const products=(block.productIds.length?block.productIds.flatMap(id=>eligible.filter(p=>p.id===id)):eligible).slice(0,block.limit);
   if(isLoading)return <p role="status">Cargando productos…</p>;
-  if(isError)return <p role="status">El catálogo no está disponible en este momento. Intenta nuevamente en unos minutos.</p>;
+  // Mientras el catálogo real no responde o todavía no tiene productos, se
+  // muestran ejemplos para que la portada nunca luzca vacía o rota; se
+  // marcan como tal y su acción lleva a WhatsApp en vez de simular una
+  // compra de algo que no existe en el inventario real.
+  const usingExamples=isError||!data.length;
+  const source=usingExamples?INITIAL_PRODUCTS:data;
+  const eligible=source.filter(p=>(!block.category||p.category===block.category)&&(!block.featured||p.isBestSeller));
+  const products=(block.productIds.length&&!usingExamples?block.productIds.flatMap(id=>eligible.filter(p=>p.id===id)):eligible).slice(0,block.limit);
   if(!products.length)return <p>Próximamente encontrarás productos en esta colección.</p>;
-  const items:CarouselProduct[]=products.map(product=>({
+  const items:CarouselProduct[]=products.map(product=>usingExamples?{
+    id:product.id,name:product.name,price:product.price,image:product.image,
+    description:product.description,badge:'Ejemplo',linkLabel:'Preguntar por WhatsApp',
+    href:`https://wa.me/${DEFAULT_COMPANY.phoneDigits}?text=${encodeURIComponent(`Hola, me interesa ${product.name}. ¿Está disponible?`)}`,
+  }:{
     id:product.id,name:product.name,price:product.price,image:product.image,
     description:product.description,href:getProductPath(product),addLabel:'Añadir al carrito',
     onAdd:()=>{
       if(!acceptOrders){toast({title:'Tienda cerrada temporalmente',description:'Por ahora no estamos recibiendo nuevos pedidos.',duration:4000});return;}
       addItem(product);setIsCartOpen(true);
     },
-  }));
+  });
   return <ProductCarousel products={items}/>;
 }
 export default function Home(){
