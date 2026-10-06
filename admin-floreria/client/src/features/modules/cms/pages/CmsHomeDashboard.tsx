@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import axios from 'axios';
 import { createPortal } from 'react-dom';
 import { useUserStore } from '@/store/use-user-store';
@@ -12,9 +12,9 @@ const api=axios.create({baseURL:ADMIN_API_URL,withCredentials:true,headers:{'X-S
 type State={revision:number;draft:SiteDocument|null;published:SiteDocument|null;publishedAt?:string;history:{id:string;at:string;document:SiteDocument}[]};
 const copy=<T,>(value:T):T=>JSON.parse(JSON.stringify(value));
 const asset=(url:string)=>/^https?:/.test(url)?url:new URL(url,new URL(ADMIN_API_URL,window.location.origin).origin).href;
-function Frame({children,width}:{children:ReactNode;width:string}) {
+function Frame({children,width,fill}:{children:ReactNode;width:string;fill?:boolean}) {
   const [body,setBody]=useState<HTMLElement|null>(null);
-  return <iframe title="Vista previa privada del sitio" style={{width,height:850,border:0,background:'white'}} srcDoc={'<!doctype html><html><head><style>body{margin:0}button,input{font:inherit}a{cursor:pointer}</style></head><body></body></html>'} onLoad={e=>setBody(e.currentTarget.contentDocument?.body||null)}>{body&&createPortal(<><style>{siteCss}</style>{children}</>,body)}</iframe>;
+  return <iframe title="Vista previa privada del sitio" style={fill?{width,height:'100%',border:0,background:'white'}:{width,height:850,border:0,background:'white'}} srcDoc={'<!doctype html><html><head><style>body{margin:0}button,input{font:inherit}a{cursor:pointer}</style></head><body></body></html>'} onLoad={e=>setBody(e.currentTarget.contentDocument?.body||null)}>{body&&createPortal(<><style>{siteCss}</style>{children}</>,body)}</iframe>;
 }
 function Field({label,value,onChange,type='text',min,max}:{label:string;value:string|number;onChange:(v:string)=>void;type?:string;min?:number;max?:number}) {
   return <label className="we-field">{label}<input type={type} value={value} min={min} max={max} onChange={e=>onChange(e.target.value)}/></label>;
@@ -33,6 +33,8 @@ function WebsiteEditor(){
   const [message,setMessage]=useState('');
   const [error,setError]=useState('');
   const [width,setWidth]=useState('100%');
+  const [focusMode,setFocusMode]=useState(false);
+  const previewRef=useRef<HTMLElement>(null);
   const [history,setHistory]=useState<SiteDocument[]>([]);
   const [future,setFuture]=useState<SiteDocument[]>([]);
   const [drag,setDrag]=useState('');
@@ -42,6 +44,12 @@ function WebsiteEditor(){
   useEffect(()=>{api.get('/cms/website').then(r=>{setState(r.data.data);const d=r.data.data.draft||r.data.data.published||copy(defaultSite);setDoc(d);setSaved(JSON.stringify(d));}).catch(()=>setError('No se pudo abrir el editor. Verifica tu sesión y la conexión con el servidor.'));},[]);
   useEffect(()=>{api.get('/cms/website/products').then(r=>setProducts(r.data.data)).catch(()=>setMessage('No se pudo cargar el catálogo para la vista previa.'));},[]);
   useEffect(()=>{const fn=(e:BeforeUnloadEvent)=>{if(dirty){e.preventDefault();e.returnValue='';}};window.addEventListener('beforeunload',fn);return()=>window.removeEventListener('beforeunload',fn);},[dirty]);
+  useEffect(()=>{const fn=()=>{if(!document.fullscreenElement)setFocusMode(false);};document.addEventListener('fullscreenchange',fn);return()=>document.removeEventListener('fullscreenchange',fn);},[]);
+  async function toggleFocusMode(){
+    if(focusMode){setFocusMode(false);if(document.fullscreenElement)await document.exitFullscreen().catch(()=>{});return;}
+    setFocusMode(true);
+    try{await previewRef.current?.requestFullscreen();}catch{/* el modo visual de pantalla completa ya quedó activo */}
+  }
   const edit=(next:SiteDocument)=>{setHistory(h=>[...h.slice(-29),copy(doc)]);setFuture([]);setDoc(next);setMessage('');};
   const updateBlock=(patch:Partial<SiteBlock>)=>edit({...doc,blocks:doc.blocks.map(b=>b.id===selected?{...b,...patch}:b)});
   const theme=(patch:Partial<SiteDocument['theme']>)=>edit({...doc,theme:{...doc.theme,...patch}});
@@ -61,7 +69,7 @@ function WebsiteEditor(){
   return <div className="we-editor"><header className="we-toolbar"><div><h1>Editor de Zetatech</h1><small>{dirty?'Cambios sin guardar':'Cambios guardados'} · {state?.publishedAt?`Última publicación: ${new Date(state.publishedAt).toLocaleString('es-EC')}`:'Sin publicar'}</small></div><div className="we-actions"><button disabled={!history.length||busy} onClick={()=>{setFuture(f=>[copy(doc),...f]);setDoc(history[history.length-1]);setHistory(h=>h.slice(0,-1));}}>Deshacer</button><button disabled={!future.length||busy} onClick={()=>{setHistory(h=>[...h,copy(doc)]);setDoc(future[0]);setFuture(f=>f.slice(1));}}>Rehacer</button><button disabled={busy||!state} onClick={()=>persist('save')}>Guardar borrador</button><button className="we-primary" disabled={busy||!state} onClick={()=>persist('publish')}>{busy?'Procesando…':'Publicar'}</button></div></header>
     {message&&<p role="status" className="we-message">{message}</p>}{error&&<p role="alert" className="we-error">{error}</p>}
     <div className="we-layout"><aside className="we-panel"><button onClick={()=>setSelected('appearance')}>Apariencia y navegación</button><h2>Bloques</h2><p>Arrastra para ordenar o usa las flechas.</p>{doc.blocks.map((b,i)=><div key={b.id} className={`we-block-row ${selected===b.id?'we-selected':''}`} draggable onDragStart={()=>setDrag(b.id)} onDragOver={e=>e.preventDefault()} onDrop={()=>move(drag,i)}><button onClick={()=>setSelected(b.id)}>{b.hidden?'◌':'●'} {b.title||blockLabels[b.type]}</button><div><button aria-label={`Subir ${b.title}`} disabled={i===0} onClick={()=>move(b.id,i-1)}>↑</button><button aria-label={`Bajar ${b.title}`} disabled={i===doc.blocks.length-1} onClick={()=>move(b.id,i+1)}>↓</button></div></div>)}<label className="we-field">Agregar bloque<select value="" disabled={doc.blocks.length>=40} onChange={e=>{const b=newBlock(e.target.value as BlockType,crypto.randomUUID());edit({...doc,blocks:[...doc.blocks,b]});setSelected(b.id);}}><option value="">Seleccionar…</option>{Object.entries(blockLabels).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label><h2>Biblioteca</h2><input aria-label="Subir imagen" type="file" accept="image/jpeg,image/png,image/webp" disabled={busy||doc.media.length>=100} onChange={e=>{upload(e.target.files?.[0]);e.target.value='';}}/><div className="we-library">{doc.media.map(url=><img key={url} src={asset(url)} alt={url.split('/').pop()}/>)}</div><h2>Versiones publicadas</h2>{state?.history.map(h=><button key={h.id} disabled={busy} onClick={()=>persist('restore',h.id)}>Recuperar {new Date(h.at).toLocaleString('es-EC')}</button>)}</aside>
-    <section className="we-preview"><div className="we-actions"><button onClick={()=>setWidth('100%')}>Escritorio</button><button onClick={()=>setWidth('768px')}>Tablet</button><button onClick={()=>setWidth('390px')}>Móvil</button><span>Vista previa privada</span></div><Frame width={width}><SiteRenderer document={doc} preview resolveImage={asset} cart={<button>{doc.theme.cartLabel}</button>} renderProducts={b=>{const list=products.filter(p=>(!b.productIds.length||b.productIds.includes(p.id))&&(!b.category||p.category===b.category)&&(!b.featured||p.isBestSeller)).slice(0,b.limit);return <div className="zt-products">{list.map(p=><article key={p.id}>{p.image&&<img src={asset(p.image)} alt={p.name} style={{width:'100%',aspectRatio:'1',objectFit:'cover'}}/>}<h3>{p.name}</h3><p>{p.price}</p></article>)}{!list.length&&<p>No hay productos que coincidan. Administra el catálogo desde Productos.</p>}</div>;}}/></Frame></section>
+    <section ref={previewRef} className={`we-preview${focusMode?' we-preview-focus':''}`}><div className="we-actions"><button onClick={()=>setWidth('100%')}>Escritorio</button><button onClick={()=>setWidth('768px')}>Tablet</button><button onClick={()=>setWidth('390px')}>Móvil</button><span>Vista previa privada</span><button className="we-focus-toggle" onClick={toggleFocusMode}>{focusMode?'✕ Salir de pantalla completa':'⛶ Pantalla completa'}</button></div><Frame width={width} fill={focusMode}><SiteRenderer document={doc} preview resolveImage={asset} cart={<button>{doc.theme.cartLabel}</button>} renderProducts={b=>{const list=products.filter(p=>(!b.productIds.length||b.productIds.includes(p.id))&&(!b.category||p.category===b.category)&&(!b.featured||p.isBestSeller)).slice(0,b.limit);return <div className="zt-product-grid">{list.map(p=><article key={p.id}>{p.image&&<img src={asset(p.image)} alt={p.name} style={{width:'100%',aspectRatio:'1',objectFit:'cover'}}/>}<h3>{p.name}</h3><p>{p.price}</p></article>)}{!list.length&&<p>No hay productos que coincidan. Administra el catálogo desde Productos.</p>}</div>;}}/></Frame></section>
     <aside className="we-panel we-properties"><h2>{selected==='appearance'?'Apariencia del sitio':blockLabels[block?.type||'text']}</h2>{selected==='appearance'?<>
       <Field label="Nombre de la marca" value={doc.theme.brand} onChange={v=>theme({brand:v})}/><Field label="Descripción SEO" value={doc.theme.description} onChange={v=>theme({description:v})}/><Field label="Texto del pie" value={doc.theme.footer} onChange={v=>theme({footer:v})}/><Field label="Texto del carrito" value={doc.theme.cartLabel} onChange={v=>theme({cartLabel:v})}/><Field label="Texto del acceso al catálogo" value={doc.theme.searchLabel} onChange={v=>theme({searchLabel:v})}/>
       {imageField('Logo',doc.theme.logo,v=>theme({logo:v}))}{imageField('Favicon',doc.theme.favicon,v=>theme({favicon:v}))}

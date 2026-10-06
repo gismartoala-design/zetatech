@@ -1,15 +1,28 @@
-import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { type SiteBlock, type SiteDocument } from './website';
 import './website.css';
 export const siteFonts = {system:'Inter, system-ui, sans-serif',serif:'Georgia, serif',mono:'ui-monospace, monospace'};
 export function SiteHeader({theme:t,cart,resolveImage=(url)=>url}:{theme:SiteDocument['theme'];cart?:ReactNode;resolveImage?:(url:string)=>string}) {
-  return <header className="zt-header"><a href="/" className="zt-brand">{t.logo?<img src={resolveImage(t.logo)} alt={t.brand}/>:<><span className="zt-mark">Z</span>{t.brand}</>}</a><nav aria-label="Navegación principal">{t.links.map((l,i)=><a key={i} href={l.href.startsWith('#')?`/${l.href}`:l.href}>{l.label}</a>)}</nav><div className="zt-header-actions"><a href="/shop" aria-label={t.searchLabel}>{t.searchLabel}</a>{cart}</div></header>;
+  const [scrolled,setScrolled]=useState(false);
+  useEffect(()=>{
+    const onScroll=()=>setScrolled(window.scrollY>8);
+    onScroll();
+    window.addEventListener('scroll',onScroll,{passive:true});
+    return ()=>window.removeEventListener('scroll',onScroll);
+  },[]);
+  return <header className="zt-header" data-scrolled={scrolled}><a href="/" className="zt-brand">{t.logo?<img src={resolveImage(t.logo)} alt={t.brand}/>:<><span className="zt-mark">Z</span>{t.brand}</>}</a><nav aria-label="Navegación principal">{t.links.map((l,i)=><a key={i} href={l.href.startsWith('#')?`/${l.href}`:l.href}>{l.label}</a>)}</nav><div className="zt-header-actions"><a href="/shop" aria-label={t.searchLabel}>{t.searchLabel}</a>{cart}</div></header>;
 }
 function AnimatedBlock({block,children}:{block:SiteBlock;children:ReactNode}) {
   const ref = useRef<HTMLElement>(null);
   useEffect(()=>{
     const el=ref.current;
     if (!el || typeof IntersectionObserver==='undefined' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    // Lo que ya está a la vista en la primera pintura (el hero, típicamente)
+    // se queda tal cual: ocultarlo un instante para luego revelarlo producía
+    // un parpadeo (blur/opacity) apenas cargaba la página.
+    const rect=el.getBoundingClientRect();
+    const alreadyVisible=rect.top<window.innerHeight*0.92&&rect.bottom>0;
+    if (alreadyVisible) return;
     el.dataset.reveal='waiting';
     const observer = new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){el.dataset.reveal='visible';observer.disconnect();}},{threshold:0.08});
     observer.observe(el);return ()=>observer.disconnect();

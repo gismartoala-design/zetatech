@@ -18,7 +18,7 @@ function Products({block}:{block:SiteBlock}) {
   const products=(block.productIds.length?block.productIds.flatMap(id=>eligible.filter(p=>p.id===id)):eligible).slice(0,block.limit);
   if(isLoading)return <p role="status">Cargando productos…</p>;
   if(isError)return <p role="status">El catálogo no está disponible en este momento. Intenta nuevamente en unos minutos.</p>;
-  return <div className="zt-products">{products.map(product=><ProductCard key={product.id} product={product}/>)}{!products.length&&<p>Próximamente encontrarás productos en esta colección.</p>}</div>;
+  return <div className="zt-product-grid">{products.map(product=><ProductCard key={product.id} product={product}/>)}{!products.length&&<p>Próximamente encontrarás productos en esta colección.</p>}</div>;
 }
 export default function Home(){
   const {data}=useWebsite();
