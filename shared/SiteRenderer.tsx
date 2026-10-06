@@ -52,40 +52,86 @@ function AnimatedBlock({block,children}:{block:SiteBlock;children:ReactNode}) {
 }
 export function ProductCarousel({children}:{children:ReactNode[]}) {
   const trackRef=useRef<HTMLDivElement>(null);
+  const [active,setActive]=useState(0);
+  const activeRef=useRef(0);
+  const pausedRef=useRef(false);
+  useEffect(()=>{activeRef.current=active},[active]);
   useEffect(()=>{
     const track=trackRef.current;
     if (!track) return;
-    const items=()=>Array.from(track.children) as HTMLElement[];
+    // Sin este relleno lateral, el primer y el último elemento nunca llegan a
+    // quedar centrados (el navegador no deja desplazar más allá del final),
+    // así que "siguiente" se quedaba intentando llegar a una posición
+    // imposible una y otra vez.
+    const updatePadding=()=>{
+      const first=track.children[0] as HTMLElement|undefined;
+      if (!first) return;
+      const pad=Math.max(16,(track.clientWidth-first.offsetWidth)/2);
+      track.style.paddingLeft=`${pad}px`;
+      track.style.paddingRight=`${pad}px`;
+    };
     let raf=0;
     const apply=()=>{
       const mid=track.scrollLeft+track.clientWidth/2;
-      for (const item of items()) {
+      let bestIndex=0,bestDist=Infinity;
+      Array.from(track.children).forEach((node,i)=>{
+        const item=node as HTMLElement;
         const center=item.offsetLeft+item.offsetWidth/2;
         const d=Math.max(-1,Math.min(1,(center-mid)/(track.clientWidth/2||1)));
         item.style.setProperty('--d',String(d));
-      }
+        const dist=Math.abs(center-mid);
+        if (dist<bestDist) {bestDist=dist;bestIndex=i;}
+      });
+      setActive(bestIndex);
     };
     const onScroll=()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(apply);};
+    const onResize=()=>{updatePadding();apply();};
+    updatePadding();
     apply();
     track.addEventListener('scroll',onScroll,{passive:true});
-    const onResize=()=>apply();
     window.addEventListener('resize',onResize);
     return ()=>{track.removeEventListener('scroll',onScroll);window.removeEventListener('resize',onResize);cancelAnimationFrame(raf);};
   },[children.length]);
-  const scrollBy=(dir:1|-1)=>{
+  const goTo=(index:number)=>{
     const track=trackRef.current;
-    if (!track) return;
-    const items=Array.from(track.children) as HTMLElement[];
-    // La distancia real entre tarjetas (incluye el gap de verdad, en vez de
-    // asumir uno) para que cada clic avance exactamente un slide.
-    const step=items.length>1?items[1].offsetLeft-items[0].offsetLeft:(items[0]?.offsetWidth||280)+24;
-    track.scrollBy({left:dir*step,behavior:'smooth'});
+    if (!track || !track.children.length) return;
+    const count=track.children.length;
+    const wrapped=((index%count)+count)%count;
+    const item=track.children[wrapped] as HTMLElement;
+    track.scrollTo({left:item.offsetLeft-(track.clientWidth-item.offsetWidth)/2,behavior:'smooth'});
   };
+  // Avance automático con transición suave; se pausa si alguien pasa el
+  // cursor, toca o enfoca el carrusel, y se desactiva por completo con
+  // preferencia de movimiento reducido.
+  useEffect(()=>{
+    const track=trackRef.current;
+    const reduceMotion=typeof window!=='undefined'&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!track || reduceMotion || children.length<2) return;
+    const id=window.setInterval(()=>{if (!pausedRef.current) goTo(activeRef.current+1);},4500);
+    const pause=()=>{pausedRef.current=true;};
+    const resume=()=>{pausedRef.current=false;};
+    track.addEventListener('pointerenter',pause);
+    track.addEventListener('pointerleave',resume);
+    track.addEventListener('pointerdown',pause);
+    track.addEventListener('focusin',pause);
+    track.addEventListener('focusout',resume);
+    return ()=>{
+      window.clearInterval(id);
+      track.removeEventListener('pointerenter',pause);
+      track.removeEventListener('pointerleave',resume);
+      track.removeEventListener('pointerdown',pause);
+      track.removeEventListener('focusin',pause);
+      track.removeEventListener('focusout',resume);
+    };
+  },[children.length]);
   if (!children.length) return null;
   return <div className="zt-carousel">
-    <button type="button" className="zt-carousel-nav zt-carousel-prev" aria-label="Producto anterior" onClick={()=>scrollBy(-1)}>‹</button>
+    <span className="zt-carousel-blob zt-carousel-blob-a" aria-hidden="true"/>
+    <span className="zt-carousel-blob zt-carousel-blob-b" aria-hidden="true"/>
+    <button type="button" className="zt-carousel-nav zt-carousel-prev" aria-label="Producto anterior" onClick={()=>goTo(active-1)}>‹</button>
     <div className="zt-carousel-track" ref={trackRef}>{children.map((child,i)=><div className="zt-carousel-item" key={i}>{child}</div>)}</div>
-    <button type="button" className="zt-carousel-nav zt-carousel-next" aria-label="Siguiente producto" onClick={()=>scrollBy(1)}>›</button>
+    <button type="button" className="zt-carousel-nav zt-carousel-next" aria-label="Siguiente producto" onClick={()=>goTo(active+1)}>›</button>
+    {children.length>1&&<div className="zt-carousel-dots" role="tablist" aria-label="Seleccionar producto">{children.map((_,i)=><button key={i} type="button" role="tab" aria-selected={active===i} aria-label={`Ir al producto ${i+1}`} className={`zt-carousel-dot${active===i?' zt-carousel-dot-active':''}`} onClick={()=>goTo(i)}/>)}</div>}
   </div>;
 }
 export function SiteRenderer({document,renderProducts,cart,resolveImage=(url)=>url,preview=false}:{document:SiteDocument;renderProducts?:(block:SiteBlock)=>ReactNode;cart?:ReactNode;resolveImage?:(url:string)=>string;preview?:boolean}) {

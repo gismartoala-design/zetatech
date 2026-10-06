@@ -104,7 +104,11 @@
 
 /* Carrusel 3D de productos */
 .zt-carousel{position:relative;max-width:1320px;margin:0 auto}
-.zt-carousel-track{display:flex;gap:28px;overflow-x:auto;scroll-snap-type:x mandatory;perspective:1400px;padding:28px 6% 44px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.zt-carousel-blob{position:absolute;z-index:-1;border-radius:62% 38% 55% 45%/48% 42% 58% 52%;filter:blur(44px);opacity:.5;pointer-events:none;background:linear-gradient(135deg,color-mix(in srgb,var(--zt-accent) 55%,#7dd3fc 45%),color-mix(in srgb,var(--zt-accent) 35%,#f0abfc 65%));animation:zt-blob-float 16s ease-in-out infinite}
+.zt-carousel-blob-a{top:-10%;left:2%;width:32%;aspect-ratio:1}
+.zt-carousel-blob-b{bottom:-14%;right:4%;width:26%;aspect-ratio:1;border-radius:40% 60% 45% 55%/55% 45% 55% 45%;animation-delay:-8s}
+@keyframes zt-blob-float{0%,100%{transform:translate(0,0) rotate(0deg)}50%{transform:translate(3%,-4%) rotate(10deg)}}
+.zt-carousel-track{display:flex;gap:28px;overflow-x:auto;scroll-snap-type:x mandatory;perspective:1400px;padding:28px 16px 12px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .zt-carousel-track::-webkit-scrollbar{display:none}
 .zt-carousel-item{--d:0;flex:0 0 min(72%,300px);scroll-snap-align:center;transform:perspective(1400px) rotateY(calc(var(--d) * -30deg)) scale(calc(1 - min(1,abs(var(--d))) * .2)) translateZ(calc(min(1,abs(var(--d))) * -60px));opacity:calc(1 - min(1,abs(var(--d))) * .5);transition:transform 320ms cubic-bezier(.2,.8,.2,1),opacity 320ms ease;will-change:transform}
 .zt-carousel-item>*{width:100%}
@@ -112,9 +116,13 @@
 .zt-carousel-nav:hover{background:color-mix(in srgb,currentColor 18%,transparent);transform:translateY(-50%) scale(1.06)}
 .zt-carousel-prev{left:-6px}
 .zt-carousel-next{right:-6px}
+.zt-carousel-dots{display:flex;justify-content:center;gap:10px;margin:4px 0 8px}
+.zt-carousel-dot{width:8px;height:8px;padding:0;border:0;border-radius:999px;background:color-mix(in srgb,currentColor 25%,transparent);cursor:pointer;transition:width 240ms cubic-bezier(.2,.8,.2,1),background 240ms ease}
+.zt-carousel-dot-active{width:24px;background:var(--zt-accent)}
 @media(max-width:700px){
   .zt-carousel-nav{display:none}
   .zt-carousel-item{flex-basis:78%}
+  .zt-carousel-blob{display:none}
 }
 
 /* Footer */
