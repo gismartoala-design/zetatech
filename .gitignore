@@ -8,3 +8,4 @@ vite.config.ts.*
 .agents/
 skills-lock.json
 logs/
+.local/
