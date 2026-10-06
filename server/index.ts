@@ -1,0 +1,1602 @@
+import express, { type Request, Response, NextFunction } from "express";
+import { registerRoutes } from "./routes";
+import { obtenerResumen, registrarVisita } from "./traffic-log";
+import { getProdTemplate, serveStatic } from "./static";
+import { createServer } from "http";
+import { existsSync, readFileSync } from "fs";
+import { resolve } from "path";
+import { Readable } from "stream";
+import { pipeline } from "stream/promises";
+import {
+  BEST_SELLERS_CATEGORY_NAME,
+  BEST_SELLERS_CATEGORY_SLUG,
+  findCategoryNameBySlug,
+  getCategoryPath,
+  getCategorySlug,
+  getNumericPriceValue,
+  getProductPath,
+  isProductSlugMatch,
+  isPublicCatalogProduct,
+} from "../shared/catalog";
+import { createAppQueryClient } from "../client/src/lib/queryClient";
+import { toPublicImageUrl } from "../client/src/lib/media";
+import { DEFAULT_SEO_STATE, renderSeoTags, type SeoState } from "../client/src/components/Seo";
+import { categoriesQueryKey, fetchCategories } from "../client/src/hooks/useCategories";
+import { companyQueryKey, fetchCompany } from "../client/src/hooks/useCompany";
+import { productsQueryKey, fetchProducts } from "../client/src/hooks/useProducts";
+import { DEFAULT_COMPANY } from "../client/src/lib/site";
+import { INITIAL_PRODUCTS, TESTIMONIALS, type Product } from "../client/src/data/mock";
+import type { QueryClient } from "@tanstack/react-query";
+import type { ViteDevServer } from "vite";
+import type { renderApp as renderAppFn } from "../client/src/server-entry";
+
+const app = express();
+const httpServer = createServer(app);
+const INITIAL_CATALOG_PRODUCTS = 12;
+const HOME_CATALOG_PRODUCTS = 8;
+
+function hydrateEnvFile(envPath: string) {
+  if (!existsSync(envPath)) return;
+
+  const envFile = readFileSync(envPath, "utf8");
+  for (const rawLine of envFile.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) continue;
+
+    const separatorIndex = line.indexOf("=");
+    if (separatorIndex === -1) continue;
+
+    const key = line.slice(0, separatorIndex).trim();
+    const value = line.slice(separatorIndex + 1).trim().replace(/^['"]|['"]$/g, "");
+    if (key && value && !process.env[key]) {
+      process.env[key] = value;
+    }
+  }
+}
+
+function normalizeUrl(value?: string | null) {
+  const normalized = String(value || "").trim();
+  return normalized ? normalized.replace(/\/$/, "") : "";
+}
+
+function hydratePayphoneEnvFromAdminEnv() {
+  if (process.env.PAYPHONE_WEB_TOKEN && process.env.PAYPHONE_WEB_STORE_ID) return;
+
+  const envPath = resolve(process.cwd(), "admin-floreria/api/.env");
+  if (!existsSync(envPath)) return;
+
+  const envFile = readFileSync(envPath, "utf8");
+  for (const rawLine of envFile.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) continue;
+
+    const separatorIndex = line.indexOf("=");
+    if (separatorIndex === -1) continue;
+
+    const key = line.slice(0, separatorIndex).trim();
+    if (
+      key !== "PAYPHONE_WEB_TOKEN" &&
+      key !== "PAYPHONE_WEB_STORE_ID" &&
+      key !== "PAYPHONE_TOKEN" &&
+      key !== "PAYPHONE_STORE_ID"
+    ) continue;
+
+    const value = line.slice(separatorIndex + 1).trim().replace(/^['"]|['"]$/g, "");
+    if (value && !process.env[key]) {
+      process.env[key] = value;
+    }
+  }
+
+  if (!process.env.PAYPHONE_WEB_TOKEN && process.env.PAYPHONE_TOKEN) {
+    process.env.PAYPHONE_WEB_TOKEN = process.env.PAYPHONE_TOKEN;
+  }
+  if (!process.env.PAYPHONE_WEB_STORE_ID && process.env.PAYPHONE_STORE_ID) {
+    process.env.PAYPHONE_WEB_STORE_ID = process.env.PAYPHONE_STORE_ID;
+  }
+}
+
+hydrateEnvFile(resolve(process.cwd(), ".env"));
+hydratePayphoneEnvFromAdminEnv();
+
+function getAdminBackendUrlFromEnv() {
+  const adminEnvPath = resolve(process.cwd(), "admin-floreria/api/.env");
+  if (!existsSync(adminEnvPath)) return null;
+
+  const envFile = readFileSync(adminEnvPath, "utf8");
+  for (const rawLine of envFile.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) continue;
+
+    const separatorIndex = line.indexOf("=");
+    if (separatorIndex === -1) continue;
+
+    const key = line.slice(0, separatorIndex).trim();
+    const value = line.slice(separatorIndex + 1).trim().replace(/^['"]|['"]$/g, "");
+    if (key !== "PORT") continue;
+    if (!value) continue;
+    return `http://localhost:${value}`;
+  }
+
+  return null;
+}
+
+const adminBackendUrl = getAdminBackendUrlFromEnv();
+const BACKEND_ORIGIN = normalizeUrl(
+  adminBackendUrl || process.env.BACKEND_URL || "http://localhost:4000"
+);
+const SITE_URL =
+  normalizeUrl(process.env.APP_PUBLIC_SITE_URL || process.env.SITE_URL || process.env.VITE_SITE_URL) ||
+  "https://difiori.com.ec";
+const ASSET_BASE_URL =
+  normalizeUrl(process.env.APP_PUBLIC_ASSET_URL || process.env.ASSET_BASE_URL || process.env.VITE_ASSET_BASE_URL) ||
+  "";
+const PAYPHONE_WEB_TOKEN = process.env.PAYPHONE_WEB_TOKEN || process.env.PAYPHONE_TOKEN;
+const PAYPHONE_WEB_STORE_ID = process.env.PAYPHONE_WEB_STORE_ID || process.env.PAYPHONE_STORE_ID;
+// Las lecturas publicas se cortan rapido porque tienen fallback local. Las
+// mutaciones (crear orden, subir comprobante, pagos) no lo tienen: si se cortan
+// el cliente ve un error aunque la orden ya se haya guardado en el backend.
+const PUBLIC_PROXY_TIMEOUT_MS = 3500;
+const MUTATION_PROXY_TIMEOUT_MS = 30000;
+const IMAGE_PROXY_TIMEOUT_MS = 6000;
+// El comprobante de pago viaja como data URL en base64, asi que el limite por
+// defecto de express (100kb) rechaza cualquier foto tomada con el celular.
+const JSON_BODY_LIMIT = "25mb";
+
+declare module "http" {
+  interface IncomingMessage {
+    rawBody: unknown;
+  }
+}
+
+app.use(
+  express.json({
+    limit: JSON_BODY_LIMIT,
+    verify: (req, _res, buf) => {
+      req.rawBody = buf;
+    },
+  }),
+);
+
+app.use(express.urlencoded({ limit: JSON_BODY_LIMIT, extended: false }));
+
+function buildBackendUrl(originalUrl: string) {
+  return `${BACKEND_ORIGIN}${originalUrl}`;
+}
+
+function buildSiteUrl(path: string) {
+  return `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
+function formatPayphonePhone(rawPhone: unknown) {
+  const normalized = String(rawPhone || "").trim().replace(/\s+/g, "");
+  if (!normalized) return undefined;
+  if (normalized.startsWith("+")) return normalized;
+  if (normalized.startsWith("0")) return `+593${normalized.slice(1)}`;
+  if (/^\d+$/.test(normalized)) return `+593${normalized}`;
+  return normalized;
+}
+
+function buildRequestOrigin(req: Request) {
+  return `${req.protocol}://${req.get("host")}`;
+}
+
+function getCanonicalHost() {
+  try {
+    return new URL(SITE_URL).host.toLowerCase();
+  } catch {
+    return "";
+  }
+}
+
+function shouldRedirectToCanonicalHost(req: Request) {
+  const canonicalHost = getCanonicalHost();
+  const requestHost = String(req.get("host") || "").toLowerCase();
+
+  if (!canonicalHost || !requestHost) return false;
+  if (requestHost === canonicalHost) return false;
+  if (requestHost.startsWith("localhost") || requestHost.startsWith("127.0.0.1")) return false;
+
+  return requestHost === `www.${canonicalHost}` || requestHost.endsWith(`.${canonicalHost}`);
+}
+
+function buildCanonicalHostUrl(req: Request) {
+  const path = req.originalUrl || req.url || "/";
+  return `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
+function escapeXml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function serializeForScript(value: unknown) {
+  return JSON.stringify(value)
+    .replace(/</g, "\\u003c")
+    .replace(/\u2028/g, "\\u2028")
+    .replace(/\u2029/g, "\\u2029");
+}
+
+function isClosedStreamError(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+
+  const code = "code" in error ? String(error.code || "") : "";
+  const name = "name" in error ? String(error.name || "") : "";
+  const message = "message" in error ? String(error.message || "") : "";
+
+  return (
+    code === "ERR_STREAM_UNABLE_TO_PIPE" ||
+    code === "ERR_STREAM_PREMATURE_CLOSE" ||
+    code === "ECONNRESET" ||
+    name === "AbortError" ||
+    message.includes("premature close") ||
+    message.includes("aborted")
+  );
+}
+
+function shouldIgnoreProxyStreamError(error: unknown, req: Request, res: Response) {
+  return isClosedStreamError(error) && (req.destroyed || req.aborted || res.destroyed || res.writableEnded);
+}
+
+function getPublicApiCacheControl(requestPath: string) {
+  if (requestPath.startsWith('/api/external/website')) return 'no-store';
+  if (requestPath === "/api/external/cms/home-hero") {
+    return "public, max-age=300, stale-while-revalidate=3600";
+  }
+
+  if (
+    requestPath === "/api/external/products" ||
+    requestPath === "/api/external/products/categories" ||
+    requestPath === "/api/external/company" ||
+    requestPath === "/api/external/reviews"
+  ) {
+    return "public, max-age=60, stale-while-revalidate=300";
+  }
+
+  return "public, max-age=120, stale-while-revalidate=600";
+}
+
+async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: number) {
+  const timeoutController = new AbortController();
+  const timer = setTimeout(() => timeoutController.abort(), timeoutMs);
+  const signal = init.signal
+    ? AbortSignal.any([init.signal, timeoutController.signal])
+    : timeoutController.signal;
+
+  try {
+    return await fetch(url, { ...init, signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function createSuccessPayload(data: unknown) {
+  return { status: "success", data };
+}
+
+function getPublicProductsFallback(req: Request) {
+  const category = String(req.query.category || "").trim();
+  const featured = String(req.query.featured || "").trim() === "true";
+  const limit = Number.parseInt(String(req.query.limit || ""), 10);
+
+  let products = INITIAL_PRODUCTS.filter(isPublicCatalogProduct);
+
+  if (category && category !== "all") {
+    const normalizedCategory = category.toLocaleLowerCase("es");
+    products = products.filter((product) => product.category.toLocaleLowerCase("es") === normalizedCategory);
+  }
+
+  if (featured) {
+    products = products.filter((product) => product.isBestSeller);
+  }
+
+  if (Number.isFinite(limit) && limit > 0) {
+    products = products.slice(0, limit);
+  }
+
+  return products;
+}
+
+function getPublicCategoriesFallback() {
+  return Array.from(
+    new Set(
+      INITIAL_PRODUCTS.filter(isPublicCatalogProduct)
+        .map((product) => product.category)
+        .filter(Boolean),
+    ),
+  ).sort((left, right) => getCategorySlug(left).localeCompare(getCategorySlug(right), "es"));
+}
+
+function getHomeHeroFallback() {
+  return {
+    id: 0,
+    title: "Sorprende hoy. Nosotros lo entregamos por ti.",
+    description: "Historias reales de alegria en Guayaquil",
+    images: [
+      {
+        url: "/assets/banner_collage_mobile.webp",
+        alt: "Floreria DIFIORI en Guayaquil",
+      },
+    ],
+    backgroundType: "carousel" as const,
+  };
+}
+
+function getCompanyFallback() {
+  return {
+    name: DEFAULT_COMPANY.name,
+    email: DEFAULT_COMPANY.email,
+    phone: DEFAULT_COMPANY.phoneDisplay,
+    address: `${DEFAULT_COMPANY.city}, ${DEFAULT_COMPANY.country}`,
+    settings: {
+      acceptOrders: true,
+    },
+  };
+}
+
+/**
+ * The company endpoint is hydrated into the public HTML, so it must be treated
+ * as a browser-facing API. Keep operational payment secrets in the backend and
+ * expose only the checkout details a customer actually needs.
+ */
+function getPublicCompanyInfo(value: unknown) {
+  const company = value && typeof value === "object" ? value as Record<string, unknown> : {};
+  const settings = company.settings && typeof company.settings === "object"
+    ? company.settings as Record<string, unknown>
+    : {};
+  const paymentSettings = settings.paymentSettings && typeof settings.paymentSettings === "object"
+    ? settings.paymentSettings as Record<string, unknown>
+    : {};
+
+  return {
+    name: typeof company.name === "string" ? company.name : DEFAULT_COMPANY.name,
+    email: typeof company.email === "string" ? company.email : DEFAULT_COMPANY.email,
+    phone: typeof company.phone === "string" ? company.phone : DEFAULT_COMPANY.phoneDisplay,
+    address: typeof company.address === "string" ? company.address : `${DEFAULT_COMPANY.city}, ${DEFAULT_COMPANY.country}`,
+    ...(typeof company.logo === "string" && company.logo ? { logo: company.logo } : {}),
+    settings: {
+      acceptOrders: settings.acceptOrders !== false,
+      paymentSettings: {
+        ...(typeof paymentSettings.transferInstructions === "string"
+          ? { transferInstructions: paymentSettings.transferInstructions }
+          : {}),
+        ...(Array.isArray(paymentSettings.shippingSectorRates)
+          ? { shippingSectorRates: paymentSettings.shippingSectorRates }
+          : {}),
+      },
+    },
+  };
+}
+
+function getReviewsFallback() {
+  return TESTIMONIALS.map((review, index) => ({
+    id: `fallback-review-${index + 1}`,
+    ...review,
+  }));
+}
+
+function tryHandlePublicApiFallback(req: Request, res: Response) {
+  if (req.method !== "GET" && req.method !== "HEAD") {
+    return false;
+  }
+
+  const requestPath = req.originalUrl.split("?")[0] || req.path;
+  let payload: { status: string; data: unknown } | null = null;
+
+  if (requestPath === "/api/external/products") {
+    payload = createSuccessPayload(getPublicProductsFallback(req));
+  } else if (requestPath === "/api/external/products/categories") {
+    payload = createSuccessPayload(getPublicCategoriesFallback());
+  } else if (requestPath === "/api/external/cms/home-hero") {
+    payload = createSuccessPayload(getHomeHeroFallback());
+  } else if (requestPath === "/api/external/company") {
+    payload = createSuccessPayload(getCompanyFallback());
+  } else if (requestPath === "/api/external/reviews") {
+    payload = createSuccessPayload(getReviewsFallback());
+  }
+
+  if (!payload) return false;
+
+  res.setHeader("Cache-Control", getPublicApiCacheControl(requestPath));
+  return req.method === "HEAD" ? res.status(200).end() : res.status(200).json(payload);
+}
+
+function injectHtml(
+  template: string,
+  {
+    head,
+    appHtml = "",
+    stateScript = "",
+  }: {
+    head: string;
+    appHtml?: string;
+    stateScript?: string;
+  },
+) {
+  return template
+    .replace("<!--app-head-->", head)
+    .replace("<!--app-html-->", appHtml)
+    .replace("<!--app-state-->", stateScript);
+}
+
+function buildPublicConfigScript() {
+  return `<script>window.__APP_CONFIG__ = ${serializeForScript({
+    siteUrl: SITE_URL,
+    ...(ASSET_BASE_URL ? { assetBaseUrl: ASSET_BASE_URL } : {}),
+    ...(String(process.env.GA_MEASUREMENT_ID || process.env.VITE_GA_MEASUREMENT_ID || "").trim()
+      ? { gaMeasurementId: String(process.env.GA_MEASUREMENT_ID || process.env.VITE_GA_MEASUREMENT_ID).trim() }
+      : {}),
+  })}</script>`;
+}
+
+function getFallbackSeoState(path: string): SeoState {
+  if (path === "/") {
+    return {
+      ...DEFAULT_SEO_STATE,
+      title: "Flores y Ramos a Domicilio en Guayaquil | DIFIORI",
+      description: "Compra flores frescas, ramos y arreglos florales en Guayaquil con entrega a domicilio, pagos seguros y atención rápida por WhatsApp.",
+      keywords: "flores en guayaquil, floreria guayaquil, ramos de flores guayaquil, arreglos florales guayaquil, flores a domicilio guayaquil",
+      path,
+    };
+  }
+
+  if (path === "/contacto") {
+    return {
+      ...DEFAULT_SEO_STATE,
+      title: "Contacto | Floreria DIFIORI en Guayaquil",
+      description: "Escríbenos por WhatsApp o correo para pedidos de flores, arreglos y regalos a domicilio en Guayaquil. Atención todos los días.",
+      path,
+    };
+  }
+
+  if (path === "/checkout") {
+    return {
+      ...DEFAULT_SEO_STATE,
+      title: "Checkout | DIFIORI",
+      description: "Proceso de checkout de DIFIORI.",
+      path,
+      robots: "noindex, nofollow",
+    };
+  }
+
+  if (path === "/payment-gateway") {
+    return {
+      ...DEFAULT_SEO_STATE,
+      title: "Pago con tarjeta | DIFIORI",
+      description: "Completa tu pago seguro con DIFIORI.",
+      path,
+      robots: "noindex, nofollow",
+    };
+  }
+
+  if (path === "/payment-result") {
+    return {
+      ...DEFAULT_SEO_STATE,
+      title: "Resultado de pago | DIFIORI",
+      description: "Resultado del proceso de pago en DIFIORI.",
+      path,
+      robots: "noindex, nofollow",
+    };
+  }
+
+  return {
+    ...DEFAULT_SEO_STATE,
+    path,
+  };
+}
+
+function shouldSsrPath(path: string) {
+  return (
+    path === "/" ||
+    path === "/shop" ||
+    path === "/contacto" ||
+    SEO_LANDING_PATHS.includes(path) ||
+    path.startsWith("/categoria/") ||
+    path.startsWith("/producto/")
+  );
+}
+
+const NON_SSR_APP_PATHS = [
+  "/contacto",
+  "/checkout",
+  "/payment-gateway",
+  "/payment-result",
+];
+
+function isKnownAppPath(path: string) {
+  return (
+    shouldSsrPath(path) ||
+    NON_SSR_APP_PATHS.includes(path) ||
+    path.startsWith("/product/")
+  );
+}
+
+type RenderApp = typeof renderAppFn;
+
+async function loadRenderApp(vite?: ViteDevServer): Promise<RenderApp> {
+  if (vite) {
+    const module = await vite.ssrLoadModule("/src/server-entry.tsx");
+    return module.renderApp as RenderApp;
+  }
+
+  return (await import("../client/src/server-entry")).renderApp;
+}
+
+async function prefetchSsrRouteData(queryClient: QueryClient, path: string, baseUrl: string) {
+  const { fetchWebsite } = await import('../client/src/hooks/useWebsite');
+  await queryClient.prefetchQuery({queryKey:['website','published'],queryFn:()=>fetchWebsite(baseUrl)});
+  await queryClient.prefetchQuery({
+    queryKey: companyQueryKey,
+    queryFn: () => fetchCompany(baseUrl),
+  });
+
+  if (path === "/contacto") {
+    return 200;
+  }
+
+  if (path === "/") {
+    // Categorías y una vitrina corta permiten comprar desde el primer HTML sin
+    // volver pesada la portada. El catálogo completo llega tras hidratar.
+    await Promise.all([
+      queryClient.prefetchQuery({
+        queryKey: categoriesQueryKey,
+        queryFn: () => fetchCategories(baseUrl),
+      }),
+      queryClient.prefetchQuery({
+        queryKey: productsQueryKey({ limit: HOME_CATALOG_PRODUCTS, summary: true }),
+        queryFn: () => fetchProducts({ limit: HOME_CATALOG_PRODUCTS, summary: true }, baseUrl),
+      }),
+    ]);
+
+    return 200;
+  }
+
+  if (SEO_LANDING_PATHS.includes(path)) {
+    await queryClient.prefetchQuery({
+      queryKey: productsQueryKey(),
+      queryFn: () => fetchProducts(undefined, baseUrl),
+    });
+
+    return 200;
+  }
+
+  if (path === "/shop") {
+    // Entrega una vitrina real y ligera en el HTML inicial. El navegador carga
+    // el resto después; así Google descubre productos desde /shop sin volver a
+    // incrustar todo el inventario en cada respuesta.
+    await queryClient.prefetchQuery({
+      queryKey: productsQueryKey({ limit: INITIAL_CATALOG_PRODUCTS, summary: true }),
+      queryFn: () => fetchProducts({ limit: INITIAL_CATALOG_PRODUCTS, summary: true }, baseUrl),
+    });
+
+    return 200;
+  }
+
+  if (path.startsWith("/categoria/")) {
+    await queryClient.prefetchQuery({
+      queryKey: categoriesQueryKey,
+      queryFn: () => fetchCategories(baseUrl),
+    });
+
+    const categories = queryClient.getQueryData<string[]>(categoriesQueryKey) || [];
+    const slug = decodeURIComponent(path.replace("/categoria/", ""));
+    const categoryName = findCategoryNameBySlug(categories, slug);
+
+    if (!categoryName) {
+      return 404;
+    }
+
+    const categoryFilter = slug === BEST_SELLERS_CATEGORY_SLUG ? undefined : categoryName;
+    await queryClient.prefetchQuery({
+      queryKey: productsQueryKey(categoryFilter),
+      queryFn: () => fetchProducts(categoryFilter, baseUrl),
+    });
+
+    return 200;
+  }
+
+  if (path.startsWith("/producto/")) {
+    await queryClient.prefetchQuery({
+      queryKey: productsQueryKey(),
+      queryFn: () => fetchProducts(undefined, baseUrl),
+    });
+
+    const slug = decodeURIComponent(path.replace("/producto/", ""));
+    const products = queryClient.getQueryData<Product[]>(productsQueryKey()) || [];
+    const product = products.find((item) => isProductSlugMatch(item, slug));
+
+    return product ? 200 : 404;
+  }
+
+  return 200;
+}
+
+function getProxyTimeoutMs(req: Request) {
+  return req.method === "GET" || req.method === "HEAD"
+    ? PUBLIC_PROXY_TIMEOUT_MS
+    : MUTATION_PROXY_TIMEOUT_MS;
+}
+
+async function proxyToBackend(req: Request, res: Response) {
+  const backendUrl = buildBackendUrl(req.originalUrl);
+  const contentType = req.get("Content-Type");
+  const accept = req.get("Accept");
+  const ifNoneMatch = req.get("If-None-Match");
+  const ifModifiedSince = req.get("If-Modified-Since");
+  const range = req.get("Range");
+  const cacheControl = req.get("Cache-Control");
+  const abortController = new AbortController();
+  const abortRequest = () => abortController.abort();
+
+  req.once("aborted", abortRequest);
+  res.once("close", abortRequest);
+
+  try {
+    const response = await fetchWithTimeout(backendUrl, {
+      method: req.method,
+      headers: {
+        ...(contentType ? { "Content-Type": contentType } : {}),
+        ...(accept ? { Accept: accept } : {}),
+        ...(ifNoneMatch ? { "If-None-Match": ifNoneMatch } : {}),
+        ...(ifModifiedSince ? { "If-Modified-Since": ifModifiedSince } : {}),
+        ...(range ? { Range: range } : {}),
+        ...(cacheControl ? { "Cache-Control": cacheControl } : {}),
+        ...(req.originalUrl.startsWith('/api/external/website') ? { Origin: req.get('Origin') || `${req.protocol}://${req.get('host')}` } : {}),
+      },
+      signal: abortController.signal,
+      body: ["POST", "PUT", "PATCH"].includes(req.method) ? JSON.stringify(req.body) : undefined,
+    }, getProxyTimeoutMs(req));
+
+    // Do not proxy the raw admin configuration into the browser or SSR state.
+    if (req.method === "GET" && (req.originalUrl.split("?")[0] || req.path) === "/api/external/company") {
+      const payload = await response.json().catch(() => null) as { status?: string; data?: unknown } | null;
+      if (!payload || !response.ok) {
+        return res.status(response.status).json(payload || { status: "error", message: "No se pudo obtener la información de la empresa." });
+      }
+
+      res.setHeader("Cache-Control", getPublicApiCacheControl("/api/external/company"));
+      return res.status(response.status).json(createSuccessPayload(getPublicCompanyInfo(payload.data)));
+    }
+
+    response.headers.forEach((value, key) => {
+      if (["content-length", "transfer-encoding", "connection"].includes(key.toLowerCase())) {
+        return;
+      }
+
+      res.setHeader(key, value);
+    });
+
+    if (req.originalUrl.startsWith("/uploads/") && !response.headers.has("cache-control")) {
+      res.setHeader("Cache-Control", "public, max-age=31536000, stale-while-revalidate=86400");
+    }
+
+    if (
+      req.method === "GET" &&
+      req.originalUrl.startsWith("/api/external/") &&
+      !response.headers.has("cache-control")
+    ) {
+      res.setHeader("Cache-Control", getPublicApiCacheControl(req.originalUrl.split("?")[0] || req.path));
+    }
+
+    res.status(response.status);
+
+    if (req.method === "HEAD" || !response.body) {
+      return res.end();
+    }
+
+    await pipeline(Readable.fromWeb(response.body as any), res);
+    return;
+  } catch (error) {
+    if (shouldIgnoreProxyStreamError(error, req, res)) {
+      return;
+    }
+
+    if (tryHandlePublicApiFallback(req, res)) {
+      return;
+    }
+
+    console.error(`Proxy Error (Store -> Backend) [${req.method} ${backendUrl}]:`, error);
+
+    // En una mutacion cortada por tiempo la orden puede haberse guardado igual;
+    // evitamos que el cliente vuelva a enviarla y genere pedidos duplicados.
+    const isTimeout = error instanceof Error && error.name === "AbortError";
+    if (isTimeout && req.method !== "GET" && req.method !== "HEAD") {
+      return res.status(504).json({
+        status: "error",
+        message:
+          "Tu pedido esta tardando en confirmarse. No lo envies de nuevo: escribenos por WhatsApp y lo verificamos contigo.",
+      });
+    }
+
+    const errorMessage = error instanceof Error ? error.message : "Error conectando con el servidor de backend";
+    return res.status(500).json({ status: "error", message: errorMessage });
+  } finally {
+    req.off("aborted", abortRequest);
+    res.off("close", abortRequest);
+  }
+}
+
+app.get("/image-proxy", async (req, res) => {
+  const rawUrl = String(req.query.url || "").trim();
+  if (!rawUrl) {
+    return res.status(400).send("Missing image url");
+  }
+  const abortController = new AbortController();
+  const abortRequest = () => abortController.abort();
+
+  req.once("aborted", abortRequest);
+  res.once("close", abortRequest);
+
+  let target: URL;
+  try {
+    target = new URL(rawUrl);
+  } catch {
+    return res.status(400).send("Invalid image url");
+  }
+
+  if (!["http:", "https:"].includes(target.protocol)) {
+    return res.status(400).send("Unsupported protocol");
+  }
+
+  try {
+    const response = await fetchWithTimeout(target.toString(), {
+      signal: abortController.signal,
+      headers: {
+        Accept: "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+      },
+    }, IMAGE_PROXY_TIMEOUT_MS);
+
+    if (!response.ok || !response.body) {
+      return res.status(response.status || 502).send("Could not fetch image");
+    }
+
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType && !contentType.startsWith("image/")) {
+      return res.status(415).send("Unsupported content type");
+    }
+
+    if (contentType) {
+      res.setHeader("Content-Type", contentType);
+    }
+
+    res.setHeader("Cache-Control", "public, max-age=2592000, stale-while-revalidate=604800");
+
+    const etag = response.headers.get("etag");
+    if (etag) {
+      res.setHeader("ETag", etag);
+    }
+
+    await pipeline(Readable.fromWeb(response.body as any), res);
+    return;
+  } catch (error) {
+    if (shouldIgnoreProxyStreamError(error, req, res)) {
+      return;
+    }
+
+    console.error("Image proxy error:", error);
+    return res.status(502).send("Image proxy failed");
+  } finally {
+    req.off("aborted", abortRequest);
+    res.off("close", abortRequest);
+  }
+});
+
+async function postJsonToBackend(path: string, payload: unknown) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 20000);
+  try {
+  const response = await fetch(buildBackendUrl(path), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+    signal: controller.signal,
+  });
+
+  const rawBody = await response.text();
+
+  let data: unknown = null;
+  try {
+    data = rawBody ? JSON.parse(rawBody) : null;
+  } catch {
+    data = rawBody;
+  }
+
+  return { response, data, rawBody };
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+app.post("/api/payphone-web/box-prepare", async (req: Request, res: Response) => {
+  try {
+    const { response, data, rawBody } = await postJsonToBackend("/api/external/payphone/box-session", req.body);
+    if (!response.ok || !data || typeof data !== "object" || !("status" in data) || data.status !== "success") {
+      return res.status(response.ok ? 502 : response.status).json({
+        status: "error",
+        message: typeof data === "object" && data && "message" in data ? String(data.message) : "No se pudo crear la sesión de pago.",
+        detail: rawBody,
+      });
+    }
+
+    const sessionData = (data as unknown as {
+      data: {
+        orderId: string;
+        orderNumber: string;
+        clientTransactionId: string;
+        amount: number;
+        amountWithoutTax: number;
+        amountWithTax: number;
+        tax: number;
+        currency: string;
+        reference: string;
+        payphoneToken?: string;
+        payphoneStoreId?: string;
+        payphoneEnvironment?: string;
+      };
+    }).data as {
+      orderId: string;
+      orderNumber: string;
+      clientTransactionId: string;
+      amount: number;
+      amountWithoutTax: number;
+      amountWithTax: number;
+      tax: number;
+      currency: string;
+      reference: string;
+      payphoneToken?: string;
+      payphoneStoreId?: string;
+      payphoneEnvironment?: string;
+    };
+    const phoneNumber = formatPayphonePhone(req.body?.phone);
+    const activeToken = sessionData.payphoneToken || PAYPHONE_WEB_TOKEN;
+    const activeStoreId = sessionData.payphoneStoreId || PAYPHONE_WEB_STORE_ID;
+
+    if (!activeToken || !activeStoreId) {
+      return res.status(503).json({
+        status: "error",
+        message: "PayPhone no tiene Token y Store ID completos en el administrador.",
+      });
+    }
+
+    const paymentBoxData = {
+      amount: sessionData.amount,
+      amountWithoutTax: sessionData.amountWithoutTax,
+      amountWithTax: sessionData.amountWithTax,
+      tax: sessionData.tax,
+      service: 0,
+      tip: 0,
+      currency: sessionData.currency,
+      token: activeToken,
+      storeId: activeStoreId,
+      reference: sessionData.reference,
+      lang: "es",
+      defaultMethod: "card",
+      timeZone: -5,
+      lat: "-1.831239",
+      lng: "-78.183406",
+      optionalParameter: sessionData.orderId,
+      ...(phoneNumber ? { phoneNumber } : {}),
+      clientTransactionId: sessionData.clientTransactionId,
+    };
+
+    console.log("[PAYPHONE_WEB][BOX_PREPARE]", JSON.stringify({
+      orderId: sessionData.orderId,
+      orderNumber: sessionData.orderNumber,
+      reference: sessionData.reference,
+      clientTransactionId: sessionData.clientTransactionId,
+      environment: sessionData.payphoneEnvironment || "configured",
+      paymentBoxData: {
+        amount: paymentBoxData.amount,
+        currency: paymentBoxData.currency,
+        storeIdConfigured: Boolean(activeStoreId),
+        tokenConfigured: Boolean(activeToken),
+      },
+    }, null, 2));
+
+    return res.status(200).json({
+      status: "success",
+      data: {
+        orderId: sessionData.orderId,
+        orderNumber: sessionData.orderNumber,
+        reference: sessionData.reference,
+        clientTransactionId: sessionData.clientTransactionId,
+        paymentBoxData,
+      },
+    });
+  } catch (error) {
+    console.error("[PAYPHONE_WEB][BOX_PREPARE][ERROR]", error);
+    return res.status(500).json({
+      status: "error",
+      message: "No se pudo preparar el Payment Box desde el servidor web.",
+    });
+  }
+});
+
+app.post("/api/payphone-web/finalize", async (req: Request, res: Response) => {
+  try {
+    const { response, data, rawBody } = await postJsonToBackend("/api/external/payphone/finalize", req.body);
+
+    console.log("[PAYPHONE_WEB][FINALIZE_PROXY]", JSON.stringify({
+      status: response.status,
+      body: rawBody,
+    }, null, 2));
+
+    if (!response.ok) {
+      return res.status(response.status).json(
+        typeof data === "object" && data ? data : {
+          status: "error",
+          message: "No se pudo persistir el resultado del pago en el backend.",
+          detail: rawBody,
+        },
+      );
+    }
+
+    return res.status(200).json(data);
+  } catch (error) {
+    console.error("[PAYPHONE_WEB][FINALIZE][ERROR]", error);
+    return res.status(500).json({
+      status: "error",
+      message: "No se pudo finalizar el pago desde el servidor web.",
+    });
+  }
+});
+
+// Confirm PayPhone from the server, not from the customer's browser. This
+// prevents an interrupted redirect, ad blocker, or lost connection from
+// leaving a card payment in an inconsistent state.
+app.post("/api/payphone-web/confirm-and-finalize", async (req: Request, res: Response) => {
+  try {
+    const clientTransactionId = String(req.body?.clientTransactionId || req.body?.clientTxId || "").trim();
+    const transactionId = Number(req.body?.id);
+    const wasCancelled = req.body?.transactionStatus === "CANCELLED";
+
+    if (!clientTransactionId) {
+      return res.status(400).json({ status: "error", message: "Falta la referencia de la transacción." });
+    }
+
+    if (wasCancelled) {
+      const { response, data } = await postJsonToBackend("/api/external/payphone/finalize", {
+        id: Number.isFinite(transactionId) ? transactionId : undefined,
+        clientTransactionId,
+        transactionStatus: "CANCELLED",
+      });
+      return res.status(response.status).json(data);
+    }
+
+    if (!Number.isSafeInteger(transactionId) || transactionId <= 0) {
+      return res.status(400).json({ status: "error", message: "La transacción de PayPhone no es válida." });
+    }
+
+    const { response, data } = await postJsonToBackend("/api/external/payphone/confirm", {
+      id: transactionId,
+      clientTransactionId,
+    });
+
+    return res.status(response.status).json(data);
+  } catch (error) {
+    console.error("[PAYPHONE_WEB][CONFIRM_AND_FINALIZE_ERROR]", error);
+    return res.status(502).json({
+      status: "error",
+      message: "No pudimos verificar el pago todavía. Tu pedido quedó pendiente de confirmación.",
+    });
+  }
+});
+
+// PayPhone redirects here after charging. Confirm immediately during the HTTP
+// request so the transaction does not depend on React, JavaScript, or the user
+// keeping the tab open. PaymentResult retries idempotently on the client.
+app.get("/payment-result", async (req: Request, _res: Response, next: NextFunction) => {
+  const transactionId = Number(req.query.id);
+  const clientTransactionId = String(req.query.clientTransactionId || "").trim();
+
+  if (!Number.isSafeInteger(transactionId) || transactionId <= 0 || !clientTransactionId) {
+    return next();
+  }
+
+  try {
+    const { response } = await postJsonToBackend("/api/external/payphone/confirm", {
+      id: transactionId,
+      clientTransactionId,
+    });
+
+    if (!response.ok) {
+      console.error("[PAYPHONE_WEB][CALLBACK_CONFIRM_FAILED]", {
+        status: response.status,
+        transactionId,
+        clientTransactionId,
+      });
+    }
+  } catch (error) {
+    console.error("[PAYPHONE_WEB][CALLBACK_CONFIRM_ERROR]", error);
+  }
+
+  return next();
+});
+
+function sendGone(res: Response, path: string) {
+  res.setHeader("X-Robots-Tag", "noindex, nofollow");
+  return res.status(410).type("text/html").send(`<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Contenido retirado | DIFIORI</title>
+  </head>
+  <body>
+    <main style="font-family: sans-serif; max-width: 40rem; margin: 4rem auto; line-height: 1.6; padding: 0 1.5rem;">
+      <h1>Contenido retirado</h1>
+      <p>La ruta <strong>${escapeXml(path)}</strong> fue eliminada y ya no está disponible.</p>
+    </main>
+  </body>
+</html>`);
+}
+
+type PublicProduct = {
+  id: string;
+  name: string;
+  category: string;
+  isBestSeller: boolean;
+  description: string;
+  price: string;
+  image?: string;
+};
+
+const SEO_LANDING_PATHS = [
+  "/flores-guayaquil",
+  "/floreria-guayaquil",
+  "/florerias-en-guayaquil",
+  "/ramos-de-flores",
+  "/arreglos-de-flores-guayaquil",
+  "/arreglos-florales-guayaquil",
+  "/desayunos-sorpresa-guayaquil",
+  "/arreglos-funebres-guayaquil",
+  "/regalos-para-hombre-guayaquil",
+  "/flores-a-guayaquil-desde-el-exterior",
+];
+
+const LEGACY_STORE_PATHS = new Set([
+  "/san-valentin-",
+  "/navidad-2024",
+  "/cumpleanos",
+  "/desayunos",
+  "/ofrendas",
+  "/ocasiones.php",
+]);
+
+async function fetchPublicProducts(): Promise<PublicProduct[]> {
+  try {
+    const response = await fetch(buildBackendUrl("/api/external/products"));
+
+    if (!response.ok) {
+      throw new Error(`Unexpected status ${response.status}`);
+    }
+
+    const payload = await response.json();
+    if (payload.status !== "success" || !Array.isArray(payload.data)) {
+      throw new Error("Invalid payload");
+    }
+
+    return payload.data
+      .map((product: { id?: string | number; name?: string; description?: string; price?: string | number; category?: string; isBestSeller?: boolean; image?: string }) => ({
+        id: String(product.id || "").trim(),
+        name: String(product.name || "").trim(),
+        description: String(product.description || "").trim(),
+        price: String(product.price || "").trim(),
+        category: String(product.category || "General").trim(),
+        isBestSeller: Boolean(product.isBestSeller),
+        image: String(product.image || "").trim() || undefined,
+      }))
+      .filter((product: PublicProduct) => product.id && isPublicCatalogProduct(product));
+  } catch (error) {
+    console.warn("Could not fetch live products for sitemap.", error);
+    return [];
+  }
+}
+
+async function redirectLegacyProductRequest(req: Request, res: Response) {
+  const productId = String(req.query.id || req.query.product_id || req.query.prod_id || "").trim();
+
+  if (!productId) {
+    return res.redirect(301, "/shop");
+  }
+
+  try {
+    const products = await fetchPublicProducts();
+    const product = products.find((item) => String(item.id) === productId);
+
+    return res.redirect(301, product ? getProductPath(product) : "/shop");
+  } catch (error) {
+    console.warn("Could not resolve legacy product URL.", error);
+    return res.redirect(301, "/shop");
+  }
+}
+
+app.use(async (req, res, next) => {
+  if (req.method !== "GET" && req.method !== "HEAD") {
+    return next();
+  }
+
+  if (shouldRedirectToCanonicalHost(req)) {
+    return res.redirect(301, buildCanonicalHostUrl(req));
+  }
+
+  if (req.path !== "/" && req.path.endsWith("/") && !req.path.includes(".") && !req.path.startsWith("/api") && !req.path.startsWith("/image-proxy") && !req.path.startsWith("/uploads/")) {
+    const originalUrl = req.originalUrl || req.path;
+    const newUrl = `${req.path.slice(0, -1)}${originalUrl.slice(req.path.length)}`;
+    return res.redirect(301, newUrl || "/");
+  }
+
+  // The former store used PHP product IDs. A redirect must never depend on the
+  // product API being available: every old ID has a stable catalog fallback.
+  if (req.path === "/producto.php" || req.path === "/product.php") {
+    return res.redirect(301, "/shop");
+  }
+
+  if (LEGACY_STORE_PATHS.has(req.path)) {
+    return res.redirect(301, "/shop");
+  }
+
+  // Redirect legacy v2 URLs
+  if (req.path === "/v2" || req.path === "/v2/") {
+    return res.redirect(301, "/");
+  }
+
+  if (req.path.startsWith("/v2/product/")) {
+    const productId = req.path.split("/").filter(Boolean).pop();
+    return res.redirect(301, productId ? `/product/${encodeURIComponent(productId)}` : "/shop");
+  }
+
+  if (req.path.startsWith("/v2") || req.path === "/admin" || req.path.startsWith("/admin/")) {
+    return sendGone(res, req.path);
+  }
+
+  return next();
+});
+
+app.get("/product/:id", async (req, res, next) => {
+  try {
+    const products = await fetchPublicProducts();
+    const product = products.find((item) => item.id === req.params.id);
+
+    if (product) {
+      return res.redirect(301, getProductPath(product));
+    }
+  } catch (error) {
+    console.warn("Could not redirect legacy product URL.", error);
+    return next();
+  }
+
+  return res.redirect(301, "/shop");
+});
+
+app.get("/producto/:slug", async (req, res, next) => {
+  try {
+    const products = await fetchPublicProducts();
+    const product = products.find((item) => isProductSlugMatch(item, req.params.slug));
+
+    if (!product) {
+      return res.redirect(301, "/shop");
+    }
+  } catch (error) {
+    console.warn("Could not validate canonical product URL.", error);
+  }
+
+  return next();
+});
+
+// Catch-all for any other legacy product URLs that weren't caught
+app.get("/producto.php", async (req, res) => {
+  return res.redirect(301, "/shop");
+});
+
+app.get("/product.php", async (req, res) => {
+  return res.redirect(301, "/shop");
+});
+
+app.get(/.*\.php$/, (req, res) => {
+  return sendGone(res, req.path);
+});
+
+app.get("/robots.txt", (_req, res) => {
+  res.type("text/plain");
+  res.send([
+    "User-agent: *",
+    "Allow: /",
+    "Disallow: /checkout",
+    "Disallow: /payment-gateway",
+    "Disallow: /payment-result",
+    "Disallow: /admin",
+    "Disallow: /v2",
+    "",
+    `Sitemap: ${buildSiteUrl("/sitemap.xml")}`,
+    `# Feed de productos para Google Merchant Center: ${buildSiteUrl("/merchant-feed.xml")}`,
+  ].join("\n"));
+});
+
+app.get("/llms.txt", (_req, res) => {
+  res.type("text/plain");
+  res.send([
+    "# DIFIORI",
+    "",
+    "> Floreria en Guayaquil, Ecuador. Venta online de flores, ramos, arreglos florales y regalos con entrega a domicilio.",
+    "",
+    "Sitio ecommerce en espanol para descubrir productos, categorias y paginas canonicas de DIFIORI.",
+    "Cobertura principal: Guayaquil, Ecuador.",
+    "Idioma principal: es-EC.",
+    "",
+    "## Preferred URLs",
+    `- [Home](${buildSiteUrl("/")}): Pagina principal del sitio.`,
+    `- [Catalogo](${buildSiteUrl("/shop")}): Vista general de productos disponibles.`,
+    `- [Sitemap](${buildSiteUrl("/sitemap.xml")}): URLs canonicas indexables del sitio.`,
+    `- [Robots](${buildSiteUrl("/robots.txt")}): Reglas de rastreo publicas.`,
+    "",
+    "## Key Pages",
+    `- [Flores en Guayaquil](${buildSiteUrl("/flores-guayaquil")}): Landing SEO principal sobre flores y entregas en Guayaquil.`,
+    `- [Floreria Guayaquil](${buildSiteUrl("/floreria-guayaquil")}): Landing SEO de marca y servicio.`,
+    `- [Ramos de flores](${buildSiteUrl("/ramos-de-flores")}): Landing SEO para ramos.`,
+    `- [Arreglos de flores Guayaquil](${buildSiteUrl("/arreglos-de-flores-guayaquil")}): Landing SEO para arreglos florales.`,
+    "",
+    "## Product Discovery",
+    `- [Productos canonicos](${buildSiteUrl("/shop")}): Las URLs canonicas de producto usan el formato /producto/<slug>.`,
+    `- [Categorias canonicas](${buildSiteUrl("/shop")}): Las URLs canonicas de categoria usan el formato /categoria/<slug>.`,
+    "",
+    "## Optional",
+    `- [Checkout](${buildSiteUrl("/checkout")}): Flujo transaccional no indexable; evitar para descubrimiento general.`,
+    `- [Pago con tarjeta](${buildSiteUrl("/payment-gateway")}): Ruta operativa no indexable.`,
+    `- [Resultado de pago](${buildSiteUrl("/payment-result")}): Ruta operativa no indexable.`,
+  ].join("\n"));
+});
+
+/**
+ * Recorrido real de los visitantes.
+ *
+ * Cuenta cuánta gente entra y por dónde pasa, para poder ver dónde se cae el
+ * embudo sin depender de que Analytics esté configurado. Son datos del negocio,
+ * así que van detrás del mismo token que el pulso de ventas.
+ */
+app.get("/api/external/traffic-pulse", (req, res) => {
+  const esperado = process.env.WATCHDOG_TOKEN;
+  if (!esperado) {
+    return res.status(404).json({ status: "error", message: "No disponible." });
+  }
+
+  if (String(req.headers["x-watchdog-token"] || "") !== esperado) {
+    return res.status(401).json({ status: "error", message: "Token inválido." });
+  }
+
+  const dias = Math.min(Math.max(Number(req.query.dias) || 7, 1), 30);
+  res.setHeader("Cache-Control", "no-store");
+  return res.status(200).json({ status: "success", data: obtenerResumen(dias) });
+});
+
+/**
+ * Feed de productos para Google Merchant Center.
+ *
+ * Es la vía por la que el catálogo puede aparecer en la pestaña Shopping de
+ * Google (fichas gratuitas) y en anuncios de Shopping. Sin feed, ninguno de los
+ * productos existe para ese canal, por muy bien posicionada que esté la web.
+ *
+ * Se carga en Merchant Center como "feed programado" apuntando a esta URL.
+ */
+app.get("/merchant-feed.xml", async (_req, res) => {
+  try {
+    const products = await fetchPublicProducts();
+
+    const items = products
+      .map((product) => {
+        const precio = Number(getNumericPriceValue(product.price));
+        if (!precio) return "";
+
+        const enlace = buildSiteUrl(getProductPath(product));
+        const imagen = product.image
+          ? (() => {
+              const publica = toPublicImageUrl(product.image);
+              return publica.startsWith("http") ? publica : buildSiteUrl(publica);
+            })()
+          : "";
+
+        if (!imagen) return "";
+
+        // Google corta el título en 150 caracteres y la descripción en 5000.
+        const titulo = product.name.slice(0, 150);
+        const descripcion = (product.description || product.name).replace(/\s+/g, " ").slice(0, 4999);
+
+        return `    <item>
+      <g:id>${escapeXml(product.id)}</g:id>
+      <g:title>${escapeXml(titulo)}</g:title>
+      <g:description>${escapeXml(descripcion)}</g:description>
+      <g:link>${escapeXml(enlace)}</g:link>
+      <g:image_link>${escapeXml(imagen)}</g:image_link>
+      <g:availability>in_stock</g:availability>
+      <g:price>${precio.toFixed(2)} USD</g:price>
+      <g:condition>new</g:condition>
+      <g:brand>DIFIORI</g:brand>
+      <g:mpn>${escapeXml(`DIFIORI-${product.id}`)}</g:mpn>
+      <g:identifier_exists>no</g:identifier_exists>
+      <g:product_type>${escapeXml(product.category)}</g:product_type>
+      <g:google_product_category>Home &amp; Garden &gt; Decor &gt; Flowers</g:google_product_category>
+      <g:shipping>
+        <g:country>EC</g:country>
+        <g:service>Entrega en Guayaquil</g:service>
+        <g:price>5.00 USD</g:price>
+      </g:shipping>
+    </item>`;
+      })
+      .filter(Boolean)
+      .join("\n");
+
+    res.setHeader("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
+    res.type("application/xml").send(`<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">
+  <channel>
+    <title>DIFIORI - Flores y regalos a domicilio en Guayaquil</title>
+    <link>${escapeXml(buildSiteUrl("/"))}</link>
+    <description>Catálogo de flores, arreglos, desayunos y regalos con entrega en Guayaquil.</description>
+${items}
+  </channel>
+</rss>`);
+  } catch (error) {
+    console.warn("Error generando el feed de Merchant Center:", error);
+    res.status(503).type("application/xml").send('<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel></channel></rss>');
+  }
+});
+
+app.get("/sitemap.xml", async (_req, res) => {
+  const today = new Date().toISOString().slice(0, 10);
+  
+  try {
+    const products = await fetchPublicProducts();
+    const categoryUrls = Array.from(new Set([
+      getCategoryPath(BEST_SELLERS_CATEGORY_NAME),
+      ...products.map((product) => getCategoryPath(product.category)),
+    ]));
+    
+    // Only include canonical URLs: /producto/... not /product/...
+    const productUrls = products.map((product) => getProductPath(product));
+    
+    const imageByPath = new Map<string, string>([
+      ["/", buildSiteUrl("/opengraph.jpg")],
+      ["/shop", buildSiteUrl("/opengraph.jpg")],
+      ...SEO_LANDING_PATHS.map((path) => [path, buildSiteUrl("/opengraph.jpg")] as const),
+    ]);
+
+    for (const product of products) {
+      if (!product.image) continue;
+
+      const publicImage = toPublicImageUrl(product.image);
+      imageByPath.set(
+        getProductPath(product),
+        publicImage.startsWith("http://") || publicImage.startsWith("https://")
+          ? publicImage
+          : buildSiteUrl(publicImage),
+      );
+    }
+
+    const urls = Array.from(
+      new Set([
+        "/",
+        "/shop",
+        "/contacto",
+        ...SEO_LANDING_PATHS,
+        ...categoryUrls,
+        ...productUrls,
+      ]),
+    );
+
+    const priorityForPath = (path: string) => {
+      if (path === "/") return "1.0";
+      if (path === "/shop" || SEO_LANDING_PATHS.includes(path)) return "0.9";
+      if (path.startsWith("/producto/")) return "0.8";
+      if (path.startsWith("/categoria/")) return "0.7";
+      return "0.6";
+    };
+
+    const changefreqForPath = (path: string) => {
+      if (path === "/" || path === "/shop" || path.startsWith("/producto/")) return "weekly";
+      return "monthly";
+    };
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${urls
+  .map((path) => {
+    const imageUrl = imageByPath.get(path);
+
+    return `  <url>
+    <loc>${escapeXml(buildSiteUrl(path))}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>${changefreqForPath(path)}</changefreq>
+    <priority>${priorityForPath(path)}</priority>${imageUrl ? `
+    <image:image>
+      <image:loc>${escapeXml(imageUrl)}</image:loc>
+    </image:image>` : ""}
+  </url>`;
+  })
+  .join("\n")}
+</urlset>`;
+
+    res.type("application/xml");
+    res.send(xml);
+  } catch (error) {
+    console.warn("Error generating sitemap:", error);
+    res.type("application/xml");
+    res.send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>${escapeXml(buildSiteUrl("/"))}</loc>
+    <lastmod>${today}</lastmod>
+  </url>
+  <url>
+    <loc>${escapeXml(buildSiteUrl("/shop"))}</loc>
+    <lastmod>${today}</lastmod>
+  </url>
+</urlset>`);
+  }
+});
+
+app.use("/api/external", proxyToBackend);
+app.use("/api/checkout", proxyToBackend);
+app.use("/uploads", proxyToBackend);
+
+// El vigilante necesita comprobar desde fuera que el backend y el envio de
+// correos siguen vivos. Se deja fuera "/detailed" porque publica conteos del
+// negocio (pedidos totales) sin pedir ninguna credencial.
+app.use("/api/health", (req, res, next) => {
+  if (req.path.startsWith("/detailed")) {
+    return res.status(404).json({ status: "error", message: "No disponible." });
+  }
+
+  return proxyToBackend(req, res).catch(next);
+});
+
+export function log(message: string, source = "express") {
+  const formattedTime = new Date().toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  });
+
+  console.log(`${formattedTime} [${source}] ${message}`);
+}
+
+app.use((req, res, next) => {
+  const start = Date.now();
+  const path = req.path;
+  let capturedJsonResponse: Record<string, any> | undefined = undefined;
+
+  const originalResJson = res.json;
+  res.json = function (bodyJson, ...args) {
+    capturedJsonResponse = bodyJson;
+    return originalResJson.apply(res, [bodyJson, ...args]);
+  };
+
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    if (path.startsWith("/api")) {
+      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+      if (capturedJsonResponse) {
+        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+      }
+
+      log(logLine);
+    }
+  });
+
+  next();
+});
+
+(async () => {
+  await registerRoutes(httpServer, app);
+
+  let vite: ViteDevServer | undefined;
+  if (process.env.NODE_ENV === "production") {
+    // In production, always use SSR for dynamic routes. Static files are served by the app server.
+    serveStatic(app);
+  } else {
+    const { setupVite } = await import("./vite");
+    vite = await setupVite(httpServer, app);
+  }
+
+  // Cuenta la visita antes de renderizar. Solo contadores agregados: ni IPs, ni
+  // cookies, ni nada que identifique a la persona.
+  app.use((req, _res, next) => {
+    if (req.method === "GET") {
+      registrarVisita(req.path, String(req.get("user-agent") || ""), SEO_LANDING_PATHS.includes(req.path));
+    }
+    next();
+  });
+
+  app.get("/{*path}", async (req, res, next) => {
+    try {
+      // IMPORTANT: Always use SSR in production to ensure Google sees the full HTML with metadata
+      const template =
+        process.env.NODE_ENV === "production"
+          ? await getProdTemplate()
+          : await (await import("./vite")).getDevTemplate(vite!, req.originalUrl);
+
+      if (!shouldSsrPath(req.path)) {
+        const page = injectHtml(template, {
+          head: renderSeoTags(getFallbackSeoState(req.path)),
+          stateScript: buildPublicConfigScript(),
+        });
+        // Una ruta inexistente respondia 200, asi que Google indexaba paginas de
+        // error como si fueran contenido real de la tienda.
+        return res
+          .status(isKnownAppPath(req.path) ? 200 : 404)
+          .type("text/html")
+          .send(page);
+      }
+
+      const queryClient = createAppQueryClient();
+      const requestOrigin = buildRequestOrigin(req);
+      const statusCode = await prefetchSsrRouteData(queryClient, req.path, requestOrigin);
+      const renderApp = await loadRenderApp(vite);
+      // Solo la ruta, sin query string. Con `?fbclid=...`, `?utm_source=...` o
+      // `?gclid=...` el router no encontraba coincidencia y el servidor devolvia
+      // "Pagina no encontrada": justo lo que veia todo el que llegaba desde un
+      // anuncio o una campana, hasta que el navegador hidrataba y lo corregia.
+      const { appHtml, dehydratedState, seo } = renderApp({
+        path: req.path,
+        queryClient,
+      });
+
+      const page = injectHtml(template, {
+        head: renderSeoTags(seo),
+        appHtml,
+        stateScript: `${buildPublicConfigScript()}<script>window.__REACT_QUERY_STATE__ = ${serializeForScript(dehydratedState)}</script>`,
+      });
+
+      return res.status(statusCode).type("text/html").send(page);
+    } catch (error) {
+      if (vite) {
+        vite.ssrFixStacktrace(error as Error);
+      }
+
+      return next(error);
+    }
+  });
+
+  app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
+
+    console.error("Internal Server Error:", err);
+
+    if (res.headersSent) {
+      return next(err);
+    }
+
+    return res.status(status).json({ message });
+  });
+
+  // ALWAYS serve the app on the port specified in the environment variable PORT
+  // Other ports are firewalled. Default to 5000 if not specified.
+  // this serves both the API and the client.
+  // It is the only port that is not firewalled.
+  const port = parseInt(process.env.PORT || "3000", 10);
+  // En desarrollo escuchamos en 0.0.0.0 para evitar problemas de binding local,
+  // pero puedes abrir la app desde http://localhost:5000 sin problema.
+  const host = "0.0.0.0";
+  httpServer.listen(
+    {
+      port,
+      host,
+    },
+    () => {
+      log(`serving on port ${port}`);
+      log(`web config: BACKEND_URL=${BACKEND_ORIGIN} SITE_URL=${SITE_URL}${ASSET_BASE_URL ? ` ASSET_BASE_URL=${ASSET_BASE_URL}` : ""}`);
+
+      if (!String(process.env.GA_MEASUREMENT_ID || process.env.VITE_GA_MEASUREMENT_ID || "").trim()) {
+        log(
+          "AVISO: falta GA_MEASUREMENT_ID. La tienda no cargara Google Analytics y no se registrara ninguna visita, checkout ni compra.",
+        );
+      }
+    },
+  );
+})();

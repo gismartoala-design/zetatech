@@ -1,0 +1,213 @@
+.checkout-shell {
+  position: relative;
+  overflow: hidden;
+}
+
+.checkout-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(198, 83, 155, 0.08), transparent 34rem),
+    radial-gradient(circle at 86% 14%, rgba(75, 31, 111, 0.07), transparent 30rem),
+    linear-gradient(180deg, rgba(255, 255, 255, 1), rgba(250, 247, 252, 0.92));
+  pointer-events: none;
+}
+
+.checkout-panel {
+  position: relative;
+  overflow: hidden;
+  border-style: solid;
+  border-width: 1px;
+  color: #4b0082;
+  background: #ffffff;
+  border-color: rgba(90, 63, 115, 0.16);
+  box-shadow:
+    0 22px 58px rgba(74, 51, 98, 0.09),
+    0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.checkout-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.65), transparent 56%),
+    linear-gradient(180deg, rgba(251, 247, 253, 0.42), transparent 42%);
+  pointer-events: none;
+}
+
+.checkout-input {
+  width: 100%;
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-weight: 700;
+  outline: none;
+  transition: all 150ms ease;
+  background: #ffffff;
+  border-color: rgba(90, 63, 115, 0.22);
+  color: #4b0082;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 8px 18px rgba(74, 51, 98, 0.04);
+}
+
+.checkout-input::placeholder {
+  color: #4b0082;
+  opacity: 0.7;
+  font-weight: 600;
+}
+
+.checkout-input:focus {
+  border-color: rgba(74, 51, 98, 0.65);
+  box-shadow:
+    0 0 0 4px rgba(90, 63, 115, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.checkout-subpanel {
+  background: linear-gradient(180deg, #ffffff, rgba(251, 247, 253, 0.72));
+  border: 1px solid rgba(90, 63, 115, 0.16);
+  box-shadow:
+    0 16px 38px rgba(74, 51, 98, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+.checkout-field {
+  display: block;
+  font-size: 1rem;
+  font-weight: 900;
+  color: #4b0082;
+}
+
+.checkout-field > span {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  line-height: 1.375;
+  color: #4b0082;
+}
+
+@media (max-width: 640px) {
+  .checkout-shell {
+    overflow-x: hidden;
+  }
+
+  .checkout-panel {
+    box-shadow: 0 12px 30px rgba(74, 51, 98, 0.08);
+  }
+
+  .checkout-panel::before {
+    display: none;
+  }
+}
+
+@media (min-width: 640px) {
+  .checkout-input {
+    border-radius: 1rem;
+    padding: 1rem 1.25rem;
+    font-size: 1.125rem;
+  }
+
+  .checkout-field {
+    font-size: 1.125rem;
+  }
+}
+
+/* Resumen del pedido.
+   Antes cada fila traia su propio style inline con "Arial Black" y tamanos que
+   no coincidian con ninguna otra pantalla de la tienda. Estas clases mantienen
+   la lectura grande y clara, pero con la tipografia del resto del sitio. */
+.checkout-summary-title {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  color: #4b1f6f;
+  font-size: 1.5rem;
+}
+
+.checkout-item-name {
+  font-size: 1.02rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: #4b1f6f;
+  overflow-wrap: anywhere;
+}
+
+.checkout-item-price {
+  margin-top: 0.25rem;
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #4b1f6f;
+}
+
+.checkout-item-meta {
+  margin-top: 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(75, 31, 111, 0.72);
+}
+
+.checkout-summary-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: #4b1f6f;
+}
+
+.checkout-summary-row > span:last-child {
+  min-width: 0;
+  max-width: 58%;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.checkout-summary-total {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-top: 1px solid #dcc5e8;
+  padding-top: 1rem;
+  font-size: 1.9rem;
+  font-weight: 900;
+  color: #4b1f6f;
+}
+
+@media (min-width: 640px) {
+  .checkout-summary-title {
+    font-size: 2rem;
+  }
+
+  .checkout-item-name {
+    font-size: 1.2rem;
+  }
+
+  .checkout-item-price {
+    font-size: 1.32rem;
+  }
+
+  .checkout-item-meta {
+    font-size: 0.82rem;
+  }
+
+  .checkout-summary-row {
+    font-size: 1.18rem;
+  }
+
+  .checkout-summary-total {
+    font-size: 2.35rem;
+  }
+}

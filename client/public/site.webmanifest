@@ -1,0 +1,19 @@
+{
+  "name": "ZETATECH",
+  "short_name": "ZETATECH",
+  "description": "Tecnología, gadgets y accesorios para tu día a día.",
+  "lang": "es-EC",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
