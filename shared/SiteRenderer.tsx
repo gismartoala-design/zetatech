@@ -50,7 +50,11 @@ function AnimatedBlock({block,children}:{block:SiteBlock;children:ReactNode}) {
   },[block.type,reduceMotion]);
   return <section ref={ref} id={block.id} className={`zt-block zt-${block.type}`} data-motion={block.motion} style={{background:block.background,color:block.foreground,textAlign:block.align,padding:`${block.padding}px clamp(20px, 5vw, 72px)`,'--zt-duration':`${block.duration}ms`,'--zt-zoom':block.zoom} as CSSProperties}>{children}</section>;
 }
-export function ProductCarousel({children}:{children:ReactNode[]}) {
+export interface CarouselProduct {
+  id: string; name: string; price: string; image: string; href: string;
+  description?: string; onAdd?: () => void; addLabel?: string;
+}
+export function ProductCarousel({products,resolveImage=(url)=>url}:{products:CarouselProduct[];resolveImage?:(url:string)=>string}) {
   const trackRef=useRef<HTMLDivElement>(null);
   const [active,setActive]=useState(0);
   const activeRef=useRef(0);
@@ -91,7 +95,7 @@ export function ProductCarousel({children}:{children:ReactNode[]}) {
     track.addEventListener('scroll',onScroll,{passive:true});
     window.addEventListener('resize',onResize);
     return ()=>{track.removeEventListener('scroll',onScroll);window.removeEventListener('resize',onResize);cancelAnimationFrame(raf);};
-  },[children.length]);
+  },[products.length]);
   const goTo=(index:number)=>{
     const track=trackRef.current;
     if (!track || !track.children.length) return;
@@ -106,7 +110,7 @@ export function ProductCarousel({children}:{children:ReactNode[]}) {
   useEffect(()=>{
     const track=trackRef.current;
     const reduceMotion=typeof window!=='undefined'&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (!track || reduceMotion || children.length<2) return;
+    if (!track || reduceMotion || products.length<2) return;
     const id=window.setInterval(()=>{if (!pausedRef.current) goTo(activeRef.current+1);},4500);
     const pause=()=>{pausedRef.current=true;};
     const resume=()=>{pausedRef.current=false;};
@@ -123,15 +127,28 @@ export function ProductCarousel({children}:{children:ReactNode[]}) {
       track.removeEventListener('focusin',pause);
       track.removeEventListener('focusout',resume);
     };
-  },[children.length]);
-  if (!children.length) return null;
+  },[products.length]);
+  if (!products.length) return null;
   return <div className="zt-carousel">
     <span className="zt-carousel-blob zt-carousel-blob-a" aria-hidden="true"/>
     <span className="zt-carousel-blob zt-carousel-blob-b" aria-hidden="true"/>
     <button type="button" className="zt-carousel-nav zt-carousel-prev" aria-label="Producto anterior" onClick={()=>goTo(active-1)}>‹</button>
-    <div className="zt-carousel-track" ref={trackRef}>{children.map((child,i)=><div className="zt-carousel-item" key={i}>{child}</div>)}</div>
+    <div className="zt-spotlight-track" ref={trackRef}>{products.map(p=>
+      <article className="zt-spotlight-slide" key={p.id}>
+        <div className="zt-spotlight-copy">
+          <h3>{p.name}</h3>
+          {p.description&&<p>{p.description}</p>}
+          <strong className="zt-spotlight-price">{p.price}</strong>
+          <div className="zt-spotlight-actions">
+            {p.onAdd&&<button type="button" className="zt-button" onClick={p.onAdd}>{p.addLabel||'Añadir al carrito'}</button>}
+            <a className="zt-spotlight-link" href={p.href}>Ver detalles <span aria-hidden="true">↗</span></a>
+          </div>
+        </div>
+        <div className="zt-spotlight-media"><img src={resolveImage(p.image)} alt={p.name} loading="lazy"/></div>
+      </article>
+    )}</div>
     <button type="button" className="zt-carousel-nav zt-carousel-next" aria-label="Siguiente producto" onClick={()=>goTo(active+1)}>›</button>
-    {children.length>1&&<div className="zt-carousel-dots" role="tablist" aria-label="Seleccionar producto">{children.map((_,i)=><button key={i} type="button" role="tab" aria-selected={active===i} aria-label={`Ir al producto ${i+1}`} className={`zt-carousel-dot${active===i?' zt-carousel-dot-active':''}`} onClick={()=>goTo(i)}/>)}</div>}
+    {products.length>1&&<div className="zt-carousel-dots" role="tablist" aria-label="Seleccionar producto">{products.map((p,i)=><button key={p.id} type="button" role="tab" aria-selected={active===i} aria-label={`Ir a ${p.name}`} className={`zt-carousel-dot${active===i?' zt-carousel-dot-active':''}`} onClick={()=>goTo(i)}/>)}</div>}
   </div>;
 }
 export function SiteRenderer({document,renderProducts,cart,resolveImage=(url)=>url,preview=false}:{document:SiteDocument;renderProducts?:(block:SiteBlock)=>ReactNode;cart?:ReactNode;resolveImage?:(url:string)=>string;preview?:boolean}) {
