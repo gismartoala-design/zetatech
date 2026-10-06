@@ -5,12 +5,13 @@ export const siteFonts = {system:'Inter, system-ui, sans-serif',serif:'Georgia, 
 export function SiteHeader({theme:t,cart,resolveImage=(url)=>url}:{theme:SiteDocument['theme'];cart?:ReactNode;resolveImage?:(url:string)=>string}) {
   const [scrolled,setScrolled]=useState(false);
   useEffect(()=>{
-    const onScroll=()=>setScrolled(window.scrollY>8);
+    const onScroll=()=>setScrolled(window.scrollY>24);
     onScroll();
     window.addEventListener('scroll',onScroll,{passive:true});
     return ()=>window.removeEventListener('scroll',onScroll);
   },[]);
-  return <header className="zt-header" data-scrolled={scrolled}><a href="/" className="zt-brand">{t.logo?<img src={resolveImage(t.logo)} alt={t.brand}/>:<><span className="zt-mark">Z</span>{t.brand}</>}</a><nav aria-label="Navegación principal">{t.links.map((l,i)=><a key={i} href={l.href.startsWith('#')?`/${l.href}`:l.href}>{l.label}</a>)}</nav><div className="zt-header-actions"><a href="/shop" aria-label={t.searchLabel}>{t.searchLabel}</a>{cart}</div></header>;
+  const initial=(t.brand||'Z').trim().charAt(0).toUpperCase()||'Z';
+  return <div className="zt-header-dock"><header className="zt-header" data-scrolled={scrolled}><a href="/" className="zt-brand">{t.logo?<img src={resolveImage(t.logo)} alt={t.brand}/>:<><span className="zt-mark">{initial}</span>{t.brand}</>}</a><nav aria-label="Navegación principal">{t.links.map((l,i)=><a key={i} href={l.href.startsWith('#')?`/${l.href}`:l.href}>{l.label}</a>)}</nav><div className="zt-header-actions"><a href="/shop" aria-label={t.searchLabel}>{t.searchLabel}</a>{cart}</div></header></div>;
 }
 function AnimatedBlock({block,children}:{block:SiteBlock;children:ReactNode}) {
   const ref = useRef<HTMLElement>(null);
@@ -27,7 +28,63 @@ function AnimatedBlock({block,children}:{block:SiteBlock;children:ReactNode}) {
     const observer = new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){el.dataset.reveal='visible';observer.disconnect();}},{threshold:0.08});
     observer.observe(el);return ()=>observer.disconnect();
   },[block.motion]);
+  const reduceMotion = typeof window!=='undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Transición al bajar: la portada se hunde y se oscurece ligeramente con el
+  // scroll, como una cámara alejándose, hasta despejar paso a la siguiente
+  // sección. Puramente visual: no mueve el documento ni afecta el layout.
+  useEffect(()=>{
+    const el=ref.current;
+    if (!el || block.type!=='hero' || reduceMotion) return;
+    let raf=0;
+    const onScroll=()=>{
+      cancelAnimationFrame(raf);
+      raf=requestAnimationFrame(()=>{
+        const h=el.offsetHeight||1;
+        const progress=Math.min(Math.max(window.scrollY/h,0),1);
+        el.style.setProperty('--zt-scroll',String(progress));
+      });
+    };
+    onScroll();
+    window.addEventListener('scroll',onScroll,{passive:true});
+    return ()=>{window.removeEventListener('scroll',onScroll);cancelAnimationFrame(raf);};
+  },[block.type,reduceMotion]);
   return <section ref={ref} id={block.id} className={`zt-block zt-${block.type}`} data-motion={block.motion} style={{background:block.background,color:block.foreground,textAlign:block.align,padding:`${block.padding}px clamp(20px, 5vw, 72px)`,'--zt-duration':`${block.duration}ms`,'--zt-zoom':block.zoom} as CSSProperties}>{children}</section>;
+}
+export function ProductCarousel({children}:{children:ReactNode[]}) {
+  const trackRef=useRef<HTMLDivElement>(null);
+  useEffect(()=>{
+    const track=trackRef.current;
+    if (!track) return;
+    const items=()=>Array.from(track.children) as HTMLElement[];
+    let raf=0;
+    const apply=()=>{
+      const mid=track.scrollLeft+track.clientWidth/2;
+      for (const item of items()) {
+        const center=item.offsetLeft+item.offsetWidth/2;
+        const d=Math.max(-1,Math.min(1,(center-mid)/(track.clientWidth/2||1)));
+        item.style.setProperty('--d',String(d));
+      }
+    };
+    const onScroll=()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(apply);};
+    apply();
+    track.addEventListener('scroll',onScroll,{passive:true});
+    const onResize=()=>apply();
+    window.addEventListener('resize',onResize);
+    return ()=>{track.removeEventListener('scroll',onScroll);window.removeEventListener('resize',onResize);cancelAnimationFrame(raf);};
+  },[children.length]);
+  const scrollBy=(dir:1|-1)=>{
+    const track=trackRef.current;
+    if (!track) return;
+    const item=track.children[0] as HTMLElement|undefined;
+    const step=(item?.offsetWidth||280)+24;
+    track.scrollBy({left:dir*step,behavior:'smooth'});
+  };
+  if (!children.length) return null;
+  return <div className="zt-carousel">
+    <button type="button" className="zt-carousel-nav zt-carousel-prev" aria-label="Producto anterior" onClick={()=>scrollBy(-1)}>‹</button>
+    <div className="zt-carousel-track" ref={trackRef}>{children.map((child,i)=><div className="zt-carousel-item" key={i}>{child}</div>)}</div>
+    <button type="button" className="zt-carousel-nav zt-carousel-next" aria-label="Siguiente producto" onClick={()=>scrollBy(1)}>›</button>
+  </div>;
 }
 export function SiteRenderer({document,renderProducts,cart,resolveImage=(url)=>url,preview=false}:{document:SiteDocument;renderProducts?:(block:SiteBlock)=>ReactNode;cart?:ReactNode;resolveImage?:(url:string)=>string;preview?:boolean}) {
   const t=document.theme;
