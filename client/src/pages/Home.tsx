@@ -1,4 +1,4 @@
-import { SiteRenderer } from '@shared/SiteRenderer';
+import { SiteRenderer, ProductCarousel } from '@shared/SiteRenderer';
 import { defaultSite, type SiteBlock } from '@shared/website';
 import { useWebsite } from '@/hooks/useWebsite';
 import { useQuery } from '@tanstack/react-query';
@@ -18,7 +18,8 @@ function Products({block}:{block:SiteBlock}) {
   const products=(block.productIds.length?block.productIds.flatMap(id=>eligible.filter(p=>p.id===id)):eligible).slice(0,block.limit);
   if(isLoading)return <p role="status">Cargando productos…</p>;
   if(isError)return <p role="status">El catálogo no está disponible en este momento. Intenta nuevamente en unos minutos.</p>;
-  return <div className="zt-product-grid">{products.map(product=><ProductCard key={product.id} product={product}/>)}{!products.length&&<p>Próximamente encontrarás productos en esta colección.</p>}</div>;
+  if(!products.length)return <p>Próximamente encontrarás productos en esta colección.</p>;
+  return <ProductCarousel>{products.map(product=><ProductCard key={product.id} product={product}/>)}</ProductCarousel>;
 }
 export default function Home(){
   const {data}=useWebsite();

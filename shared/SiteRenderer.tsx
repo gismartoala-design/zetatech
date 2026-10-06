@@ -75,8 +75,10 @@ export function ProductCarousel({children}:{children:ReactNode[]}) {
   const scrollBy=(dir:1|-1)=>{
     const track=trackRef.current;
     if (!track) return;
-    const item=track.children[0] as HTMLElement|undefined;
-    const step=(item?.offsetWidth||280)+24;
+    const items=Array.from(track.children) as HTMLElement[];
+    // La distancia real entre tarjetas (incluye el gap de verdad, en vez de
+    // asumir uno) para que cada clic avance exactamente un slide.
+    const step=items.length>1?items[1].offsetLeft-items[0].offsetLeft:(items[0]?.offsetWidth||280)+24;
     track.scrollBy({left:dir*step,behavior:'smooth'});
   };
   if (!children.length) return null;
