@@ -2,6 +2,10 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 
 import { type SiteBlock, type SiteDocument } from './website';
 import './website.css';
 export const siteFonts = {system:'Inter, system-ui, sans-serif',serif:'Georgia, serif',mono:'ui-monospace, monospace'};
+function InlineEditable({value,tag,blockId,field,editor}:{value:string;tag:'h1'|'h2'|'p';blockId:string;field:'title'|'text';editor?:boolean}) {
+  const Tag=tag;
+  return <Tag className={editor?'zt-inline-editable':undefined} contentEditable={editor} suppressContentEditableWarning={editor} onBlur={editor?event=>window.parent.postMessage({type:'zetatech-editor-text',blockId,field,value:event.currentTarget.textContent||''},'*'):undefined}>{value}</Tag>;
+}
 export function SiteHeader({theme:t,cart,resolveImage=(url)=>url}:{theme:SiteDocument['theme'];cart?:ReactNode;resolveImage?:(url:string)=>string}) {
   const [scrolled,setScrolled]=useState(false);
   useEffect(()=>{
@@ -13,7 +17,7 @@ export function SiteHeader({theme:t,cart,resolveImage=(url)=>url}:{theme:SiteDoc
   const initial=(t.brand||'Z').trim().charAt(0).toUpperCase()||'Z';
   return <div className="zt-header-dock"><header className="zt-header" data-scrolled={scrolled}><a href="/" className="zt-brand">{t.logo?<img src={resolveImage(t.logo)} alt={t.brand}/>:<><span className="zt-mark">{initial}</span>{t.brand}</>}</a><nav aria-label="Navegación principal">{t.links.map((l,i)=><a key={i} href={l.href.startsWith('#')?`/${l.href}`:l.href}>{l.label}</a>)}</nav><div className="zt-header-actions"><a href="/shop" aria-label={t.searchLabel}>{t.searchLabel}</a>{cart}</div></header></div>;
 }
-function AnimatedBlock({block,children}:{block:SiteBlock;children:ReactNode}) {
+function AnimatedBlock({block,children,editor,onSelect}:{block:SiteBlock;children:ReactNode;editor?:boolean;onSelect?:(id:string)=>void}) {
   const ref = useRef<HTMLElement>(null);
   useEffect(()=>{
     const el=ref.current;
@@ -48,7 +52,7 @@ function AnimatedBlock({block,children}:{block:SiteBlock;children:ReactNode}) {
     window.addEventListener('scroll',onScroll,{passive:true});
     return ()=>{window.removeEventListener('scroll',onScroll);cancelAnimationFrame(raf);};
   },[block.type,reduceMotion]);
-  return <section ref={ref} id={block.id} className={`zt-block zt-${block.type}`} data-motion={block.motion} style={{background:block.background,color:block.foreground,textAlign:block.align,padding:`${block.padding}px clamp(20px, 5vw, 72px)`,'--zt-duration':`${block.duration}ms`,'--zt-zoom':block.zoom} as CSSProperties}>{children}</section>;
+  return <section ref={ref} id={block.id} className={`zt-block zt-${block.type}${editor?' zt-editor-block':''}`} data-editor-block={editor?'true':undefined} data-block-id={block.id} data-motion={block.motion} onClick={editor?event=>{if((event.target as HTMLElement).closest('a,button,input,textarea,select'))return;onSelect?.(block.id);if(!onSelect)window.parent.postMessage({type:'zetatech-editor-select',blockId:block.id},'*')}:undefined} style={{background:block.background,color:block.foreground,textAlign:block.align,padding:`${block.padding}px clamp(20px, 5vw, 72px)`,'--zt-duration':`${block.duration}ms`,'--zt-zoom':block.zoom} as CSSProperties}>{editor&&<span className="zt-editor-label">{block.title||block.type}</span>}{children}</section>;
 }
 export interface CarouselProduct {
   id: string; name: string; price: string; image: string; href: string;
@@ -152,13 +156,13 @@ export function ProductCarousel({products,resolveImage=(url)=>url}:{products:Car
     {products.length>1&&<div className="zt-carousel-dots" role="tablist" aria-label="Seleccionar producto">{products.map((p,i)=><button key={p.id} type="button" role="tab" aria-selected={active===i} aria-label={`Ir a ${p.name}`} className={`zt-carousel-dot${active===i?' zt-carousel-dot-active':''}`} onClick={()=>goTo(i)}/>)}</div>}
   </div>;
 }
-export function SiteRenderer({document,renderProducts,cart,resolveImage=(url)=>url,preview=false}:{document:SiteDocument;renderProducts?:(block:SiteBlock)=>ReactNode;cart?:ReactNode;resolveImage?:(url:string)=>string;preview?:boolean}) {
+export function SiteRenderer({document,renderProducts,cart,resolveImage=(url)=>url,preview=false,editor=preview,onSelectBlock}:{document:SiteDocument;renderProducts?:(block:SiteBlock)=>ReactNode;cart?:ReactNode;resolveImage?:(url:string)=>string;preview?:boolean;editor?:boolean;onSelectBlock?:(id:string)=>void}) {
   const t=document.theme;
   return <div className="zt-site" style={{'--zt-accent':t.accent,'--zt-radius':`${t.radius}px`,fontFamily:siteFonts[t.font],fontSize:t.fontSize,background:t.background,color:t.foreground} as CSSProperties} onClick={preview?e=>{if((e.target as HTMLElement).closest('a'))e.preventDefault();}:undefined}>
     <SiteHeader theme={t} cart={cart} resolveImage={resolveImage}/>
-    <main>{document.blocks.filter(b=>!b.hidden).map(b=><AnimatedBlock key={b.id} block={b}>
-      {(b.type==='hero'||b.type==='image')?<div className="zt-feature"><div className="zt-copy"><h1 hidden={b.type!=='hero'}>{b.title}</h1>{b.type!=='hero'&&<h2>{b.title}</h2>}<p>{b.text}</p>{b.button&&<a className="zt-button" href={b.href||'/shop'}>{b.button}<span aria-hidden="true">↗</span></a>}</div>{b.image&&<picture>{b.mobileImage&&<source media="(max-width: 640px)" srcSet={resolveImage(b.mobileImage)}/>}<img src={resolveImage(b.image)} alt={b.alt} loading={b.type==='hero'?'eager':'lazy'}/></picture>}</div>:<>
-      <div className="zt-heading"><h2>{b.title}</h2>{b.text&&<p>{b.text}</p>}</div>
+    <main>{document.blocks.filter(b=>!b.hidden).map(b=><AnimatedBlock key={b.id} block={b} editor={editor} onSelect={onSelectBlock}>
+      {(b.type==='hero'||b.type==='image')?<div className="zt-feature"><div className="zt-copy">{b.type==='hero'?<InlineEditable tag="h1" value={b.title} blockId={b.id} field="title" editor={editor}/>:<InlineEditable tag="h2" value={b.title} blockId={b.id} field="title" editor={editor}/>}<InlineEditable tag="p" value={b.text} blockId={b.id} field="text" editor={editor}/>{b.button&&<a className="zt-button" href={b.href||'/shop'}>{b.button}<span aria-hidden="true">↗</span></a>}</div>{b.image&&<picture>{b.mobileImage&&<source media="(max-width: 640px)" srcSet={resolveImage(b.mobileImage)}/>}<img src={resolveImage(b.image)} alt={b.alt} loading={b.type==='hero'?'eager':'lazy'}/></picture>}</div>:<>
+      <div className="zt-heading"><InlineEditable tag="h2" value={b.title} blockId={b.id} field="title" editor={editor}/>{b.text&&<InlineEditable tag="p" value={b.text} blockId={b.id} field="text" editor={editor}/>}</div>
       {b.type==='products'&&renderProducts?.(b)}
       {(b.type==='benefits'||b.type==='gallery')&&<div className="zt-tiles">{b.items.map((item,i)=><article key={i}>{item.image&&<img src={resolveImage(item.image)} alt={item.title} loading="lazy"/>}<h3>{item.title}</h3><p>{item.text}</p>{item.href&&<a href={item.href}>{item.title} ↗</a>}</article>)}</div>}
       {b.type==='faq'&&b.items.map((item,i)=><details key={i}><summary>{item.title}</summary><p>{item.text}</p></details>)}

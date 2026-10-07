@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const { AdminLoginSchema } = require("../../validations/adminLoginSchema");
+const { isEnabled: testDatabaseEnabled, findUserByEmail: findTestUser } = require("../../lib/testDatabase");
 
 exports.login = async (req, res) => {
   try {
@@ -16,12 +17,20 @@ exports.login = async (req, res) => {
     email = email.trim().toLowerCase();
     console.log("Login attempt for email:", email);
 
-    let admin = await prisma.users.findUnique({
-      where: { email },
-    });
-    console.log("Admin fetched from DB:", admin);
+    let admin = null;
+    if (!testDatabaseEnabled()) {
+      try {
+        admin = await prisma.users.findUnique({ where: { email } });
+      } catch (error) {
+        console.warn("Base PostgreSQL no disponible; se intentará la base JSON de pruebas.");
+      }
+    }
+    if (!admin && testDatabaseEnabled()) {
+      admin = findTestUser(email);
+    }
+    console.log("Admin encontrado:", Boolean(admin));
 
-    if (!admin) {
+    if (!admin && !testDatabaseEnabled()) {
       const envAdminEmail = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
       const envAdminPassword = process.env.ADMIN_PASSWORD || "";
 
@@ -57,15 +66,15 @@ exports.login = async (req, res) => {
       return res.status(401).json({ error: "Credenciales inválidas" });
     }
 
-    console.log("Admin found:", admin);
+    console.log("Admin encontrado para autenticación:", admin.email);
 
-    const isPasswordValid =
-      (admin.password && (await bcrypt.compare(password, admin.password))) ||
-      password === admin.password;
+    const isPasswordValid = testDatabaseEnabled()
+      ? password === admin.password
+      : (admin.password && (await bcrypt.compare(password, admin.password))) || password === admin.password;
     if (!isPasswordValid) {
       return res.status(401).json({ error: "Credenciales inválidas" });
     }
-    console.log("Admin authenticated:", admin);
+    console.log("Admin autenticado:", admin.email);
     // Crear token de sesión (JWT)
     const session = jwt.sign(
       { adminId: admin.id },

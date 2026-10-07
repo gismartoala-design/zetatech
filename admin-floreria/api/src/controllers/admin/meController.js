@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const { db: prisma } = require('../../lib/prisma');
 const { hashPassword } = require('../../lib/password');
 const { getTenantIdByDomain, getAvailableFeatures } = require('../../../prisma/prisma-service');
+const { isEnabled: testDatabaseEnabled, findUserById: findTestUser } = require('../../lib/testDatabase');
 
 exports.me = async (req, res) => {
   try {
@@ -14,10 +15,16 @@ exports.me = async (req, res) => {
     }
     console.log("Fetching admin profile with token:", token);
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
-    const admin = await prisma.users.findUnique({
-      where: { id: decoded.adminId },
-      select: { id: true, email: true, name: true, role: true }
-    });
+    let admin;
+    if (testDatabaseEnabled()) {
+      const testAdmin = findTestUser(decoded.adminId);
+      admin = testAdmin && { id: testAdmin.id, email: testAdmin.email, name: testAdmin.name, role: testAdmin.role };
+    } else {
+      admin = await prisma.users.findUnique({
+        where: { id: decoded.adminId },
+        select: { id: true, email: true, name: true, role: true }
+      });
+    }
     if (!admin) {
       return res.status(404).json({
         status: "error",

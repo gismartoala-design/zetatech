@@ -151,7 +151,9 @@ const errorHandler = require("./middlewares/errorHandler");
 app.use(errorHandler);
 
 // Iniciar el servidor en el puerto definido
-const HOST = '0.0.0.0'; // <--- ASEGÚRATE DE USAR ESTO POR SEA ACASO
+// En desarrollo local se puede limitar el API a localhost. En despliegue se
+// puede definir HOST explícitamente (por defecto conserva el comportamiento previo).
+const HOST = process.env.HOST || '0.0.0.0';
 
 // Antes de aceptar peticiones, comprobar que la base tenga las columnas que el
 // código espera. Sin esto, un despliegue sin migrar dejaba operaciones rotas

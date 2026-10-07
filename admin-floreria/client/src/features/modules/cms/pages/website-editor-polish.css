@@ -1,0 +1,12 @@
+.we-editor{background:radial-gradient(circle at 12% 0%,#e5f5ea 0,#f2f5f3 34%),#f2f5f3}
+.we-toolbar{position:sticky;top:0;z-index:5;background:#f2f5f3ee;backdrop-filter:blur(18px);padding:10px 0;border-bottom:1px solid #dbe4de}
+.we-toolbar h1{letter-spacing:-.04em}
+.we-preview iframe{border-radius:14px}
+.we-preview-hint{color:#607367;font-size:12px;margin-right:auto}
+.we-block-row{transition:transform 160ms ease,box-shadow 160ms ease,border-color 160ms ease}
+.we-block-row:hover{transform:translateX(3px);border-color:#77bd8e;box-shadow:0 8px 20px #188b4218}
+.we-properties{scrollbar-color:#b4cbb9 transparent}
+.zt-editor-block{position:relative;cursor:pointer;outline:1px solid transparent;outline-offset:-1px;transition:outline-color 160ms ease,filter 160ms ease}
+.zt-editor-block:hover{outline:2px dashed var(--zt-accent);filter:brightness(1.015)}
+.zt-editor-label{position:absolute;z-index:20;left:14px;top:12px;display:none;padding:4px 8px;border-radius:999px;background:#101614dd;color:#fff;font:600 11px/1.2 system-ui,sans-serif;letter-spacing:.04em;pointer-events:none}
+.zt-editor-block:hover>.zt-editor-label{display:block}

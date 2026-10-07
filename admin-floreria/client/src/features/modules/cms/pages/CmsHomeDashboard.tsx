@@ -8,6 +8,8 @@ import { getProductPath } from '@site/catalog';
 import { defaultSite, newBlock, blockLabels, type SiteDocument, type SiteBlock, type BlockType } from '@site/website';
 import siteCss from '@site/website.css?inline';
 import './website-editor.css';
+import './website-editor-polish.css';
+import './website-editor-inline.css';
 
 const api=axios.create({baseURL:ADMIN_API_URL,withCredentials:true,headers:{'X-Site-Editor':'1'}});
 type State={revision:number;draft:SiteDocument|null;published:SiteDocument|null;publishedAt?:string;history:{id:string;at:string;document:SiteDocument}[]};
@@ -46,6 +48,7 @@ function WebsiteEditor(){
   useEffect(()=>{api.get('/cms/website/products').then(r=>setProducts(r.data.data)).catch(()=>setMessage('No se pudo cargar el catálogo para la vista previa.'));},[]);
   useEffect(()=>{const fn=(e:BeforeUnloadEvent)=>{if(dirty){e.preventDefault();e.returnValue='';}};window.addEventListener('beforeunload',fn);return()=>window.removeEventListener('beforeunload',fn);},[dirty]);
   useEffect(()=>{const fn=()=>{if(!document.fullscreenElement)setFocusMode(false);};document.addEventListener('fullscreenchange',fn);return()=>document.removeEventListener('fullscreenchange',fn);},[]);
+  useEffect(()=>{const fn=(event:MessageEvent)=>{if(event.data?.type==='zetatech-editor-select'&&typeof event.data.blockId==='string')setSelected(event.data.blockId);if(event.data?.type==='zetatech-editor-text'&&typeof event.data.blockId==='string'&&(event.data.field==='title'||event.data.field==='text'))edit({...doc,blocks:doc.blocks.map(b=>b.id===event.data.blockId?{...b,[event.data.field]:String(event.data.value).slice(0,event.data.field==='title'?200:5000)}:b)})};window.addEventListener('message',fn);return()=>window.removeEventListener('message',fn);},[doc]);
   async function toggleFocusMode(){
     if(focusMode){setFocusMode(false);if(document.fullscreenElement)await document.exitFullscreen().catch(()=>{});return;}
     setFocusMode(true);

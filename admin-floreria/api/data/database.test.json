@@ -1,0 +1,19 @@
+{
+  "_warning": "SOLO DESARROLLO LOCAL. No usar en producción ni subir con credenciales reales.",
+  "company": {
+    "id": "test-company-zetatech",
+    "name": "Zetatech Demo",
+    "slug": "zetatech-demo",
+    "email": "admin@zetatech.test"
+  },
+  "users": [
+    {
+      "id": "test-admin-zetatech",
+      "email": "admin@zetatech.test",
+      "name": "Administrador Zetatech (Demo)",
+      "role": "ADMIN",
+      "isActive": true,
+      "password": "ZetatechDemo2026!"
+    }
+  ]
+}
