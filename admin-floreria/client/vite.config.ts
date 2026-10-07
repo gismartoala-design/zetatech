@@ -19,7 +19,9 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/api": {
-        target: "http://localhost:4000",
+        // La API del admin corre en 4001 (ver api/.env.example). Se puede
+        // apuntar a otro host con API_PROXY_TARGET.
+        target: process.env.API_PROXY_TARGET || "http://localhost:4001",
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, "/api"),
