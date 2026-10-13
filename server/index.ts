@@ -1119,7 +1119,7 @@ app.use(async (req, res, next) => {
     return res.redirect(301, buildCanonicalHostUrl(req));
   }
 
-  if (req.path !== "/" && req.path.endsWith("/") && !req.path.includes(".") && !req.path.startsWith("/api") && !req.path.startsWith("/image-proxy") && !req.path.startsWith("/uploads/")) {
+  if (req.path !== "/" && req.path.endsWith("/") && !req.path.includes(".") && !req.path.startsWith("/api") && !req.path.startsWith("/admin") && !req.path.startsWith("/image-proxy") && !req.path.startsWith("/uploads/")) {
     const originalUrl = req.originalUrl || req.path;
     const newUrl = `${req.path.slice(0, -1)}${originalUrl.slice(req.path.length)}`;
     return res.redirect(301, newUrl || "/");
@@ -1487,8 +1487,10 @@ app.use((req, res, next) => {
   let vite: ViteDevServer | undefined;
   if (process.env.NODE_ENV === "production") {
     // In production, always use SSR for dynamic routes. Static files are served by the app server.
-    serveStatic(app);
+    // Mount the admin first so the root static middleware cannot redirect
+    // /admin to /admin/ (which conflicts with the admin route in some proxies).
     serveAdminStatic(app);
+    serveStatic(app);
   } else {
     const { setupVite } = await import("./vite");
     vite = await setupVite(httpServer, app);

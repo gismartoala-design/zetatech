@@ -1,4 +1,4 @@
-import express, { type Express } from "express";
+import express, { type Express, type Request, type Response } from "express";
 import fs from "fs";
 import path from "path";
 
@@ -11,7 +11,14 @@ export function serveAdminStatic(app: Express) {
   const entry = path.join(adminPath, "index.html");
   if (!fs.existsSync(entry)) return;
 
-  app.use("/admin", express.static(adminPath, { index: "index.html" }));
+  // Serve both forms explicitly. Express' default directory redirect can
+  // otherwise fight with a proxy/load balancer and loop between /admin and
+  // /admin/ in production.
+  const sendEntry = (_req: Request, res: Response) => res.sendFile(entry);
+  app.get("/admin", sendEntry);
+  app.get("/admin/", sendEntry);
+
+  app.use("/admin", express.static(adminPath, { index: false, redirect: false }));
   app.use("/admin", (req, res, next) => {
     if (req.method !== "GET" || path.extname(req.path)) return next();
     return res.sendFile(entry);
@@ -36,6 +43,7 @@ export function serveStatic(app: Express) {
   app.use(
     express.static(distPath, {
       index: false,
+      redirect: false,
       setHeaders: (res, filePath) => {
         if (filePath.endsWith(".html")) {
           res.setHeader("Cache-Control", "no-cache");
