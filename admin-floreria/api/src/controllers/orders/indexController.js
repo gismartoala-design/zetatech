@@ -118,7 +118,7 @@ function serializeOrder(order) {
   const shipping = Number(order.shipping || 0);
   const subtotal = Number(order.subtotal || 0);
   const tax = Number(order.tax || 0);
-  const pendingAmount = shipping > 0 ? Math.max(0, subtotal + tax - shipping) : 0;
+  const pendingAmount = order.cashOnDelivery ? (order.paymentStatus === "PAID" ? 0 : totalAmount) : shipping > 0 ? Math.max(0, subtotal + tax - shipping) : 0;
 
   return {
     ...order,

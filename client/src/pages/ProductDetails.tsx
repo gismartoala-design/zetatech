@@ -389,6 +389,7 @@ export default function ProductDetails() {
             </h1>
 
             <div className="flex flex-wrap items-center gap-4 mb-5">
+              {product.originalPrice && <div className="flex items-center gap-2"><del className="text-lg text-foreground/50">{product.originalPrice}</del><span className="rounded-full bg-accent/10 px-2 py-1 text-xs font-bold text-accent">-{product.discountPercent}%</span></div>}
               <span className="text-3xl font-bold text-foreground">
                 {product.price}
               </span>

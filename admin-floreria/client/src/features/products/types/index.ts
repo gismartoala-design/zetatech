@@ -21,6 +21,10 @@ export interface Product {
   variants?: Array<Variant>;
   // Precio calculado (de la variante por defecto o 0)
   price?: number;
+  originalPrice?: number;
+  currentPrice?: number;
+  discountPercent?: number;
+  offerActive?: boolean;
   discounts: Array<{
     id: number;
     percent: number;

@@ -299,23 +299,19 @@ class EmailService {
       // Plantilla simple de confirmación
       const template = await this.loadTemplate("order-confirmation");
 
-      const isReservation = Number(orderData.shipping || 0) > 0;
-      const chargedAmount = Number(orderData.shipping || 0);
-      const remainingBalance = Math.max(
-        0,
-        Number(orderData.subtotal || 0) +
-          Number(orderData.tax || 0) -
-          chargedAmount
-      );
+      const isReservation = orderData.cashOnDelivery === true;
+      const chargedAmount = orderData.paymentStatus === "PAID" ? Number(orderData.total || 0) : 0;
+      const remainingBalance = orderData.paymentStatus === "PAID" ? 0 : Number(orderData.total || 0);
 
       const confirmationData = {
         ...orderData,
         isReservation,
+        isPaid: orderData.paymentStatus === "PAID",
         chargedAmount,
         remainingBalance,
         formattedChargedAmount: `$${chargedAmount.toFixed(2)}`,
         formattedRemainingBalance: `$${remainingBalance.toFixed(2)}`,
-        companyName: orderData.companyName || process.env.COMPANY_NAME || "DIFIORI",
+        companyName: orderData.companyName || process.env.COMPANY_NAME || "Zetatech",
         companyEmail: orderData.companyEmail || process.env.COMPANY_EMAIL || process.env.EMAIL_USER,
         companyPhone: orderData.companyPhone || process.env.COMPANY_PHONE || "",
         // createdAt: new Date(orderData.createdAt).toLocaleDateString("es-EC", {

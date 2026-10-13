@@ -25,8 +25,8 @@ function getSmtpConfig() {
 }
 
 function getDefaultFrom() {
-  const user = process.env.SMTP_USER || process.env.EMAIL_USER || "noreply@difiori.com.ec";
-  const companyName = process.env.COMPANY_NAME || "DIFIORI";
+  const user = process.env.SMTP_USER || process.env.EMAIL_USER || "noreply@zetatech.ec";
+  const companyName = process.env.COMPANY_NAME || "Zetatech";
   return process.env.EMAIL_FROM || `"${companyName}" <${user}>`;
 }
 

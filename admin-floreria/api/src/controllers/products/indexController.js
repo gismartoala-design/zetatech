@@ -4,6 +4,7 @@ const { extractTenantDomain } = require("../../middlewares/featureMiddleware");
 const { validateFeatureAccess } = require("../../validations/featureValidation");
 const { ProductCreateSchema } = require("../../validations/productSchema");
 const { isDiscountActive } = require("../../utils/discountRules");
+const { getProductOffer } = require("../../utils/productPricing");
 
 const variantListSelect = {
   id: true,
@@ -177,6 +178,7 @@ exports.getAllProducts = async (req, res) => {
     // });
     const data = products.map(p => ({
       ...p,
+      ...getProductOffer(p),
       discounts: hasAccessToFeature
         ? p.discounts_products
             .filter((dp) => isDiscountActive(dp.discounts) && dp.discounts.is_active)

@@ -99,6 +99,8 @@ export async function fetchProducts(
           description: normalized.summary ? fullDescription.slice(0, 220) : fullDescription,
           category: p.category || "General",
           price: p.price || "$0.00",
+          originalPrice: p.originalPrice || null,
+          discountPercent: Number(p.discountPercent || 0),
           image: getImageUrl(p.image),
           isBestSeller: p.isBestSeller || false,
           sortOrder: typeof p.sortOrder === "number" ? p.sortOrder : null,

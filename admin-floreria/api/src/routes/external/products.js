@@ -1,5 +1,6 @@
 const express = require('express');
 const { db: prisma } = require('../../lib/prisma');
+const { getProductOffer } = require('../../utils/productPricing');
 
 const router = express.Router();
 
@@ -108,6 +109,7 @@ router.get('/', async (req, res) => {
         featured: true,
         hasVariants: true,
         createdAt: true,
+        discounts_products: { include: { discounts: true } },
         variants: {
           where: { isActive: true, isDeleted: false },
           select: {
@@ -141,8 +143,7 @@ router.get('/', async (req, res) => {
       })
       .slice(0, limit || products.length)
       .map((p) => {
-      const defaultVariant = p.variants.find((v) => v.isDefault) || p.variants[0];
-      const price = p.hasVariants ? defaultVariant?.price : p.price;
+      const offer = getProductOffer(p);
       const fullDescription = normalizeDisplayText(p.description);
       const publicDescription = summary === 'true'
         ? fullDescription.slice(0, 220)
@@ -153,8 +154,10 @@ router.get('/', async (req, res) => {
         id: p.id,
         name: normalizeDisplayText(p.name),
         description: publicDescription,
-        price: price ? `$${Number(price).toFixed(2)}` : '$0.00',
-        rawPrice: price || 0,
+        price: `$${offer.currentPrice.toFixed(2)}`,
+        rawPrice: offer.currentPrice,
+        originalPrice: offer.offerActive ? `$${offer.originalPrice.toFixed(2)}` : null,
+        discountPercent: offer.discountPercent,
         image: p.image || '',
         category: getCanonicalCategory(p.category),
         isBestSeller: p.featured,

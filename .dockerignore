@@ -12,7 +12,11 @@ server/node_modules
 .local
 # El build del admin necesita admin-floreria/client y shared. Se excluyen
 # secretos y artefactos del API para que nunca entren en el contexto del build.
-admin-floreria/api
+admin-floreria/api/.env*
+admin-floreria/api/node_modules
+admin-floreria/api/logs
+admin-floreria/api/uploads
+admin-floreria/api/data
 admin-floreria/client/node_modules
 admin-floreria/client/dist
 admin-floreria/client/.env*

@@ -126,11 +126,12 @@ export function ProductCard({ product, priority = false, showBestSellerBadge = t
           className="h-full w-full object-contain object-center p-4 transition-transform duration-500 group-hover:scale-105"
         />
 
-        {product.isBestSeller && showBestSellerBadge && (
+        {product.isBestSeller && showBestSellerBadge && !product.originalPrice && (
           <div className="absolute top-6 left-6 z-10 rounded-full bg-accent px-4 py-1.5 text-[9px] font-black uppercase tracking-widest text-white shadow-lg">
             Mas Vendido
           </div>
         )}
+        {product.originalPrice && <span className="absolute right-3 top-3 rounded-full bg-accent px-3 py-1 text-xs font-bold text-white">Oferta · -{product.discountPercent}%</span>}
       </Link>
 
       <div className="flex flex-1 flex-col p-5 sm:p-6">
@@ -176,6 +177,7 @@ export function ProductCard({ product, priority = false, showBestSellerBadge = t
           <link itemProp="itemCondition" href="https://schema.org/NewCondition" />
           <div>
             <span className="block text-[10px] font-black uppercase tracking-[0.16em] text-foreground/55">Precio</span>
+            {product.originalPrice && <span className="block text-sm text-foreground/50"><span className="sr-only">Precio anterior: </span><del>{product.originalPrice}</del></span>}
             <p className="text-2xl font-bold text-foreground">{product.price}</p>
           </div>
           <span className={`max-w-[55%] rounded-lg px-3 py-2 text-xs font-semibold ${soldOut ? "bg-slate-100 text-slate-600" : "bg-accent/10 text-accent"}`}>{getStockLabel(product.stock)}</span>

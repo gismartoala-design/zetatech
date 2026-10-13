@@ -197,7 +197,7 @@ export function isPublicCatalogProduct(product: CatalogProductCandidate) {
   const hasReadableName = name.length >= 8 && /[aeiouáéíóúñ]/i.test(name);
   const hasUsefulDescription = description.length >= 24;
   const hasPublicCategory = category.length > 2 && slugify(category) !== "general";
-  const hasCatalogPrice = price >= 10;
+  const hasCatalogPrice = price > 0;
 
   return hasReadableName && hasUsefulDescription && hasPublicCategory && hasCatalogPrice;
 }

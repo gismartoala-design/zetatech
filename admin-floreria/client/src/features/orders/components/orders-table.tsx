@@ -58,7 +58,7 @@ export function OrdersTable({
     const storefrontDetails = parseStorefrontOrderNotes(order.orderNotes);
     if (storefrontDetails.paymentMethod) return storefrontDetails.paymentMethod;
     if (order.clientTransactionId) return "Payphone";
-    if (order.cashOnDelivery) return "Reserva";
+    if (order.cashOnDelivery) return "Contra entrega";
     return "No especificado";
   };
 
@@ -66,7 +66,7 @@ export function OrdersTable({
 
   const getPendingAmount = (order: Order) => {
     if (order.pendingAmount && order.pendingAmount > 0) return order.pendingAmount;
-    if (order.cashOnDelivery) return getTotal(order) - 7;
+    if (order.cashOnDelivery) return order.paymentStatus === "PAID" ? 0 : getTotal(order);
     return null;
   };
 
@@ -158,7 +158,7 @@ export function OrdersTable({
                       variant="outline"
                       className="border-amber-300 bg-amber-50 text-xs text-amber-700"
                     >
-                      Reserva $7
+                      Contra entrega
                     </Badge>
                   )}
                   {order.couponDiscountCode && (
@@ -267,7 +267,7 @@ export function OrdersTable({
                       <div className="flex flex-wrap gap-1">
                         {order.cashOnDelivery && (
                           <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300 text-xs">
-                            Reserva $7
+                            Contra entrega
                           </Badge>
                         )}
                         {order.couponDiscountCode && (

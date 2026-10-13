@@ -9,6 +9,8 @@ async function getCompanyForAdmin(adminId) {
       users: {
         some: {
           id: adminId,
+          role: "ADMIN",
+          isActive: true,
         },
       },
     },
@@ -66,6 +68,8 @@ function sanitizePaymentSettings(input) {
   };
 
   return {
+    datafastEnvironment: getEnvironment("datafastEnvironment"),
+    ...Object.fromEntries(["datafastEntityId", "datafastToken", "datafastMid", "datafastTid", "datafastPserv", "datafastRisk", "datafastVatRate", "datafastCertified"].map(key => [key, getString(key)])),
     paypalEnvironment: getEnvironment("paypalEnvironment"),
     paypalSandboxClientId: getString("paypalSandboxClientId"),
     paypalSandboxClientSecret: getString("paypalSandboxClientSecret"),

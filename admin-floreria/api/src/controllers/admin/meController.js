@@ -13,7 +13,6 @@ exports.me = async (req, res) => {
         message: "No autenticado"
       });
     }
-    console.log("Fetching admin profile with token:", token);
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
     let admin;
     if (testDatabaseEnabled()) {

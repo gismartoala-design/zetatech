@@ -8,6 +8,7 @@ import ProductDetails from "@/pages/ProductDetails";
 import Checkout from "@/pages/Checkout";
 import PaymentGateway from "@/pages/PaymentGateway";
 import PaymentResult from "@/pages/PaymentResult";
+import DatafastPayment from "@/pages/DatafastPayment";
 
 export function ServerRoutes() {
   return (
@@ -21,6 +22,7 @@ export function ServerRoutes() {
       <Route path="/checkout" component={Checkout} />
       <Route path="/payment-gateway" component={PaymentGateway} />
       <Route path="/payment-result" component={PaymentResult} />
+      <Route path="/datafast-payment" component={DatafastPayment} />
       <Route component={NotFound} />
     </Switch>
   );

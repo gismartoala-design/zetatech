@@ -29,18 +29,19 @@ import { useCart } from "@/context/CartContext";
 import { useCompany } from "@/hooks/useCompany";
 
 import { CartDialog } from "@/components/CartDialog";
+import { OrderConfirmation, type ConfirmationDetails } from "@/components/OrderConfirmation";
 import { Seo } from "@/components/Seo";
 import { DEFAULT_COMPANY } from "@/lib/site";
 import { formatCategoryDisplayName, getNumericPriceValue, getProductSku } from "@shared/catalog";
 import { isValidCustomerDocument, isValidContactPhone, type CustomerDocumentType } from "@shared/checkout";
 
 type OrderStatus = "idle" | "loading" | "success" | "error";
-type PaymentMethod = "PayPal" | "Payphone" | "Banco" | "Zelle";
+type PaymentMethod = "PayPal" | "Payphone" | "Datafast" | "Banco" | "Zelle" | "Contra entrega";
 type SelectedPaymentMethod = PaymentMethod | "";
 type CheckoutStep = "sender" | "receiver" | "payment";
 type ShippingSectorRate = { sector: string; cost: number };
 type CheckoutFocusable = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
-type OnlinePaymentMethod = "PayPal" | "Payphone";
+type OnlinePaymentMethod = "PayPal" | "Payphone" | "Datafast";
 type PaymentAvailability = {
   status: "checking" | "available" | "unavailable";
   environment?: "sandbox" | "live";
@@ -192,11 +193,18 @@ const PAYMENT_METHODS: {
     Icon: Globe2,
   },
   {
-    label: "Payphone",
+    label: "Datafast",
     description: "Pago local con tarjeta desde la pasarela segura",
     trustLabel: "Tarjeta segura",
-    nextStep: "Te redirigimos a Payphone para completar el pago con tarjeta.",
+    nextStep: "Completarás el pago con tarjeta en el formulario seguro de Datafast.",
     Icon: Smartphone,
+  },
+  {
+    label: "Contra entrega",
+    description: "Paga cuando recibas tu pedido",
+    trustLabel: "Pago al recibir",
+    nextStep: "Registramos el pedido y generamos tu guía con el monto pendiente de cobro. No se cobra una reserva automática.",
+    Icon: Truck,
   },
   {
     label: "Banco",
@@ -316,6 +324,9 @@ export default function Checkout() {
   const [orderStatus, setOrderStatus] = useState<OrderStatus>("idle");
   const [isCartOpening, setIsCartOpening] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
+  const [confirmationDetails, setConfirmationDetails] = useState<ConfirmationDetails | null>(null);
+  const [billingAddress, setBillingAddress] = useState("");
+  const [billingCountry, setBillingCountry] = useState("EC");
   const [errorMsg, setErrorMsg] = useState("");
   const [formRevision, setFormRevision] = useState(0);
   const [couponCode, setCouponCode] = useState("");
@@ -337,6 +348,7 @@ export default function Checkout() {
   >({
     PayPal: { status: "checking" },
     Payphone: { status: "checking" },
+    Datafast: { status: "checking" },
   });
   const payphoneBoxStorageKey = "pp_box_payload";
   const checkoutWhatsappUrl = `https://wa.me/${DEFAULT_COMPANY.phoneDigits}?text=${encodeURIComponent(
@@ -421,7 +433,7 @@ export default function Checkout() {
       address,
       sector,
     } = readCheckoutFields();
-    const hasValidSenderEmail = !senderEmail || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(senderEmail);
+    const hasValidSenderEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(senderEmail);
     const senderComplete = Boolean(senderName && isValidContactPhone(senderPhone) && isValidCustomerDocument(senderDocument, senderDocumentType) && hasValidSenderEmail);
     const deliveryComplete = Boolean(
       receiverName &&
@@ -447,7 +459,7 @@ export default function Checkout() {
 
   useEffect(() => {
     let active = true;
-    const productionHost = ["zetatech.ec", "www.zetatech.ec"].includes(window.location.hostname);
+    const productionHost = ["zetatech.ec", "www.zetatech.ec"].includes(window.location.hostname) || window.location.hostname.endsWith(".run.app");
 
     const checkProvider = async (
       method: OnlinePaymentMethod,
@@ -480,6 +492,7 @@ export default function Checkout() {
 
     Promise.all([
       checkProvider("Payphone", "/api/external/payphone/health"),
+      checkProvider("Datafast", "/api/external/datafast/health"),
       checkProvider("PayPal", "/api/external/paypal/health"),
     ]).then((entries) => {
       if (!active) return;
@@ -608,7 +621,7 @@ export default function Checkout() {
   }, [orderItemsPayload, orderStatus, paymentMethod, appliedCoupon, cartTotal, shippingResolution.cost, sectorInput]);
 
   useEffect(() => {
-    if (paymentMethod !== "PayPal" && paymentMethod !== "Payphone") return;
+    if (paymentMethod !== "PayPal" && paymentMethod !== "Payphone" && paymentMethod !== "Datafast") return;
     const availability = onlinePaymentAvailability[paymentMethod];
     if (availability.status !== "unavailable") return;
 
@@ -675,6 +688,7 @@ export default function Checkout() {
     return [
       [senderName, "nombre completo del comprador"],
       [senderDocument, "documento del comprador"],
+      [readCheckoutFields().senderEmail, "correo para la confirmación"],
       [senderPhone, "celular del comprador"],
     ]
       .filter(([value]) => !value)
@@ -714,8 +728,8 @@ export default function Checkout() {
       return false;
     }
 
-    if (senderEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(senderEmail)) {
-      setErrorMsg("Revisa el correo o déjalo vacío para continuar por WhatsApp.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(senderEmail)) {
+      setErrorMsg("Escribe un correo válido para recibir la confirmación del pedido.");
       focusCheckoutField("sender", senderEmailRef);
       return false;
     }
@@ -887,7 +901,7 @@ export default function Checkout() {
       return;
     }
 
-    if (paymentMethod === "PayPal" || paymentMethod === "Payphone") {
+    if (paymentMethod === "PayPal" || paymentMethod === "Payphone" || paymentMethod === "Datafast") {
       const availability = onlinePaymentAvailability[paymentMethod];
       if (availability.status !== "available") {
         setErrorMsg(
@@ -917,6 +931,8 @@ export default function Checkout() {
       senderDocument,
       senderDocumentType,
       receiverPhone,
+      billingAddress,
+      billingCountry,
       phone: senderPhone,
       deliveryDateTime,
       exactAddress,
@@ -932,6 +948,16 @@ export default function Checkout() {
     };
 
     try {
+      sessionStorage.setItem("zetatech_order_email", senderEmail);
+      if (paymentMethod === "Datafast") {
+        const result = await fetchJsonWithTimeout(apiUrl("/api/external/datafast/checkout"), {
+          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(orderPayload),
+        });
+        if (!result.data?.checkoutId || !result.data?.widgetUrl) throw new Error("Datafast no devolvió una sesión de pago válida.");
+        sessionStorage.setItem("zetatech_datafast_session", JSON.stringify(result.data));
+        setLocation("/datafast-payment");
+        return;
+      }
       if (paymentMethod === "Payphone") {
         localStorage.removeItem("pp_box_session");
         localStorage.setItem(
@@ -1021,6 +1047,7 @@ export default function Checkout() {
       if (data.status === "success") {
         const createdOrderNumber = data.data?.orderNumber || "ZETATECH-OK";
         setOrderNumber(createdOrderNumber);
+        setConfirmationDetails({ orderNumber: createdOrderNumber, email: senderEmail, paymentMethod, paymentStatus: "PENDING", total: Number(data.data?.total ?? finalTotal), customerName: senderName, receiverName, address: exactAddress, items: orderItemsPayload });
         setOrderStatus("success");
         // Una transferencia o Zelle todavía están pendientes de validación.
         // Marcarlos como compra entrenaba las campañas con pedidos no pagados.
@@ -1048,9 +1075,7 @@ export default function Checkout() {
           order_id: createdOrderNumber,
         });
         if (
-          (paymentMethod === "Banco" ||
-            paymentMethod === "Zelle" ||
-            paymentMethod === "PayPal") &&
+          (paymentMethod === "Banco" || paymentMethod === "Zelle") &&
           selectedProofFile
         ) {
           await uploadPaymentProofForOrder(
@@ -1173,45 +1198,8 @@ export default function Checkout() {
     );
   }
 
-  if (orderStatus === "success") {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center px-6">
-        <Seo
-          title="Checkout | Zetatech"
-          description="Proceso de checkout de Zetatech."
-          path="/checkout"
-          robots="noindex, nofollow"
-        />
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-white p-8 rounded-[2rem] shadow-2xl border border-[#E5D7EF] text-center max-w-lg w-full sm:p-12"
-        >
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", delay: 0.2 }}
-          >
-            <CheckCircle className="w-24 h-24 text-green-400 mx-auto mb-6" />
-          </motion.div>
-          <h2 className="text-3xl font-serif font-black text-[#4A3362] mb-3">
-            ¡Orden confirmada!
-          </h2>
-          <p className="text-[#4A3362] font-black text-lg mb-2">
-            {orderNumber}
-          </p>
-          <p className="text-[#4A3362] text-base font-black mb-8">
-            Hemos recibido tu pedido. El vendedor se pondrá en contacto contigo.
-            Esperamos tu respuesta.
-          </p>
-          <Link href="/">
-            <button className="w-full bg-[#4B1F6F] hover:bg-[#4A3362] text-white py-5 rounded-3xl font-black text-base transition-all shadow-xl">
-              Volver a la tienda
-            </button>
-          </Link>
-        </motion.div>
-      </div>
-    );
+  if (orderStatus === "success" && confirmationDetails) {
+    return <><Seo title="Confirmación de pedido | Zetatech" description="Tu pedido ha sido registrado." path="/checkout" robots="noindex, nofollow" /><OrderConfirmation details={confirmationDetails} /></>;
   }
 
   return (
@@ -1518,7 +1506,7 @@ export default function Checkout() {
                   <User className="h-7 w-7 sm:h-9 sm:w-9" /> Datos personales
                 </h3>
                 <p className="rounded-2xl bg-[#FBF7FD] p-4 text-sm font-bold text-[#4A3362]">
-                  Usaremos tu teléfono para confirmar el pedido. El correo es opcional y los campos con * son obligatorios.
+                  Usaremos tu celular para coordinar la entrega y tu correo para enviarte la confirmación. Los campos con * son obligatorios.
                 </p>
                 <div className="grid grid-cols-1 gap-5">
                   <label className="checkout-field">
@@ -1550,10 +1538,11 @@ export default function Checkout() {
                   </div>
                   <label className="checkout-field">
                     <span>
-                      <Mail className="h-5 w-5" /> Correo electrónico (opcional)
+                      <Mail className="h-5 w-5" /> Correo electrónico *
                     </span>
                     <input
                       ref={senderEmailRef}
+                      required
                       type="email"
                       autoComplete="email"
                       className="checkout-input"
@@ -1717,7 +1706,7 @@ export default function Checkout() {
                 </a>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {PAYMENT_METHODS.map(({ label, description, trustLabel, Icon }) => {
-                    const availability = label === "PayPal" || label === "Payphone"
+                    const availability = label === "PayPal" || label === "Payphone" || label === "Datafast"
                       ? onlinePaymentAvailability[label]
                       : null;
                     const providerBlocked = Boolean(availability && availability.status !== "available");
@@ -1818,16 +1807,18 @@ export default function Checkout() {
                         </p>
                       </>
                     )}
-                    {paymentMethod === "Payphone" && (
+                    {paymentMethod === "Datafast" && (
                       <div className="flex items-start gap-4">
                         <Smartphone className="mt-1 h-7 w-7 text-[#4A3362]" />
                         <div>
                           <p className="text-lg font-black text-[#4A3362]">
-                            Pago seguro con Payphone
+                            Pago seguro con Datafast
                           </p>
                           <p className="mt-1 text-base font-black text-[#4A3362]">
                             Al confirmar serás redirigido a la pasarela para ingresar los datos de tu tarjeta.
                           </p>
+                          <label className="mt-4 block text-sm font-semibold">Dirección de facturación del titular *<input className="checkout-input mt-2" value={billingAddress} maxLength={100} onChange={e=>setBillingAddress(e.target.value)} placeholder="Dirección del comprador" /></label>
+                          <label className="mt-3 block text-sm font-semibold">País de facturación (código de dos letras) *<input className="checkout-input mt-2" value={billingCountry} maxLength={2} onChange={e=>setBillingCountry(e.target.value.toUpperCase())} placeholder="EC" /></label>
                         </div>
                       </div>
                     )}

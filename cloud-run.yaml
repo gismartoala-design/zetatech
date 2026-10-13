@@ -1,9 +1,9 @@
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  name: zetatech-shop
+  name: zetatech
   labels:
-    cloud.googleapis.com/location: us-central1
+    cloud.googleapis.com/location: europe-west1
 spec:
   template:
     metadata:
@@ -21,16 +21,25 @@ spec:
           resources:
             limits:
               cpu: 1000m
-              memory: 512Mi
+              memory: 1Gi
           env:
             - name: NODE_ENV
               value: "production"
             - name: APP_PUBLIC_SITE_URL
               value: "https://tu-dominio.com"
-            # URL interna/pública del servicio Cloud Run del API admin. El
-            # navegador solo usa la URL principal; el servidor proxya /api/*.
-            - name: BACKEND_URL
-              value: "https://api-admin-tu-proyecto.run.app"
+            - name: EMBEDDED_API
+              value: "true"
+            # La API arranca dentro de la imagen; no requiere otra URL pública.
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: latest
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secret
+                  key: latest
             # Sin esta variable el sitio no carga Google Analytics.
             - name: GA_MEASUREMENT_ID
               value: "G-XXXXXXXXXX"

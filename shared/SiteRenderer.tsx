@@ -56,7 +56,7 @@ function AnimatedBlock({block,children,editor,onSelect}:{block:SiteBlock;childre
 }
 export interface CarouselProduct {
   id: string; name: string; price: string; image: string; href: string;
-  description?: string; onAdd?: () => void; addLabel?: string; linkLabel?: string; badge?: string; stockLabel?: string;
+  description?: string; onAdd?: () => void; addLabel?: string; linkLabel?: string; badge?: string; stockLabel?: string; originalPrice?: string | null; discountPercent?: number;
 }
 export function ProductCarousel({products,resolveImage=(url)=>url}:{products:CarouselProduct[];resolveImage?:(url:string)=>string}) {
   const trackRef=useRef<HTMLDivElement>(null);
@@ -143,6 +143,7 @@ export function ProductCarousel({products,resolveImage=(url)=>url}:{products:Car
           {p.badge&&<span className="zt-spotlight-badge">{p.badge}</span>}
           <h3>{p.name}</h3>
           {p.description&&<p>{p.description}</p>}
+          {p.originalPrice&&<div className="zt-spotlight-offer"><del>{p.originalPrice}</del><span>Oferta · -{p.discountPercent}%</span></div>}
           <strong className="zt-spotlight-price">{p.price}</strong>
           {p.stockLabel&&<span className="zt-spotlight-stock">{p.stockLabel}</span>}
           <div className="zt-spotlight-actions">

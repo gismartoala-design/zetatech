@@ -63,7 +63,7 @@ const healthRoutes = require("./routes/health");
 app.use("/api/health", healthRoutes);
 // Eventos
 const eventsRoutes = require("./routes/events/index");
-app.use("/api/events", eventsRoutes);
+app.use("/api/events", authMiddleware, eventsRoutes);
 // Rutas
 const adminLoginRoutes = require("./routes/admin/login");
 app.use("/api/admin/login", adminLoginRoutes);
@@ -126,6 +126,7 @@ app.use("/api/external/store-orders", storeOrdersRoutes);
 app.use("/api/external/store-orders/abandoned", abandonedOrdersRoutes);
 app.use("/api/external/payphone", payphoneRoutes);
 app.use("/api/external/paypal", paypalRoutes);
+app.use("/api/external/datafast", require("./routes/external/datafast"));
 
 // Rutas externas genéricas (viejas)
 const externalRoutes = require("./routes/external/index");

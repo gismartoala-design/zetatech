@@ -54,6 +54,9 @@ async function resolveCoupon(prisma, { couponCode, total, shippingCost }) {
 }
 
 async function createPendingPayphoneOrder(prisma, payload) {
+  const { quoteStorefrontOrder } = require('./storefrontQuote');
+  const quote = await quoteStorefrontOrder(prisma, payload);
+  payload = { ...payload, items: quote.items, total: quote.total, shippingCost: quote.shipping };
   const {
     productId,
     productName,
@@ -303,6 +306,11 @@ async function finalizePayphoneOrder(prisma, payload) {
       where: { id: order.discount_coupon_id },
       data: { usesTotal: { increment: 1 } },
     });
+  }
+
+  if (approved && updatedOrder.customerEmail) {
+    try { await emailService.sendOrderConfirmation({ ...updatedOrder, companyName: "Zetatech" }); }
+    catch { console.error("No se pudo enviar la confirmación del pedido por correo."); }
   }
 
   return {

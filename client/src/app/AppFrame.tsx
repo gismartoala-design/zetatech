@@ -48,7 +48,7 @@ export function AppFrame({ Routes, fallback = <RouteFallback /> }: AppFrameProps
   const [shouldLoadFloatingWhatsApp, setShouldLoadFloatingWhatsApp] = useState(false);
   const { isCartOpen } = useCart();
   const gaMeasurementId = getPublicAppConfig().gaMeasurementId;
-  const hideNavbar = location === "/checkout" || location === "/payment-gateway" || location === "/payment-result";
+  const hideNavbar = location === "/checkout" || location === "/payment-gateway" || location === "/datafast-payment" || location === "/payment-result";
   const { data: company } = useCompany(shouldFetchCompany && !hideNavbar);
   const showClosedStoreBanner = !hideNavbar && company?.settings?.acceptOrders === false;
   const appFrameStyle = {

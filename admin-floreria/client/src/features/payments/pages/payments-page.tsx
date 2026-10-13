@@ -9,6 +9,15 @@ type ShippingSectorRate = {
 };
 
 type PaymentSettings = {
+  datafastEnvironment: string;
+  datafastEntityId: string;
+  datafastToken: string;
+  datafastMid: string;
+  datafastTid: string;
+  datafastPserv: string;
+  datafastRisk: string;
+  datafastVatRate: string;
+  datafastCertified: string;
   acceptOrders: boolean;
   paypalEnvironment: "sandbox" | "live";
   paypalSandboxClientId: string;
@@ -46,6 +55,7 @@ function normalizeTransferInstructions(value: unknown) {
 }
 
 const DEFAULT_SETTINGS: PaymentSettings = {
+  datafastEnvironment: "sandbox", datafastEntityId: "", datafastToken: "", datafastMid: "", datafastTid: "", datafastPserv: "", datafastRisk: "", datafastVatRate: "", datafastCertified: "false",
   acceptOrders: true,
   paypalEnvironment: "sandbox",
   paypalSandboxClientId: "",
@@ -321,9 +331,21 @@ export default function PaymentsPage() {
       <header>
         <h1 className="text-3xl font-bold text-gray-900">Configuracion de Pagos</h1>
         <p className="mt-1 text-gray-600">
-          Deja listo el admin para desarrollo y produccion: PayPhone, PayPal, transferencias, envios por sector y correo del dueno.
+          Configura Datafast, PayPal, transferencias, envíos por sector y el correo de notificaciones.
         </p>
       </header>
+
+      <section className="rounded-xl border bg-white p-6 shadow-sm">
+        <h2 className="mb-3 text-lg font-semibold">Datafast / Dataweb</h2>
+        <p className="mb-4 text-sm text-gray-600">Usa las credenciales asignadas a este ambiente. Datafast permanece inactivo hasta completar la configuración; producción requiere la certificación del comercio.</p>
+        <label className="mb-4 block text-sm">Ambiente<select className="ml-3 rounded border p-2" value={form.datafastEnvironment} onChange={e=>setForm({...form,datafastEnvironment:e.target.value})}><option value="sandbox">Pruebas</option><option value="live">Producción</option></select></label>
+        <div className="grid gap-4 md:grid-cols-2">{([
+          ['datafastEntityId','Entity ID'], ['datafastToken','Access token'], ['datafastMid','MID'], ['datafastTid','TID'], ['datafastPserv','PSERV'], ['datafastRisk','Nombre de riesgo del comercio'], ['datafastVatRate','Tasa de impuesto incluida en los precios (ej.: 0.15)'],
+        ] as Array<[keyof PaymentSettings,string]>).map(([key,label])=><label key={key} className="text-sm">{label}<input type={key==='datafastToken'?'password':'text'} autoComplete="off" className="mt-1 w-full rounded border p-2" value={String(form[key])} onChange={e=>setForm({...form,[key]:e.target.value})}/></label>)}</div>
+        <p className="mt-3 text-xs text-gray-500">El desglose actual usa una sola tasa para el total. Si tu catálogo mezcla productos con distintas tasas, debe configurarse ese desglose antes de activar Datafast.</p>
+        <label className="my-4 flex items-center gap-2 text-sm"><input type="checkbox" checked={form.datafastCertified==='true'} onChange={e=>setForm({...form,datafastCertified:String(e.target.checked)})}/>Datafast certificó este comercio para producción</label>
+        <Button type="button" onClick={handleSave} disabled={isSaving}>Guardar Datafast</Button>
+      </section>
 
       <section className="rounded-xl border bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">

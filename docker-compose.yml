@@ -31,6 +31,7 @@ services:
       NODE_ENV: production
       PORT: 8080
       BACKEND_URL: http://api:4000
+      EMBEDDED_API: "false"
     ports:
       - "5000:8080"
     healthcheck:

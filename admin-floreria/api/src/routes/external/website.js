@@ -1,5 +1,6 @@
 const express = require('express');
 const { db } = require('../../lib/prisma');
+const { getProductOffer } = require('../../utils/productPricing');
 const router = express.Router();
 async function resolveCompany(req) {
     // Deployments may pin their storefront company. Otherwise only a unique
@@ -28,9 +29,13 @@ router.get('/products', async (req,res,next)=>{
   try {
     const company=await resolveCompany(req);
     if (!company) return res.status(404).json({ message: 'Sitio no configurado' });
-    const products=await db.product.findMany({where:{companyId:company.id,isActive:true,isDeleted:false},orderBy:[{sortOrder:'asc'},{createdAt:'desc'}],select:{id:true,name:true,description:true,price:true,image:true,category:true,stock:true,featured:true,sortOrder:true}});
+    const products=await db.product.findMany({where:{companyId:company.id,isActive:true,isDeleted:false},orderBy:[{sortOrder:'asc'},{createdAt:'desc'}],select:{id:true,name:true,description:true,price:true,image:true,category:true,stock:true,featured:true,sortOrder:true,hasVariants:true,variants:{where:{isActive:true,isDeleted:false}},discounts_products:{include:{discounts:true}}}});
     res.set('Cache-Control','no-store');
-    res.json({data:products.map(p=>({...p,price:`$${Number(p.price||0).toFixed(2)}`,isBestSeller:p.featured}))});
+    res.json({data:products.map(p=>{
+      const offer=getProductOffer(p);
+      const {discounts_products,variants,...publicProduct}=p;
+      return {...publicProduct,price:`$${offer.currentPrice.toFixed(2)}`,originalPrice:offer.offerActive?`$${offer.originalPrice.toFixed(2)}`:null,discountPercent:offer.discountPercent,isBestSeller:p.featured};
+    })});
   }catch(e){next(e);}
 });
 module.exports = router;

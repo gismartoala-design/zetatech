@@ -129,6 +129,7 @@
 .zt-spotlight-copy h3{font-size:clamp(1.8em,3.6vw,2.8em);margin-bottom:10px}
 .zt-spotlight-copy p{max-width:34ch}
 .zt-spotlight-price{display:block;font-size:1.5em;font-weight:800;color:var(--zt-accent);margin-bottom:18px}
+.zt-spotlight-offer{display:flex;align-items:center;gap:12px;font-size:.85em;margin-bottom:4px}.zt-spotlight-offer del{opacity:.5}.zt-spotlight-offer span{font-weight:700;color:var(--zt-accent)}
 .zt-spotlight-actions{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
 .zt-spotlight-actions .zt-button{margin-top:0}
 .zt-spotlight-link{color:inherit;font-weight:700;text-decoration:none;opacity:.75}

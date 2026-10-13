@@ -10,6 +10,7 @@ const NotFound = lazy(() => import("@/pages/not-found"));
 const Checkout = lazy(() => import("@/pages/Checkout"));
 const PaymentGateway = lazy(() => import("@/pages/PaymentGateway"));
 const PaymentResult = lazy(() => import("@/pages/PaymentResult"));
+const DatafastPayment = lazy(() => import("@/pages/DatafastPayment"));
 
 export function BrowserRoutes() {
   return (
@@ -23,6 +24,7 @@ export function BrowserRoutes() {
       <Route path="/checkout" component={Checkout} />
       <Route path="/payment-gateway" component={PaymentGateway} />
       <Route path="/payment-result" component={PaymentResult} />
+      <Route path="/datafast-payment" component={DatafastPayment} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -37,7 +37,7 @@ function Products({block}:{block:SiteBlock}) {
     href:`https://wa.me/${DEFAULT_COMPANY.phoneDigits}?text=${encodeURIComponent(`Hola, me interesa ${product.name}. ¿Está disponible?`)}`,
   }:{
     id:product.id,name:product.name,price:product.price,image:product.image,
-    description:product.description,href:getProductPath(product),addLabel:'Añadir al carrito',stockLabel:getStockLabel(product.stock),
+    description:product.description,href:getProductPath(product),addLabel:'Añadir al carrito',stockLabel:getStockLabel(product.stock),originalPrice:product.originalPrice,discountPercent:product.discountPercent,
     onAdd:product.stock===0?undefined:()=>{
       if(!acceptOrders){toast({title:'Tienda cerrada temporalmente',description:'Por ahora no estamos recibiendo nuevos pedidos.',duration:4000});return;}
       addItem(product);setIsCartOpen(true);

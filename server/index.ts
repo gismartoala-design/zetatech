@@ -31,6 +31,7 @@ import type { ViteDevServer } from "vite";
 import type { renderApp as renderAppFn } from "../client/src/server-entry";
 
 const app = express();
+app.set("trust proxy", 1);
 const httpServer = createServer(app);
 const INITIAL_CATALOG_PRODUCTS = 12;
 const HOME_CATALOG_PRODUCTS = 8;
@@ -122,7 +123,7 @@ function getAdminBackendUrlFromEnv() {
 
 const adminBackendUrl = getAdminBackendUrlFromEnv();
 const BACKEND_ORIGIN = normalizeUrl(
-  adminBackendUrl || process.env.BACKEND_URL || "http://localhost:4000"
+  process.env.BACKEND_URL || adminBackendUrl || "http://localhost:4000"
 );
 const SITE_URL =
   normalizeUrl(process.env.APP_PUBLIC_SITE_URL || process.env.SITE_URL || process.env.VITE_SITE_URL) ||
@@ -136,7 +137,7 @@ const PAYPHONE_WEB_STORE_ID = process.env.PAYPHONE_WEB_STORE_ID || process.env.P
 // mutaciones (crear orden, subir comprobante, pagos) no lo tienen: si se cortan
 // el cliente ve un error aunque la orden ya se haya guardado en el backend.
 const PUBLIC_PROXY_TIMEOUT_MS = 3500;
-const MUTATION_PROXY_TIMEOUT_MS = 30000;
+const MUTATION_PROXY_TIMEOUT_MS = 60000;
 const IMAGE_PROXY_TIMEOUT_MS = 6000;
 // El comprobante de pago viaja como data URL en base64, asi que el limite por
 // defecto de express (100kb) rechaza cualquier foto tomada con el celular.
@@ -462,7 +463,7 @@ function getFallbackSeoState(path: string): SeoState {
     };
   }
 
-  if (path === "/payment-gateway") {
+  if (path === "/payment-gateway" || path === "/datafast-payment") {
     return {
       ...DEFAULT_SEO_STATE,
       title: "Pago con tarjeta | Zetatech",
@@ -502,6 +503,7 @@ const NON_SSR_APP_PATHS = [
   "/contacto",
   "/checkout",
   "/payment-gateway",
+  "/datafast-payment",
   "/payment-result",
 ];
 
@@ -605,7 +607,7 @@ async function prefetchSsrRouteData(queryClient: QueryClient, path: string, base
 }
 
 function getProxyTimeoutMs(req: Request) {
-  return req.method === "GET" || req.method === "HEAD"
+  return (req.method === "GET" || req.method === "HEAD") && (req.originalUrl.startsWith("/api/external/") || req.originalUrl.startsWith("/uploads/"))
     ? PUBLIC_PROXY_TIMEOUT_MS
     : MUTATION_PROXY_TIMEOUT_MS;
 }
@@ -638,6 +640,7 @@ async function proxyToBackend(req: Request, res: Response) {
         ...(cacheControl ? { "Cache-Control": cacheControl } : {}),
         ...(cookie ? { Cookie: cookie } : {}),
         ...(authorization ? { Authorization: authorization } : {}),
+        "X-Forwarded-For": req.ip || "",
         ...(req.originalUrl.startsWith('/api/external/website') ? { Origin: req.get('Origin') || `${req.protocol}://${req.get('host')}` } : {}),
       },
       signal: abortController.signal,
@@ -708,7 +711,7 @@ async function proxyToBackend(req: Request, res: Response) {
     }
 
     const errorMessage = error instanceof Error ? error.message : "Error conectando con el servidor de backend";
-    return res.status(500).json({ status: "error", message: errorMessage });
+    return res.status(502).json({ status: "error", message: "La API no está disponible. Revisa el arranque de la API y su configuración en Cloud Run." });
   } finally {
     req.off("aborted", abortRequest);
     res.off("close", abortRequest);
@@ -983,6 +986,16 @@ app.post("/api/payphone-web/confirm-and-finalize", async (req: Request, res: Res
   }
 });
 
+app.get("/payment-result", async (req, _res, next) => {
+  if (req.query.provider !== "datafast" || typeof req.query.resourcePath !== "string") return next();
+  try {
+    await postJsonToBackend("/api/external/datafast/confirm", { resourcePath: req.query.resourcePath });
+  } catch (error) {
+    console.warn("Datafast: la confirmación se reintentará desde la pantalla de resultado.");
+  }
+  return next();
+});
+
 // PayPhone redirects here after charging. Confirm immediately during the HTTP
 // request so the transaction does not depend on React, JavaScript, or the user
 // keeping the tab open. PaymentResult retries idempotently on the client.
@@ -1209,6 +1222,7 @@ app.get("/robots.txt", (_req, res) => {
     "Allow: /",
     "Disallow: /checkout",
     "Disallow: /payment-gateway",
+    "Disallow: /datafast-payment",
     "Disallow: /payment-result",
     "Disallow: /admin",
     "Disallow: /v2",

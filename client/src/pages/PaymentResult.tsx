@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { CheckCircle, XCircle, Loader2, MessageSquare, ShieldCheck } from "lucide-react";
+import { XCircle, Loader2, MessageSquare, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Seo } from "@/components/Seo";
 import { useCart } from "@/context/CartContext";
@@ -9,10 +9,11 @@ import { apiUrl } from "@/lib/api-url";
 import { trackGaEvent } from "@/lib/analytics";
 import { trackFacebookEvent } from "@/lib/facebook-pixel";
 import { DEFAULT_COMPANY } from "@/lib/site";
+import { OrderConfirmation, type ConfirmationDetails } from "@/components/OrderConfirmation";
 
 type ResultStatus = "loading" | "success" | "failed" | "cancelled" | "error";
 
-const PAYMENT_CONFIRM_TIMEOUT_MS = 25000;
+const PAYMENT_CONFIRM_TIMEOUT_MS = 45000;
 
 async function fetchJsonWithTimeout(
   input: RequestInfo | URL,
@@ -74,6 +75,7 @@ export default function PaymentResult() {
   const [status, setStatus] = useState<ResultStatus>("loading");
   const [orderNumber, setOrderNumber] = useState("");
   const [resultMessage, setResultMessage] = useState("");
+  const [confirmationDetails, setConfirmationDetails] = useState<ConfirmationDetails | null>(null);
   const confirmed = useRef(false);
 
   useEffect(() => {
@@ -134,6 +136,16 @@ export default function PaymentResult() {
 
     const confirmOrder = async () => {
       try {
+        if (provider === "datafast") {
+          const response = await fetchJsonWithTimeout(apiUrl("/api/external/datafast/confirm"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ resourcePath: params.get("resourcePath") }) });
+          if (response.data?.paymentStatus !== "PAID") {
+            setResultMessage(response.data?.message || "Datafast todavía no confirma el pago. Contacta al comercio si ya tienes un consumo.");
+            setStatus("error"); return;
+          }
+          setConfirmationDetails({ ...response.data, paymentMethod: "Datafast", paymentStatus: "PAID" });
+          setOrderNumber(response.data.orderNumber); setStatus("success"); clearCart();
+          sessionStorage.removeItem("zetatech_datafast_session"); return;
+        }
         if (!finalClientTxId) {
           setResultMessage("No encontramos una sesión de pago activa. Vuelve al checkout e intenta nuevamente.");
           setStatus("error");
@@ -237,41 +249,7 @@ export default function PaymentResult() {
   }
 
   if (status === "success") {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center px-6">
-        <Seo
-          title="Pago exitoso | Zetatech"
-          description="Resultado del proceso de pago."
-          path="/payment-result"
-          robots="noindex, nofollow"
-        />
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-white p-8 rounded-[2rem] shadow-2xl border border-[#E5D7EF] text-center max-w-lg w-full sm:p-12"
-        >
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", delay: 0.2 }}
-          >
-            <CheckCircle className="w-24 h-24 text-green-400 mx-auto mb-6" />
-          </motion.div>
-          <h2 className="text-3xl font-serif font-bold text-[#4A3362] mb-3">¡Pago exitoso!</h2>
-          {orderNumber && (
-            <p className="text-[#5A3F73] font-black text-lg mb-2">{orderNumber}</p>
-          )}
-          <p className="text-[#5A3F73] text-base font-semibold mb-8">
-            Tu pago fue procesado correctamente. El vendedor se pondrá en contacto contigo. Esperamos tu respuesta.
-          </p>
-          <Link href="/">
-            <button className="w-full bg-[#5A3F73] hover:bg-[#4A3362] text-white py-5 rounded-3xl font-black text-base transition-all shadow-xl">
-              Volver a la tienda
-            </button>
-          </Link>
-        </motion.div>
-      </div>
-    );
+    return <><Seo title="Confirmación de pedido | Zetatech" description="Pago aprobado y pedido confirmado." path="/payment-result" robots="noindex, nofollow" /><OrderConfirmation details={confirmationDetails || { orderNumber, paymentMethod: new URLSearchParams(window.location.search).get("provider") === "paypal" ? "PayPal" : "Payphone", paymentStatus: "PAID", email: sessionStorage.getItem("zetatech_order_email") || undefined }} /></>;
   }
 
   if (status === "cancelled") {

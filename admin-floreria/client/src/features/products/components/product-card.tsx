@@ -183,6 +183,8 @@ export function ProductCard({
           )}
 
           <div className="flex flex-col gap-1">
+            {product.offerActive && <div className="flex items-center gap-2"><del className="text-sm text-gray-500">${Number(product.originalPrice).toFixed(2)}</del><Badge className="bg-emerald-600">Oferta -{product.discountPercent}%</Badge><span className="text-lg font-bold text-emerald-700">${Number(product.currentPrice).toFixed(2)}</span></div>}
+            {!product.offerActive && <>
             <span className="text-lg sm:text-xl font-semibold">
               {product.hasVariants
                 ? product.variants && product.variants.length > 0
@@ -193,27 +195,13 @@ export function ProductCard({
                   : "Ver variantes"
                 : `$${product.price || 0}`}
             </span>
+            </>}
             <span className="text-xs sm:text-sm text-gray-500">
               Stock: {product.stock}
             </span>
           </div>
 
-          {product.discounts.length > 0 && (
-            <div className="flex flex-col gap-1">
-              {product.discounts.map((discount, index) => {
-                const basePrice = product.hasVariants 
-                  ? (product.variants?.find((v) => v.isDefault)?.price || product.variants?.[0]?.price || 0)
-                  : (product.price || 0);
-                const discountedPrice = basePrice - (basePrice * discount.percent_value);
-                
-                return (
-                  <p key={index} className="text-xs sm:text-sm text-green-600">
-                    {discount.percent}% OFF - {discountedPrice.toLocaleString("es-AR", { style: "currency", currency: "ARS" })}
-                  </p>
-                );
-              })}
-            </div>
-          )}
+          <p className="text-xs text-gray-500">Gestiona las ofertas desde Descuentos → Agregar productos. El precio del formulario es el precio original.</p>
 
           <div className="mt-auto pt-2 flex gap-2 justify-end">
             <ProductModal

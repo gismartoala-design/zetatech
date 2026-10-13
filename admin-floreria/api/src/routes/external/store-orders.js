@@ -105,7 +105,7 @@ async function sendStoreOrderEmails(emailData, senderEmail, orderNumber) {
         const confirmationResult = await emailService.sendOrderConfirmation({
           ...emailData,
           orderNumber,
-          companyName: activeCompany?.name || process.env.COMPANY_NAME || "DIFIORI",
+          companyName: activeCompany?.name || process.env.COMPANY_NAME || "Zetatech",
           companyEmail:
             activeCompany?.email || process.env.COMPANY_EMAIL || process.env.EMAIL_USER,
           companyPhone: activeCompany?.phone || process.env.COMPANY_PHONE || "",
@@ -135,6 +135,11 @@ router.post("/", async (req, res) => {
   const startedAt = Date.now();
 
   try {
+    {
+      const { quoteStorefrontOrder } = require("../../services/storefrontQuote");
+      const quote = await quoteStorefrontOrder(prisma, req.body);
+      req.body = { ...req.body, items: quote.items, shippingCost: quote.shipping, total: quote.total };
+    }
     // Verificar si la tienda acepta pedidos
     const company = await prisma.company.findFirst({
       where: { isActive: true },
@@ -233,7 +238,8 @@ router.post("/", async (req, res) => {
       }
     }
 
-    const orderNumber = `DIFIORI-${Date.now()}`;
+    const orderNumber = `ZETATECH-${Date.now()}`;
+    const cashOnDelivery = paymentMethod === "Contra entrega";
     const storefrontDetails = buildStorefrontOrderDetails({
       senderDocument,
       senderDocumentType,
@@ -334,7 +340,7 @@ router.post("/", async (req, res) => {
             ${null},
             ${null},
             ${couponId},
-            ${false},
+            ${cashOnDelivery},
             ${appliedCouponCode}
           )
           RETURNING "id", "orderNumber", "createdAt"
@@ -374,6 +380,7 @@ router.post("/", async (req, res) => {
       "Cliente DIFIORI";
 
     const emailData = {
+      cashOnDelivery,
       senderDocument: storefrontDetails.senderDocument,
       senderDocumentType: storefrontDetails.senderDocumentType,
       orderNumber: order.orderNumber,
@@ -447,6 +454,10 @@ router.post("/", async (req, res) => {
         orderId: order.id,
         orderNumber: order.orderNumber,
         ownerNotificationSent,
+        cashOnDelivery,
+        paymentStatus: "PENDING",
+        total: parseMoney(total) - couponDiscountAmount,
+        pendingAmount: cashOnDelivery ? parseMoney(total) - couponDiscountAmount : null,
       },
     });
   } catch (error) {

@@ -597,14 +597,14 @@ export function OrderDetailsDialog({
                 <div className="space-y-1 border-t-2 border-amber-300 bg-amber-50 px-4 py-3 text-sm">
                   <div className="flex justify-between">
                     <span className="text-amber-800">
-                      Reserva pagada online
+                      Pago contra entrega
                     </span>
-                    <span className="font-semibold text-amber-900">$7.00</span>
+                    <span className="font-semibold text-amber-900">{order.paymentStatus === "PAID" ? "Pagado" : "Por cobrar"}</span>
                   </div>
                   <div className="flex justify-between font-bold">
                     <span className="text-amber-900">Pendiente al recibir</span>
                     <span className="text-base text-amber-900">
-                      ${(total - 7).toFixed(2)}
+                      ${(order.paymentStatus === "PAID" ? 0 : total).toFixed(2)}
                     </span>
                   </div>
                 </div>
