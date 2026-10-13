@@ -1,7 +1,9 @@
 node_modules
-.git
-.next
-dist
-build
-*.log
 .env
+.env.*
+!.env.example
+logs
+uploads
+npm-debug.log
+.git
+dist

@@ -2,6 +2,13 @@ FROM node:22-alpine AS build
 
 WORKDIR /app
 
+ARG VITE_API_URL=http://localhost:4001/api
+ARG VITE_BACKEND_URL=http://localhost:4001/api
+ARG VITE_URL_IMG=http://localhost:4001
+ENV VITE_API_URL=${VITE_API_URL}
+ENV VITE_BACKEND_URL=${VITE_BACKEND_URL}
+ENV VITE_URL_IMG=${VITE_URL_IMG}
+
 COPY package*.json ./
 RUN npm ci
 

@@ -10,16 +10,17 @@ async function main() {
   console.log("Creating admin user...");
 
   // Obtener credenciales del .env
-  const adminEmail = (process.env.ADMIN_EMAIL || "admin@difiori.com.ec").toLowerCase();
-  const adminPassword = process.env.ADMIN_PASSWORD || "Difiori2024!";
+  const adminEmail = (process.env.ADMIN_EMAIL || "").toLowerCase();
+  const adminPassword = process.env.ADMIN_PASSWORD || "";
+  if (!adminEmail || !adminPassword) throw new Error("ADMIN_EMAIL y ADMIN_PASSWORD son obligatorios");
 
   // Crear o buscar la compañía
   let company = await db.company.findFirst();
   if (!company) {
     company = await db.company.create({
       data: {
-        name: "Difiori Floristería",
-        slug: "difiori",
+        name: "Zetatech",
+        slug: "zetatech",
         email: adminEmail,
       },
     });
@@ -36,7 +37,7 @@ async function main() {
     create: {
       companyId: company.id,
       email: adminEmail,
-      name: "Admin Difiori",
+      name: "Administrador Zetatech",
       password: hashedPassword,
       role: "ADMIN",
       isActive: true,

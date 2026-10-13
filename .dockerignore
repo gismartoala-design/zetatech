@@ -10,7 +10,12 @@ server/node_modules
 /tmp
 .replit
 .local
-admin-floreria
+# El build del admin necesita admin-floreria/client y shared. Se excluyen
+# secretos y artefactos del API para que nunca entren en el contexto del build.
+admin-floreria/api
+admin-floreria/client/node_modules
+admin-floreria/client/dist
+admin-floreria/client/.env*
 diff.txt
 gitlog.txt
 skills-lock.json
