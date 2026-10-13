@@ -1,4 +1,4 @@
-const kinds = ['hero', 'text', 'image', 'benefits', 'products', 'gallery', 'faq', 'contact'];
+const kinds = ['hero', 'text', 'image', 'benefits', 'products', 'gallery', 'brands', 'faq', 'contact'];
 const motions = ['none', 'fade', 'zoom', 'slide'];
 const fonts = ['system', 'serif', 'mono'];
 const safeUrl = value => typeof value === 'string' && value.length <= 2000 && (value === '' || /^#[a-zA-Z0-9_-]+$/.test(value) || (/^\/(?!\/)/.test(value) && !/[\\\s]/.test(value)) || /^https?:\/\/[^\s\\]+$/i.test(value));

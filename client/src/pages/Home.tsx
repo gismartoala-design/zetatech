@@ -1,5 +1,5 @@
 import { SiteRenderer, ProductCarousel, type CarouselProduct } from '@shared/SiteRenderer';
-import { defaultSite, type SiteBlock } from '@shared/website';
+import { defaultSite, ensureBrandBlock, type SiteBlock } from '@shared/website';
 import { useWebsite } from '@/hooks/useWebsite';
 import { useQuery } from '@tanstack/react-query';
 import { resolveApiUrl } from '@/lib/api';
@@ -47,7 +47,7 @@ function Products({block}:{block:SiteBlock}) {
 }
 export default function Home(){
   const {data}=useWebsite();
-  const document=data||defaultSite;
+  const document=ensureBrandBlock(data||defaultSite);
   const {cartItemCount,setIsCartOpen}=useCart();
   return <><Seo title={`${document.theme.brand} | Tecnología`} description={document.theme.description} path="/"/><SiteRenderer document={document} resolveImage={url=>toPublicImageUrl(url)||url} renderProducts={block=><Products block={block}/>} cart={<button onClick={()=>setIsCartOpen(true)}>{document.theme.cartLabel} ({cartItemCount})</button>}/></>;
 }

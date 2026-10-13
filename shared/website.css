@@ -86,6 +86,24 @@
 .zt-tiles a{color:var(--zt-accent);font-weight:700;text-decoration:none}
 .zt-tiles a:hover{text-decoration:underline}
 
+/* Marcas: cinta infinita, táctil y pausables para convertir el reconocimiento
+   de marca en una interacción visible sin quitarle velocidad a la portada. */
+.zt-brands{max-width:1320px;margin:10px auto 0;overflow:hidden}
+.zt-brands-viewport{overflow:hidden;margin-inline:-5vw;padding:12px 5vw 22px;mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.zt-brands-track{display:flex;width:max-content;gap:16px;animation:zt-brands-scroll 32s linear infinite}
+.zt-brands-viewport:hover .zt-brands-track,.zt-brands-viewport:focus-within .zt-brands-track{animation-play-state:paused}
+.zt-brand-card{display:flex;align-items:center;gap:13px;min-width:205px;padding:14px 17px;border:1px solid #ffffff1c;border-radius:18px;background:linear-gradient(135deg,#ffffff14,#ffffff05);color:inherit;text-decoration:none;box-shadow:0 16px 35px -26px #000;transition:transform 220ms ease,background 220ms ease,border-color 220ms ease}
+.zt-brand-card:hover,.zt-brand-card:focus-visible{transform:translateY(-4px) scale(1.02);background:#ffffff1e;border-color:#ffffff55;outline:none}
+.zt-brand-logo{display:grid;place-items:center;flex:0 0 43px;width:43px;height:43px;border-radius:13px;background:linear-gradient(145deg,var(--zt-accent),color-mix(in srgb,var(--zt-accent) 45%,#07110b));color:#fff;font-weight:900;letter-spacing:-.08em;box-shadow:inset 0 1px 0 #ffffff55,0 8px 18px -10px var(--zt-accent)}
+.zt-brand-logo img{width:100%;height:100%;object-fit:contain;border-radius:inherit;padding:6px}
+.zt-brand-card strong,.zt-brand-card small{display:block;white-space:nowrap}
+.zt-brand-card strong{font-size:1em;letter-spacing:-.03em}
+.zt-brand-card small{font-size:.72em;opacity:.62;margin-top:2px}
+.zt-brand-arrow{margin-left:auto;opacity:.5;transition:transform 180ms ease,opacity 180ms ease}
+.zt-brand-card:hover .zt-brand-arrow{transform:translate(2px,-2px);opacity:1}
+.zt-brands-hint{text-align:center;margin:0 auto;color:inherit;opacity:.5;font-size:.74em;letter-spacing:.04em;text-transform:uppercase}
+@keyframes zt-brands-scroll{from{transform:translateX(0)}to{transform:translateX(calc(-50% - 8px))}}
+
 /* FAQ */
 .zt-block details{padding:22px 0;border-bottom:1px solid color-mix(in srgb,currentColor 12%,transparent)}
 .zt-block summary{cursor:pointer;font-weight:700;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:16px}

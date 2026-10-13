@@ -156,6 +156,21 @@ export function ProductCarousel({products,resolveImage=(url)=>url}:{products:Car
     {products.length>1&&<div className="zt-carousel-dots" role="tablist" aria-label="Seleccionar producto">{products.map((p,i)=><button key={p.id} type="button" role="tab" aria-selected={active===i} aria-label={`Ir a ${p.name}`} className={`zt-carousel-dot${active===i?' zt-carousel-dot-active':''}`} onClick={()=>goTo(i)}/>)}</div>}
   </div>;
 }
+export function BrandCarousel({items,resolveImage=(url)=>url}:{items:SiteBlock['items'];resolveImage?:(url:string)=>string}) {
+  const repeated = [...items, ...items];
+  if (!items.length) return null;
+  return <div className="zt-brands" aria-label="Marcas disponibles en Zetatech">
+    <div className="zt-brands-viewport">
+      <div className="zt-brands-track">
+        {repeated.map((item,index)=><a className="zt-brand-card" href={item.href||'/shop'} key={`${item.title}-${index}`} aria-hidden={index>=items.length} tabIndex={index>=items.length?-1:0}>
+          <span className="zt-brand-logo">{item.image?<img src={resolveImage(item.image)} alt="" loading="lazy"/>:item.title.slice(0,2).toUpperCase()}</span>
+          <span><strong>{item.title}</strong><small>{item.text}</small></span><span className="zt-brand-arrow" aria-hidden="true">↗</span>
+        </a>)}
+      </div>
+    </div>
+    <p className="zt-brands-hint">Pasa el cursor para pausar · Explora por marca</p>
+  </div>;
+}
 export function SiteRenderer({document,renderProducts,cart,resolveImage=(url)=>url,preview=false,editor=preview,onSelectBlock}:{document:SiteDocument;renderProducts?:(block:SiteBlock)=>ReactNode;cart?:ReactNode;resolveImage?:(url:string)=>string;preview?:boolean;editor?:boolean;onSelectBlock?:(id:string)=>void}) {
   const t=document.theme;
   return <div className="zt-site" style={{'--zt-accent':t.accent,'--zt-radius':`${t.radius}px`,fontFamily:siteFonts[t.font],fontSize:t.fontSize,background:t.background,color:t.foreground} as CSSProperties} onClick={preview?e=>{if((e.target as HTMLElement).closest('a'))e.preventDefault();}:undefined}>
@@ -164,6 +179,7 @@ export function SiteRenderer({document,renderProducts,cart,resolveImage=(url)=>u
       {(b.type==='hero'||b.type==='image')?<div className="zt-feature"><div className="zt-copy">{b.type==='hero'?<InlineEditable tag="h1" value={b.title} blockId={b.id} field="title" editor={editor}/>:<InlineEditable tag="h2" value={b.title} blockId={b.id} field="title" editor={editor}/>}<InlineEditable tag="p" value={b.text} blockId={b.id} field="text" editor={editor}/>{b.button&&<a className="zt-button" href={b.href||'/shop'}>{b.button}<span aria-hidden="true">↗</span></a>}</div>{b.image&&<picture>{b.mobileImage&&<source media="(max-width: 640px)" srcSet={resolveImage(b.mobileImage)}/>}<img src={resolveImage(b.image)} alt={b.alt} loading={b.type==='hero'?'eager':'lazy'}/></picture>}</div>:<>
       <div className="zt-heading"><InlineEditable tag="h2" value={b.title} blockId={b.id} field="title" editor={editor}/>{b.text&&<InlineEditable tag="p" value={b.text} blockId={b.id} field="text" editor={editor}/>}</div>
       {b.type==='products'&&renderProducts?.(b)}
+      {b.type==='brands'&&<BrandCarousel items={b.items} resolveImage={resolveImage}/>} 
       {(b.type==='benefits'||b.type==='gallery')&&<div className="zt-tiles">{b.items.map((item,i)=><article key={i}>{item.image&&<img src={resolveImage(item.image)} alt={item.title} loading="lazy"/>}<h3>{item.title}</h3><p>{item.text}</p>{item.href&&<a href={item.href}>{item.title} ↗</a>}</article>)}</div>}
       {b.type==='faq'&&b.items.map((item,i)=><details key={i}><summary>{item.title}</summary><p>{item.text}</p></details>)}
       {b.button&&b.type!=='faq'&&<a className="zt-button" href={b.href||'/shop'}>{b.button} ↗</a>}
