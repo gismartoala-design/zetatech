@@ -9,13 +9,13 @@ import { useCart } from '@/context/CartContext';
 import { useCompany } from '@/hooks/useCompany';
 import { useToast } from '@/hooks/use-toast';
 import { toPublicImageUrl } from '@/lib/media';
-import { getProductPath } from '@shared/catalog';
+import { getProductPath, getStockLabel, normalizeStock } from '@shared/catalog';
 import { DEFAULT_COMPANY } from '@/lib/site';
 function Products({block}:{block:SiteBlock}) {
   const {data=[],isLoading,isError}=useQuery<Product[]>({queryKey:['website','products'],queryFn:async()=>{
     const response=await fetch(resolveApiUrl('/api/external/website/products'));
     if(!response.ok)throw new Error('No se pudo cargar el catálogo');
-    const {data}=await response.json();return data.map((p:Product)=>({...p,image:toPublicImageUrl(p.image)||'',deliveryTime:'',size:'',includes:p.description||''}));
+    const {data}=await response.json();return data.map((p:Product)=>({...p,stock:normalizeStock(p.stock),image:toPublicImageUrl(p.image)||'',deliveryTime:'',size:'',includes:p.description||''}));
   },staleTime:30000,retry:1});
   const {addItem,setIsCartOpen}=useCart();
   const {data:company}=useCompany();
@@ -37,8 +37,8 @@ function Products({block}:{block:SiteBlock}) {
     href:`https://wa.me/${DEFAULT_COMPANY.phoneDigits}?text=${encodeURIComponent(`Hola, me interesa ${product.name}. ¿Está disponible?`)}`,
   }:{
     id:product.id,name:product.name,price:product.price,image:product.image,
-    description:product.description,href:getProductPath(product),addLabel:'Añadir al carrito',
-    onAdd:()=>{
+    description:product.description,href:getProductPath(product),addLabel:'Añadir al carrito',stockLabel:getStockLabel(product.stock),
+    onAdd:product.stock===0?undefined:()=>{
       if(!acceptOrders){toast({title:'Tienda cerrada temporalmente',description:'Por ahora no estamos recibiendo nuevos pedidos.',duration:4000});return;}
       addItem(product);setIsCartOpen(true);
     },

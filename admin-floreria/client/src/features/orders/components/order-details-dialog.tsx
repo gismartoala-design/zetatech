@@ -214,7 +214,7 @@ export function OrderDetailsDialog({
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               <div className="min-w-0 space-y-2 rounded-lg bg-gray-50 p-3">
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400">
-                  Quien envia
+                  Datos del comprador
                 </h3>
                 <div className="flex items-center gap-2.5">
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-200">
@@ -227,6 +227,9 @@ export function OrderDetailsDialog({
                   </div>
                 </div>
                 <div className="space-y-1.5 text-xs text-gray-700">
+                  {storefrontDetails.senderDocument && (
+                    <InfoRow icon={<FileText className="h-4 w-4" />} value={`${storefrontDetails.senderDocumentType || "Cédula"}: ${storefrontDetails.senderDocument}`} />
+                  )}
                   {senderEmail && (
                     <InfoRow
                       icon={<Mail className="h-4 w-4" />}

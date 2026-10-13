@@ -160,6 +160,8 @@ router.post("/", async (req, res) => {
       senderName,
       senderEmail,
       senderPhone,
+      senderDocument,
+      senderDocumentType,
       phone,
       deliveryDateTime,
       exactAddress,
@@ -233,6 +235,8 @@ router.post("/", async (req, res) => {
 
     const orderNumber = `DIFIORI-${Date.now()}`;
     const storefrontDetails = buildStorefrontOrderDetails({
+      senderDocument,
+      senderDocumentType,
       senderName,
       senderEmail,
       senderPhone,
@@ -370,6 +374,8 @@ router.post("/", async (req, res) => {
       "Cliente DIFIORI";
 
     const emailData = {
+      senderDocument: storefrontDetails.senderDocument,
+      senderDocumentType: storefrontDetails.senderDocumentType,
       orderNumber: order.orderNumber,
       customerName,
       customerEmail: storefrontDetails.senderEmail,
@@ -451,9 +457,9 @@ router.post("/", async (req, res) => {
     });
 
     console.error("Store order error:", error);
-    return res.status(500).json({
+    return res.status(error.statusCode === 400 ? 400 : 500).json({
       status: "error",
-      message: "Error al crear la orden",
+      message: error.statusCode === 400 ? error.message : "Error al crear la orden",
       detail: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }

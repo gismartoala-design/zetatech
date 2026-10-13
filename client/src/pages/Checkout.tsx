@@ -32,6 +32,7 @@ import { CartDialog } from "@/components/CartDialog";
 import { Seo } from "@/components/Seo";
 import { DEFAULT_COMPANY } from "@/lib/site";
 import { formatCategoryDisplayName, getNumericPriceValue, getProductSku } from "@shared/catalog";
+import { isValidCustomerDocument, isValidContactPhone, type CustomerDocumentType } from "@shared/checkout";
 
 type OrderStatus = "idle" | "loading" | "success" | "error";
 type PaymentMethod = "PayPal" | "Payphone" | "Banco" | "Zelle";
@@ -159,7 +160,7 @@ const CHECKOUT_STEPS: {
   {
     id: "sender",
     label: "Tus datos",
-    helper: "Quién envía",
+    helper: "Datos del comprador",
     Icon: User,
   },
   {
@@ -319,6 +320,7 @@ export default function Checkout() {
   const [formRevision, setFormRevision] = useState(0);
   const [couponCode, setCouponCode] = useState("");
   const [sectorInput, setSectorInput] = useState("");
+  const [senderDocumentType, setSenderDocumentType] = useState<CustomerDocumentType>("CEDULA");
   const [appliedCoupon, setAppliedCoupon] = useState<{
     code: string;
     percent_value: number;
@@ -359,11 +361,11 @@ export default function Checkout() {
   const senderNameRef = useRef<HTMLInputElement>(null);
   const senderEmailRef = useRef<HTMLInputElement>(null);
   const senderPhoneRef = useRef<HTMLInputElement>(null);
+  const senderDocumentRef = useRef<HTMLInputElement>(null);
   const sectorSelectRef = useRef<HTMLSelectElement>(null);
   const sectorInputRef = useRef<HTMLInputElement>(null);
   const dateTimeRef = useRef<HTMLInputElement>(null);
   const addressRef = useRef<HTMLInputElement>(null);
-  const cardMessageRef = useRef<HTMLTextAreaElement>(null);
   const observationsRef = useRef<HTMLTextAreaElement>(null);
   const errorBannerRef = useRef<HTMLParagraphElement>(null);
 
@@ -385,24 +387,25 @@ export default function Checkout() {
     const senderName = senderNameRef.current?.value.trim() || "";
     const senderEmail = senderEmailRef.current?.value.trim() || "";
     const senderPhone = senderPhoneRef.current?.value.trim() || "";
+    const senderDocument = senderDocumentRef.current?.value.trim().toUpperCase() || "";
     const receiverName = receiverNameRef.current?.value.trim() || "";
     const receiverPhone = receiverPhoneRef.current?.value.trim() || "";
     const deliveryDateTime = dateTimeRef.current?.value.trim() || "";
     const address = addressRef.current?.value.trim() || "";
-    const cardMessage = cardMessageRef.current?.value.trim() || "";
     const observations = observationsRef.current?.value.trim() || "";
     const sector = sectorInput.trim();
     return {
       senderName,
       senderEmail,
       senderPhone,
+      senderDocument,
+      senderDocumentType,
       receiverName,
       receiverPhone,
       deliveryDateTime,
       address,
       sector,
       exactAddress: address,
-      cardMessage,
       observations,
     };
   };
@@ -412,15 +415,14 @@ export default function Checkout() {
       senderName,
       senderEmail,
       senderPhone,
+      senderDocument,
       receiverName,
       deliveryDateTime,
       address,
       sector,
     } = readCheckoutFields();
     const hasValidSenderEmail = !senderEmail || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(senderEmail);
-    const senderComplete = Boolean(senderName && senderPhone && hasValidSenderEmail);
-    // El mensaje de la tarjeta es opcional: bloqueaba el pago de productos que
-    // ni siquiera llevan tarjeta (perfumes, desayunos, regalos).
+    const senderComplete = Boolean(senderName && isValidContactPhone(senderPhone) && isValidCustomerDocument(senderDocument, senderDocumentType) && hasValidSenderEmail);
     const deliveryComplete = Boolean(
       receiverName &&
         (hasConfiguredShippingSectors ? sector : true) &&
@@ -434,7 +436,7 @@ export default function Checkout() {
       hasDestination: Boolean(sector),
       canChoosePayment: senderComplete && deliveryComplete,
     };
-  }, [formRevision, hasConfiguredShippingSectors, sectorInput]);
+  }, [formRevision, hasConfiguredShippingSectors, sectorInput, senderDocumentType]);
 
   const canConfirmOrder = items.length > 0 && checkoutReadiness.canChoosePayment && Boolean(paymentMethod);
   const selectedPaymentDetails = PAYMENT_METHODS.find((method) => method.label === paymentMethod);
@@ -536,7 +538,6 @@ export default function Checkout() {
         deliveryDateTime,
         exactAddress,
         sector,
-        cardMessage,
         observations,
       } = readCheckoutFields();
 
@@ -554,7 +555,6 @@ export default function Checkout() {
           sector: sector || "Guayaquil",
           paymentMethod,
           deliveryDateTime: deliveryDateTime || "",
-          cardMessage: cardMessage || "",
           observations: observations || "",
           couponCode: appliedCoupon?.code || "",
           abandonedAt: new Date().toISOString(),
@@ -671,10 +671,11 @@ export default function Checkout() {
   };
 
   const getMissingSenderFields = () => {
-    const { senderName, senderPhone } = readCheckoutFields();
+    const { senderName, senderPhone, senderDocument } = readCheckoutFields();
     return [
-      [senderName, "nombre de quien envía"],
-      [senderPhone, "teléfono de quien envía"],
+      [senderName, "nombre completo del comprador"],
+      [senderDocument, "documento del comprador"],
+      [senderPhone, "celular del comprador"],
     ]
       .filter(([value]) => !value)
       .map(([, label]) => label);
@@ -698,13 +699,15 @@ export default function Checkout() {
   };
 
   const validateSenderStep = () => {
-    const { senderName, senderEmail, senderPhone } = readCheckoutFields();
+    const { senderName, senderEmail, senderPhone, senderDocument } = readCheckoutFields();
     const missingFields = getMissingSenderFields();
 
     if (missingFields.length > 0) {
       setErrorMsg(`Completa: ${missingFields.join(", ")}.`);
       if (!senderName) {
         focusCheckoutField("sender", senderNameRef);
+      } else if (!senderDocument) {
+        focusCheckoutField("sender", senderDocumentRef);
       } else if (!senderPhone) {
         focusCheckoutField("sender", senderPhoneRef);
       }
@@ -714,6 +717,17 @@ export default function Checkout() {
     if (senderEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(senderEmail)) {
       setErrorMsg("Revisa el correo o déjalo vacío para continuar por WhatsApp.");
       focusCheckoutField("sender", senderEmailRef);
+      return false;
+    }
+
+    if (!isValidCustomerDocument(senderDocument, senderDocumentType)) {
+      setErrorMsg(senderDocumentType === "CEDULA" ? "La cédula debe tener 10 dígitos." : senderDocumentType === "RUC" ? "El RUC debe tener 13 dígitos." : "Revisa el pasaporte: entre 5 y 20 letras, números o guiones.");
+      focusCheckoutField("sender", senderDocumentRef);
+      return false;
+    }
+    if (!isValidContactPhone(senderPhone)) {
+      setErrorMsg("Revisa tu celular e incluye el código de país si es un número internacional.");
+      focusCheckoutField("sender", senderPhoneRef);
       return false;
     }
 
@@ -850,13 +864,13 @@ export default function Checkout() {
       senderName,
       senderEmail,
       senderPhone,
+      senderDocument,
       receiverName,
       receiverPhone,
       deliveryDateTime,
       address,
       exactAddress,
       sector,
-      cardMessage,
       observations,
     } = readCheckoutFields();
 
@@ -895,13 +909,14 @@ export default function Checkout() {
       senderName,
       senderEmail,
       senderPhone,
+      senderDocument,
+      senderDocumentType,
       receiverPhone,
       phone: senderPhone,
       deliveryDateTime,
       exactAddress,
       sector,
       shippingCost,
-      cardMessage,
       observations,
       // Enviamos el total sin descontar el cupon: el backend valida el codigo
       // contra la base y aplica el descuento. Si mandamos el total ya rebajado
@@ -1495,7 +1510,7 @@ export default function Checkout() {
                 className="checkout-panel scroll-mt-8 space-y-5 rounded-[1.5rem] p-4 sm:space-y-7 sm:rounded-[2rem] sm:p-10"
               >
                 <h3 className="flex items-center gap-2 font-sans text-2xl font-black tracking-tight text-[#4B0082] sm:gap-3 sm:text-4xl">
-                  <User className="h-7 w-7 sm:h-9 sm:w-9" /> Quién envía
+                  <User className="h-7 w-7 sm:h-9 sm:w-9" /> Datos personales
                 </h3>
                 <p className="rounded-2xl bg-[#FBF7FD] p-4 text-sm font-bold text-[#4A3362]">
                   Usaremos tu teléfono para confirmar el pedido. El correo es opcional y los campos con * son obligatorios.
@@ -1512,6 +1527,20 @@ export default function Checkout() {
                       placeholder="Nombre completo"
                     />
                   </label>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <label className="checkout-field">
+                      <span><FileText className="h-5 w-5" /> Tipo de documento *</span>
+                      <select className="checkout-input" value={senderDocumentType} onChange={event => setSenderDocumentType(event.target.value as CustomerDocumentType)}>
+                        <option value="CEDULA">Cédula</option>
+                        <option value="RUC">RUC</option>
+                        <option value="PASAPORTE">Pasaporte</option>
+                      </select>
+                    </label>
+                    <label className="checkout-field">
+                      <span><FileText className="h-5 w-5" /> {senderDocumentType === "CEDULA" ? "Cédula" : senderDocumentType === "RUC" ? "RUC" : "Pasaporte"} *</span>
+                      <input ref={senderDocumentRef} name="senderDocument" required inputMode={senderDocumentType === "PASAPORTE" ? "text" : "numeric"} maxLength={senderDocumentType === "CEDULA" ? 10 : senderDocumentType === "RUC" ? 13 : 20} className="checkout-input" placeholder="Número de documento" />
+                    </label>
+                  </div>
                   <label className="checkout-field">
                     <span>
                       <Mail className="h-5 w-5" /> Correo electrónico (opcional)
@@ -1526,14 +1555,16 @@ export default function Checkout() {
                   </label>
                   <label className="checkout-field">
                     <span>
-                      <Phone className="h-5 w-5" /> Teléfono *
+                      <Phone className="h-5 w-5" /> Número de celular / WhatsApp *
                     </span>
                     <input
                       ref={senderPhoneRef}
                       type="tel"
+                      name="senderPhone"
+                      required
                       autoComplete="tel"
                       className="checkout-input"
-                      placeholder="Numero para confirmar el pedido"
+                      placeholder="Ej.: 0991234567 o +593991234567"
                     />
                   </label>
                 </div>
@@ -1633,16 +1664,6 @@ export default function Checkout() {
                       ref={addressRef}
                       className="checkout-input"
                       placeholder="Ciudadela, calle, manzana, villa, referencia"
-                    />
-                  </label>
-                  <label className="checkout-field">
-                    <span>
-                      <MessageSquare className="h-5 w-5" /> Mensaje para la tarjeta
-                    </span>
-                    <textarea
-                      ref={cardMessageRef}
-                      className="checkout-input h-28 resize-none"
-                      placeholder="Opcional: escríbelo aquí o coordínalo luego por WhatsApp"
                     />
                   </label>
                   <label className="checkout-field">

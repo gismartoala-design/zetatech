@@ -1,4 +1,5 @@
 import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/shared/components/ui/button";
 import { FadeIn } from "../components/animations";
 import "../styles/home.css";
@@ -36,11 +37,11 @@ export default function Home() {
           <FadeIn delay={500}>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
               <Button size="lg" className="group px-10 py-4 text-lg font-medium shadow-lg hover:shadow-xl transition-all duration-300">
-                <a href="/auth" className="flex items-center gap-3">
+                <Link to="/auth" className="flex items-center gap-3">
                   {/* <Coffee className="h-5 w-5" /> */}
                   Comenzar Ahora
                   <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform duration-200" />
-                </a>
+                </Link>
               </Button>
               <Button 
                 variant="outline" 

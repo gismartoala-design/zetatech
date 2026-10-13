@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { Product } from "../data/mock";
 import { resolveApiUrl } from "@/lib/api";
 import { toPublicImageUrl } from "@/lib/media";
-import { areSameCategory, isPublicCatalogProduct } from "@shared/catalog";
+import { areSameCategory, isPublicCatalogProduct, normalizeStock } from "@shared/catalog";
 
 const API_URL = "/api/external/products";
 
@@ -102,7 +102,8 @@ export async function fetchProducts(
           image: getImageUrl(p.image),
           isBestSeller: p.isBestSeller || false,
           sortOrder: typeof p.sortOrder === "number" ? p.sortOrder : null,
-          stock: p.stock ?? 99,
+          stock: normalizeStock(p.stock),
+          additionalImages: Array.isArray(p.additionalImages) ? p.additionalImages.map(getImageUrl) : [],
           deliveryTime: p.deliveryTime || "",
           size: normalizePublicProductText(p.size),
           includes: normalized.summary ? "" : normalizePublicProductText(p.includes || p.description),

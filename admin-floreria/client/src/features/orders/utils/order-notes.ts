@@ -21,6 +21,8 @@ export function parseStorefrontOrderNotes(notes?: string | null) {
       envia: "senderName",
       "correo de quien envia": "senderEmail",
       "telefono de quien envia": "senderPhone",
+      "tipo de documento": "senderDocumentType",
+      "documento del comprador": "senderDocument",
       "quien recibe": "receiverName",
       recibe: "receiverName",
       "telefono de quien recibe": "receiverPhone",

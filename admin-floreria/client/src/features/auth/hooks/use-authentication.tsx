@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import AuthService from "../api/auth-service";
 
 export default function useAuthentication() {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,13 +18,13 @@ export default function useAuthentication() {
       if (response.status === "success") {
         toast.success("Login exitoso");
         // redirect to dashboard
-        window.location.href = "/app/dashboard";
+        navigate("/app/dashboard", { replace: true });
       }
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error("Login error:", error.message);
-        toast.error("Error de conexión");
-      }
+      const message = error && typeof error === "object" && "message" in error
+        ? String(error.message)
+        : "No se pudo iniciar sesión. Inténtalo nuevamente.";
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }

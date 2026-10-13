@@ -56,7 +56,7 @@ function AnimatedBlock({block,children,editor,onSelect}:{block:SiteBlock;childre
 }
 export interface CarouselProduct {
   id: string; name: string; price: string; image: string; href: string;
-  description?: string; onAdd?: () => void; addLabel?: string; linkLabel?: string; badge?: string;
+  description?: string; onAdd?: () => void; addLabel?: string; linkLabel?: string; badge?: string; stockLabel?: string;
 }
 export function ProductCarousel({products,resolveImage=(url)=>url}:{products:CarouselProduct[];resolveImage?:(url:string)=>string}) {
   const trackRef=useRef<HTMLDivElement>(null);
@@ -144,6 +144,7 @@ export function ProductCarousel({products,resolveImage=(url)=>url}:{products:Car
           <h3>{p.name}</h3>
           {p.description&&<p>{p.description}</p>}
           <strong className="zt-spotlight-price">{p.price}</strong>
+          {p.stockLabel&&<span className="zt-spotlight-stock">{p.stockLabel}</span>}
           <div className="zt-spotlight-actions">
             {p.onAdd&&<button type="button" className="zt-button" onClick={p.onAdd}>{p.addLabel||'Añadir al carrito'}</button>}
             <a className="zt-spotlight-link" href={p.href}>{p.linkLabel||'Ver detalles'} <span aria-hidden="true">↗</span></a>
@@ -157,18 +158,18 @@ export function ProductCarousel({products,resolveImage=(url)=>url}:{products:Car
   </div>;
 }
 export function BrandCarousel({items,resolveImage=(url)=>url}:{items:SiteBlock['items'];resolveImage?:(url:string)=>string}) {
-  const repeated = [...items, ...items];
   if (!items.length) return null;
-  return <div className="zt-brands" aria-label="Marcas disponibles en Zetatech">
+  return <div className="zt-brands-carousel" aria-label="Marcas disponibles en Zetatech">
     <div className="zt-brands-viewport">
       <div className="zt-brands-track">
-        {repeated.map((item,index)=><a className="zt-brand-card" href={item.href||'/shop'} key={`${item.title}-${index}`} aria-hidden={index>=items.length} tabIndex={index>=items.length?-1:0}>
-          <span className="zt-brand-logo">{item.image?<img src={resolveImage(item.image)} alt="" loading="lazy"/>:item.title.slice(0,2).toUpperCase()}</span>
-          <span><strong>{item.title}</strong><small>{item.text}</small></span><span className="zt-brand-arrow" aria-hidden="true">↗</span>
-        </a>)}
+        {[0,1].map(copy=><div className="zt-brands-group" key={copy} aria-hidden={copy===1?true:undefined}>
+          {items.map((item,index)=><a className="zt-brand-card" href={item.href||'/shop'} key={`${item.title}-${index}`} tabIndex={copy===1?-1:0} aria-label={`Ver ${item.title}`}>
+            {item.image?<img className="zt-brand-image" src={resolveImage(item.image)} alt={item.title} loading="lazy"/>:<strong className="zt-brand-wordmark">{item.title}</strong>}
+            {item.text&&<small>{item.text}</small>}
+          </a>)}
+        </div>)}
       </div>
     </div>
-    <p className="zt-brands-hint">Pasa el cursor para pausar · Explora por marca</p>
   </div>;
 }
 export function SiteRenderer({document,renderProducts,cart,resolveImage=(url)=>url,preview=false,editor=preview,onSelectBlock}:{document:SiteDocument;renderProducts?:(block:SiteBlock)=>ReactNode;cart?:ReactNode;resolveImage?:(url:string)=>string;preview?:boolean;editor?:boolean;onSelectBlock?:(id:string)=>void}) {

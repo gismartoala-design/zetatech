@@ -1,4 +1,5 @@
 import { useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '@/store/use-user-store';
 import service from '@/core/api/service';
 // import { AxiosError } from 'axios';
@@ -7,6 +8,7 @@ const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutos en milliseconds
 const CHECK_INTERVAL = 60 * 1000; // Verificar cada minuto
 
 export function useSessionTimeout() {
+  const navigate = useNavigate();
   // Map to existing store fields
   const { user, lastFetchedAt, clearUser, markFetchedNow } = useUserStore();
   const isAuthenticated = !!user;
@@ -20,9 +22,9 @@ export function useSessionTimeout() {
     } finally {
       // Limpiar estado local
       clearUser();
-      window.location.href = '/auth';
+      navigate('/auth', { replace: true });
     }
-  }, [clearUser]);
+  }, [clearUser, navigate]);
 
   const checkSession = useCallback(() => {
     if (!isAuthenticated) return;

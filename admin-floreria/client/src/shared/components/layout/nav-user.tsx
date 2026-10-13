@@ -30,8 +30,10 @@ import {
 import { useUserStore } from "@/store/use-user-store";
 import { toast } from "sonner";
 import { authService } from "@/core/api/auth-service";
+import { useNavigate } from "react-router-dom";
 
 export function NavUser() {
+  const navigate = useNavigate();
   const { isMobile } = useSidebar();
   const { user, clearUser } = useUserStore();
 
@@ -56,7 +58,7 @@ export function NavUser() {
       console.error("Logout error:", error);
     } finally {
       clearUser();
-      window.location.href = "/auth";
+      navigate("/auth", { replace: true });
     }
   }
 

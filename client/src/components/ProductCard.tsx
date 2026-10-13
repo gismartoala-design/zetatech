@@ -9,7 +9,7 @@ import { buildGaItem, trackGaEvent } from "@/lib/analytics";
 import { trackFacebookEvent } from "@/lib/facebook-pixel";
 import { getResponsiveImageSrcSet } from "@/lib/media";
 import { DEFAULT_COMPANY, canonicalUrl } from "@/lib/site";
-import { formatCategoryDisplayName, getNumericPriceValue, getProductPath, getProductSku } from "@shared/catalog";
+import { formatCategoryDisplayName, getNumericPriceValue, getProductPath, getProductSku, getStockLabel } from "@shared/catalog";
 
 interface ProductCardProps {
   product: Product;
@@ -30,6 +30,7 @@ export function ProductCard({ product, priority = false, showBestSellerBadge = t
   const productUrl = canonicalUrl(productPath);
   const productPrice = getNumericPriceValue(product.price);
   const productSku = getProductSku(product);
+  const soldOut = product.stock === 0;
 
   const trackAddToCart = () => {
     const gaItem = buildGaItem({
@@ -55,6 +56,7 @@ export function ProductCard({ product, priority = false, showBestSellerBadge = t
   };
 
   const handleAddToCart = () => {
+    if (soldOut) return;
     if (!acceptOrders) {
       toast({
         title: "Tienda cerrada temporalmente",
@@ -70,6 +72,7 @@ export function ProductCard({ product, priority = false, showBestSellerBadge = t
   };
 
   const handleBuyNow = () => {
+    if (soldOut) return;
     if (isBuying) return;
     if (!acceptOrders) {
       toast({
@@ -101,7 +104,7 @@ export function ProductCard({ product, priority = false, showBestSellerBadge = t
 
   return (
     <article
-      className="surface-card group flex h-full flex-col overflow-hidden border-[#DECDF0] transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(74,51,98,0.14)]"
+      className="surface-card group flex h-full flex-col overflow-hidden border-foreground/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(16,22,20,0.12)]"
       itemScope
       itemType="https://schema.org/Product"
     >
@@ -120,7 +123,7 @@ export function ProductCard({ product, priority = false, showBestSellerBadge = t
           width={720}
           height={720}
           sizes="(min-width: 1280px) 360px, (min-width: 640px) 44vw, 92vw"
-          className="h-full w-full object-contain object-center"
+          className="h-full w-full object-contain object-center p-4 transition-transform duration-500 group-hover:scale-105"
         />
 
         {product.isBestSeller && showBestSellerBadge && (
@@ -131,7 +134,7 @@ export function ProductCard({ product, priority = false, showBestSellerBadge = t
       </Link>
 
       <div className="flex flex-1 flex-col p-5 sm:p-6">
-        <span className="mb-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#4A3362]">
+        <span className="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-accent">
           {categoryLabel}
         </span>
         <Link href={productPath} className="group/title mb-3 block">
@@ -140,7 +143,7 @@ export function ProductCard({ product, priority = false, showBestSellerBadge = t
               para Google) para que todas las fichas tengan la misma altura. */}
           <h3
             itemProp="name"
-            className="line-clamp-2 font-serif text-[1.45rem] font-bold leading-tight text-[#4A3362] transition-colors group-hover/title:text-accent"
+            className="line-clamp-2 text-base font-semibold leading-snug text-foreground transition-colors group-hover/title:text-accent"
             title={product.name}
           >
             {product.name}
@@ -169,13 +172,13 @@ export function ProductCard({ product, priority = false, showBestSellerBadge = t
           <meta itemProp="url" content={productUrl} />
           <meta itemProp="priceCurrency" content="USD" />
           <meta itemProp="price" content={productPrice} />
-          <link itemProp="availability" href="https://schema.org/InStock" />
+          {product.stock != null && <link itemProp="availability" href={`https://schema.org/${soldOut ? "OutOfStock" : "InStock"}`} />}
           <link itemProp="itemCondition" href="https://schema.org/NewCondition" />
           <div>
             <span className="block text-[10px] font-black uppercase tracking-[0.16em] text-foreground/55">Precio</span>
-            <p className="text-3xl font-black text-foreground">{product.price}</p>
+            <p className="text-2xl font-bold text-foreground">{product.price}</p>
           </div>
-          <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-extrabold text-emerald-700">Disponible</span>
+          <span className={`max-w-[55%] rounded-lg px-3 py-2 text-xs font-semibold ${soldOut ? "bg-slate-100 text-slate-600" : "bg-accent/10 text-accent"}`}>{getStockLabel(product.stock)}</span>
         </div>
 
         <div className="mt-5 flex w-full flex-col gap-2.5">
@@ -188,13 +191,13 @@ export function ProductCard({ product, priority = false, showBestSellerBadge = t
             <Truck className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
             Entrega en Guayaquil
           </p>
-          <button type="button" onClick={handleBuyNow} disabled={isBuying} className="ui-btn-primary w-full">
+          <button type="button" onClick={handleBuyNow} disabled={isBuying || soldOut} className="ui-btn-primary w-full disabled:cursor-not-allowed disabled:opacity-50">
             {isBuying ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <ShoppingBag className="h-4 w-4" />
             )}
-            {isBuying ? "Cargando..." : "Comprar ahora"}
+            {soldOut ? "Agotado" : isBuying ? "Cargando..." : "Comprar ahora"}
           </button>
           {/* Acciones secundarias en una sola fila: tres botones apilados hacian
               la ficha muy alta y diluian el boton principal. */}
@@ -202,7 +205,8 @@ export function ProductCard({ product, priority = false, showBestSellerBadge = t
             <button
               type="button"
               onClick={handleAddToCart}
-              className="ui-btn-secondary w-full px-3 text-[11px] tracking-[0.1em]"
+              disabled={soldOut}
+              className="ui-btn-secondary w-full px-3 text-[11px] tracking-[0.1em] disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Plus className="h-4 w-4 shrink-0" />
               Agregar

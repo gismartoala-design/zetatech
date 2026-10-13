@@ -14,6 +14,19 @@ export interface CatalogProductCandidate extends ProductLike {
 export const BEST_SELLERS_CATEGORY_NAME = "Más Vendidos";
 export const BEST_SELLERS_CATEGORY_SLUG = "mas-vendidos";
 
+/** Missing inventory is unknown, never an invented quantity. */
+export function normalizeStock(value: unknown): number | null {
+  if (value == null || value === "" || typeof value === "boolean") return null;
+  const quantity = Number(value);
+  return Number.isFinite(quantity) ? Math.max(0, Math.floor(quantity)) : null;
+}
+
+export function getStockLabel(stock: number | null): string {
+  if (stock == null) return "Consultar disponibilidad";
+  if (stock === 0) return "Agotado";
+  return `${stock} ${stock === 1 ? "unidad disponible" : "unidades disponibles"}`;
+}
+
 const MOJIBAKE_REPLACEMENTS: Array<[string, string]> = [
   ["Ã¡", "á"],
   ["Ã©", "é"],

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import "./product-details.css";
 import { Link, useLocation } from "wouter";
 import { MessageSquare, Plus, Truck, ShieldCheck, Clock, ShoppingBag, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -32,13 +33,10 @@ import {
   getProductPath,
   getProductSku,
   isProductSlugMatch,
+  getStockLabel,
 } from "@shared/catalog";
 
 export default function ProductDetails() {
-  React.useEffect(() => {
-    void import("./product-details.css");
-  }, []);
-
   const [location, setLocation] = useLocation();
   const { data: allProducts = [], isLoading } = useProducts();
   const { data: company } = useCompany();
@@ -137,7 +135,7 @@ export default function ProductDetails() {
   };
 
   const handleAddToCart = () => {
-    if (!product || isStoreClosed()) return;
+    if (!product || product.stock === 0 || isStoreClosed()) return;
 
     trackProductAddToCart();
     addItem(product);
@@ -145,7 +143,7 @@ export default function ProductDetails() {
   };
 
   const handleBuyNow = () => {
-    if (!product || isBuying || isStoreClosed()) return;
+    if (!product || product.stock === 0 || isBuying || isStoreClosed()) return;
 
     setIsBuying(true);
     trackProductAddToCart();
@@ -188,6 +186,7 @@ export default function ProductDetails() {
   }
 
   const priceValue = getNumericPriceValue(product.price);
+  const soldOut = product.stock === 0;
   const productSku = getProductSku(product);
   const productPath = getProductPath(product);
   const categoryPath = getCategoryPath(product.category);
@@ -215,7 +214,7 @@ export default function ProductDetails() {
       ? {
           title: "Promesa de Entrega",
           content: (
-            <p className="flex items-center gap-2 text-[1.05rem] font-medium leading-relaxed text-[#8F73B1]">
+            <p className="flex items-center gap-2 text-sm leading-relaxed text-foreground/70">
               <Clock className="w-4 h-4" /> {product.deliveryTime} (Guayaquil)
             </p>
           ),
@@ -249,7 +248,7 @@ export default function ProductDetails() {
           // Google avisa en Search Console cuando falta: sin fecha de validez
           // puede dejar de mostrar el precio en los resultados de búsqueda.
           priceValidUntil: getPriceValidUntil(),
-          availability: "https://schema.org/InStock",
+          ...(product.stock != null ? { availability: `https://schema.org/${soldOut ? "OutOfStock" : "InStock"}` } : {}),
           itemCondition: "https://schema.org/NewCondition",
           shippingDetails: getOfferShippingDetailsSchema(),
           hasMerchantReturnPolicy: getMerchantReturnPolicySchema(),
@@ -303,7 +302,7 @@ export default function ProductDetails() {
         schema={productSchema}
       />
       <div className="page-container">
-        <Breadcrumb className="mb-10">
+        <Breadcrumb className="mb-6 text-xs">
           <BreadcrumbList>
             <BreadcrumbItem>
               <Link href="/" className="transition-colors hover:text-foreground">
@@ -329,12 +328,12 @@ export default function ProductDetails() {
           </BreadcrumbList>
         </Breadcrumb>
 
-        <div className="grid items-start gap-14 lg:grid-cols-2 lg:gap-16">
+        <div className="grid items-start gap-8 lg:grid-cols-2 lg:gap-12">
           <div className="space-y-8 flex flex-col items-center lg:items-start">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="surface-card relative aspect-[4/5] w-full max-w-xl overflow-hidden group bg-white"
+              className="surface-card relative aspect-square w-full max-w-xl overflow-hidden group bg-white"
             >
               <img
                 src={selectedImage}
@@ -385,32 +384,35 @@ export default function ProductDetails() {
           <div className="flex flex-col h-full">
             <div className="page-kicker">{categoryLabel}</div>
 
-            <h1 className="page-title mb-8">
+            <h1 className="product-detail-title">
               {product.name}
             </h1>
 
-            <div className="flex items-center gap-6 mb-12">
-              <span className="text-5xl font-black text-foreground font-serif underline decoration-accent/20 underline-offset-8 decoration-4">
+            <div className="flex flex-wrap items-center gap-4 mb-5">
+              <span className="text-3xl font-bold text-foreground">
                 {product.price}
               </span>
-              <div className="px-4 py-1 bg-accent/10 text-accent rounded-full text-[10px] font-black uppercase tracking-widest border border-accent/20">
-                Disponible Ahora
+              <div className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${soldOut ? "bg-slate-100 text-slate-600" : "bg-accent/10 text-accent"}`} role="status">
+                {getStockLabel(product.stock)}
               </div>
             </div>
 
-            <p className="product-description-strong mb-10 max-w-2xl">
-              {product.description}
-            </p>
+            {product.description && <details className="product-description-panel" open>
+              <summary>Descripción</summary>
+              <p className="product-description-strong">{product.description}</p>
+            </details>}
 
             {detailItems.length > 0 ? (
-              <div className="mb-16 grid grid-cols-1 gap-8 sm:grid-cols-2">
+              <details className="product-specifications-panel">
+                <summary>Especificaciones y entrega</summary>
+                <div className="grid grid-cols-1 gap-4 pt-4 sm:grid-cols-2">
                 {detailItems.map((item) => (
-                  <div key={item.title} className="space-y-3">
-                    <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-accent">
+                  <div key={item.title} className="space-y-1.5">
+                    <h4 className="text-xs font-semibold text-foreground">
                       {item.title}
                     </h4>
                     {typeof item.content === "string" ? (
-                      <p className="text-[1.05rem] font-medium leading-relaxed text-[#8F73B1]">
+                      <p className="text-sm leading-relaxed text-foreground/70">
                         {item.content}
                       </p>
                     ) : (
@@ -418,32 +420,33 @@ export default function ProductDetails() {
                     )}
                   </div>
                 ))}
-              </div>
+                </div>
+              </details>
             ) : null}
 
-            <div className="flex flex-col sm:flex-row gap-6 mt-auto">
-              <button type="button" onClick={handleBuyNow} disabled={isBuying} className="ui-btn-primary flex-1 py-5">
+            <div className="product-detail-actions">
+              <button type="button" onClick={handleBuyNow} disabled={isBuying || soldOut} className="ui-btn-primary disabled:cursor-not-allowed disabled:opacity-50">
                 {isBuying ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
                   <ShoppingBag className="h-5 w-5" />
                 )}
-                {isBuying ? "Cargando..." : "Comprar ahora"}
+                {soldOut ? "Agotado" : isBuying ? "Cargando..." : "Comprar ahora"}
               </button>
-              <button type="button" onClick={handleAddToCart} className="ui-btn-secondary flex-1 py-5">
+              <button type="button" onClick={handleAddToCart} disabled={soldOut} className="ui-btn-secondary disabled:cursor-not-allowed disabled:opacity-50">
                 <Plus className="h-5 w-5" /> Agregar al carrito
               </button>
               <a
-                href={`https://wa.me/${DEFAULT_COMPANY.phoneDigits}?text=Hola!%20Deseo%20ordenar%20el%20arreglo:%20${encodeURIComponent(product.name)}`}
+                href={`https://wa.me/${DEFAULT_COMPANY.phoneDigits}?text=${encodeURIComponent(`Hola, me interesa ${product.name}. ¿Me pueden asesorar?`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="ui-btn-secondary flex-1 py-5"
+                className="product-detail-whatsapp"
               >
-                <MessageSquare className="h-5 w-5" /> Pedir por WhatsApp
+                <MessageSquare className="h-4 w-4" /> Consultar por WhatsApp
               </a>
             </div>
 
-            <div className="mt-12 pt-12 border-t border-primary/10 flex items-center gap-6 text-[10px] font-bold uppercase tracking-widest text-foreground/30">
+            <div className="mt-6 pt-5 border-t border-foreground/10 flex flex-wrap items-center gap-5 text-xs font-medium text-foreground/60">
               <span className="flex items-center gap-2">
                 <Truck className="w-4 h-4" /> Envío Seguro
               </span>

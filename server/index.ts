@@ -1444,6 +1444,9 @@ app.use("/api/health", (req, res, next) => {
 // (/api/admin, /api/cms, productos, etc.) viajan internamente al API.
 app.use("/api", proxyToBackend);
 
+// Older admin links used /auth at the root; keep them inside the admin app.
+app.get("/auth", (_req, res) => res.redirect(302, "/admin/auth"));
+
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",

@@ -212,6 +212,8 @@ async function createPendingPaypalOrder(prisma, payload) {
     senderName,
     senderEmail,
     senderPhone,
+    senderDocument,
+    senderDocumentType,
     phone,
     deliveryDateTime,
     exactAddress,
@@ -250,6 +252,8 @@ async function createPendingPaypalOrder(prisma, payload) {
   });
   const hydratedItems = await hydrateStorefrontItems(prisma, normalizedItems);
   const storefrontDetails = buildStorefrontOrderDetails({
+    senderDocument,
+    senderDocumentType,
     senderName,
     senderEmail,
     senderPhone,
@@ -322,6 +326,8 @@ async function createPendingPaypalOrder(prisma, payload) {
 
   try {
     const alertResult = await emailService.sendNewOrderAlert({
+      senderDocument: storefrontDetails.senderDocument,
+      senderDocumentType: storefrontDetails.senderDocumentType,
       orderNumber: order.orderNumber,
       customerName: senderName,
       customerEmail: storefrontDetails.senderEmail,
