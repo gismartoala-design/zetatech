@@ -618,6 +618,8 @@ async function proxyToBackend(req: Request, res: Response) {
   const ifModifiedSince = req.get("If-Modified-Since");
   const range = req.get("Range");
   const cacheControl = req.get("Cache-Control");
+  const cookie = req.get("Cookie");
+  const authorization = req.get("Authorization");
   const abortController = new AbortController();
   const abortRequest = () => abortController.abort();
 
@@ -634,6 +636,8 @@ async function proxyToBackend(req: Request, res: Response) {
         ...(ifModifiedSince ? { "If-Modified-Since": ifModifiedSince } : {}),
         ...(range ? { Range: range } : {}),
         ...(cacheControl ? { "Cache-Control": cacheControl } : {}),
+        ...(cookie ? { Cookie: cookie } : {}),
+        ...(authorization ? { Authorization: authorization } : {}),
         ...(req.originalUrl.startsWith('/api/external/website') ? { Origin: req.get('Origin') || `${req.protocol}://${req.get('host')}` } : {}),
       },
       signal: abortController.signal,
@@ -652,12 +656,14 @@ async function proxyToBackend(req: Request, res: Response) {
     }
 
     response.headers.forEach((value, key) => {
-      if (["content-length", "transfer-encoding", "connection"].includes(key.toLowerCase())) {
+      if (["content-length", "transfer-encoding", "connection", "set-cookie"].includes(key.toLowerCase())) {
         return;
       }
 
       res.setHeader(key, value);
     });
+    const responseCookies = response.headers.getSetCookie();
+    if (responseCookies.length) res.setHeader("Set-Cookie", responseCookies);
 
     if (req.originalUrl.startsWith("/uploads/") && !response.headers.has("cache-control")) {
       res.setHeader("Cache-Control", "public, max-age=31536000, stale-while-revalidate=86400");

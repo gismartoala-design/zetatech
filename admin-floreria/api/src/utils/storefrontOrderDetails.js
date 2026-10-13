@@ -13,7 +13,7 @@ function buildStorefrontOrderDetails(payload = {}) {
   // without invalidating existing orders or pending payment callbacks.
   if (senderDocument) {
     const formats = { CEDULA: /^\d{10}$/, RUC: /^\d{13}$/, PASAPORTE: /^[A-Z0-9-]{5,20}$/ };
-    if (!formats[senderDocumentType]?.test(senderDocument)) {
+    if (!Object.hasOwn(formats, senderDocumentType) || !formats[senderDocumentType].test(senderDocument)) {
       const error = new Error("Revisa el documento del comprador.");
       error.statusCode = 400;
       throw error;

@@ -23,6 +23,8 @@ export default function useAuthentication() {
     } catch (error: unknown) {
       const message = error && typeof error === "object" && "message" in error
         ? String(error.message)
+        : error && typeof error === "object" && "error" in error
+        ? String(error.error)
         : "No se pudo iniciar sesión. Inténtalo nuevamente.";
       toast.error(message);
     } finally {

@@ -4,7 +4,7 @@ export function isValidCustomerDocument(value: string, type: CustomerDocumentTyp
   const document = value.trim().toUpperCase();
   if (type === "CEDULA") return /^\d{10}$/.test(document);
   if (type === "RUC") return /^\d{13}$/.test(document);
-  return /^[A-Z0-9-]{5,20}$/.test(document);
+  return type === "PASAPORTE" && /^[A-Z0-9-]{5,20}$/.test(document);
 }
 
 export function isValidContactPhone(value: string) {

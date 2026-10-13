@@ -759,6 +759,11 @@ export default function Checkout() {
       return false;
     }
 
+    if (receiverPhone && !isValidContactPhone(receiverPhone)) {
+      setErrorMsg("Revisa el celular de quien recibe o déjalo vacío para coordinar contigo.");
+      focusCheckoutField("receiver", receiverPhoneRef);
+      return false;
+    }
     setErrorMsg("");
     return true;
   };
@@ -1522,6 +1527,8 @@ export default function Checkout() {
                     </span>
                     <input
                       ref={senderNameRef}
+                      name="senderName"
+                      required
                       autoComplete="name"
                       className="checkout-input"
                       placeholder="Nombre completo"
@@ -1581,6 +1588,14 @@ export default function Checkout() {
                 <p className="rounded-2xl bg-[#FBF7FD] p-4 text-sm font-bold text-[#4A3362]">
                   Selecciona el sector para calcular el envío. Si no conoces el teléfono de quien recibe, coordinaremos contigo.
                 </p>
+                <button type="button" className="ui-btn-secondary text-sm" onClick={() => {
+                  const { senderName, senderPhone } = readCheckoutFields();
+                  if (receiverNameRef.current) receiverNameRef.current.value = senderName;
+                  if (receiverPhoneRef.current) receiverPhoneRef.current.value = senderPhone;
+                  updateCheckoutProgress();
+                }}>
+                  Recibo yo: usar mis datos
+                </button>
                 <div className="grid grid-cols-1 gap-5">
                   <label className="checkout-field">
                     <span>
@@ -1594,7 +1609,7 @@ export default function Checkout() {
                   </label>
                   <label className="checkout-field">
                     <span>
-                      <Phone className="h-5 w-5" /> Teléfono de quien recibe (opcional)
+                      <Phone className="h-5 w-5" /> Celular de quien recibe (opcional)
                     </span>
                     <input
                       ref={receiverPhoneRef}
