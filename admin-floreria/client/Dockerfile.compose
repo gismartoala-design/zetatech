@@ -5,9 +5,11 @@ WORKDIR /app/admin-floreria/client
 ARG VITE_API_URL=http://localhost:4001/api
 ARG VITE_BACKEND_URL=http://localhost:4001/api
 ARG VITE_URL_IMG=http://localhost:4001
+ARG VITE_BASE_PATH=/
 ENV VITE_API_URL=${VITE_API_URL}
 ENV VITE_BACKEND_URL=${VITE_BACKEND_URL}
 ENV VITE_URL_IMG=${VITE_URL_IMG}
+ENV VITE_BASE_PATH=${VITE_BASE_PATH}
 
 COPY admin-floreria/client/package*.json ./
 RUN npm ci

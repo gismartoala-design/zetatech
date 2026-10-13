@@ -33,6 +33,7 @@ URLs locales:
 - Tienda: http://localhost:5000
 - Administrador: http://localhost:5173
 - API: http://localhost:4001
+- Admin en la misma URL de la tienda: http://localhost:5000/admin/
 
 Para detener los contenedores:
 
@@ -42,6 +43,18 @@ npm run docker:down
 
 Las imágenes del admin incluyen `shared/`, que es donde vive el editor visual
 Zetatech. El volumen `zetatech-uploads` conserva las imágenes subidas.
+
+La imagen principal también incluye el panel administrativo bajo `/admin/`.
+En Cloud Run, la URL pública queda así:
+
+```text
+https://tu-servicio.run.app/       # tienda
+https://tu-servicio.run.app/admin/ # panel
+```
+
+El backend puede seguir siendo un servicio Cloud Run interno separado. Define
+su URL en `BACKEND_URL`; el servidor principal reenvía `/api/*`, por lo que el
+panel mantiene la misma URL y no necesita una URL de API distinta.
 
 ## Producción
 

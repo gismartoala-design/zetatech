@@ -1,7 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { obtenerResumen, registrarVisita } from "./traffic-log";
-import { getProdTemplate, serveStatic } from "./static";
+import { getProdTemplate, serveAdminStatic, serveStatic } from "./static";
 import { createServer } from "http";
 import { existsSync, readFileSync } from "fs";
 import { resolve } from "path";
@@ -1145,7 +1145,7 @@ app.use(async (req, res, next) => {
     return res.redirect(301, productId ? `/product/${encodeURIComponent(productId)}` : "/shop");
   }
 
-  if (req.path.startsWith("/v2") || req.path === "/admin" || req.path.startsWith("/admin/")) {
+  if (req.path.startsWith("/v2")) {
     return sendGone(res, req.path);
   }
 
@@ -1440,6 +1440,10 @@ app.use("/api/health", (req, res, next) => {
   return proxyToBackend(req, res).catch(next);
 });
 
+// El panel se sirve bajo el mismo dominio que la tienda. Las rutas privadas
+// (/api/admin, /api/cms, productos, etc.) viajan internamente al API.
+app.use("/api", proxyToBackend);
+
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",
@@ -1484,6 +1488,7 @@ app.use((req, res, next) => {
   if (process.env.NODE_ENV === "production") {
     // In production, always use SSR for dynamic routes. Static files are served by the app server.
     serveStatic(app);
+    serveAdminStatic(app);
   } else {
     const { setupVite } = await import("./vite");
     vite = await setupVite(httpServer, app);

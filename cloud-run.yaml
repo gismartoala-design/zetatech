@@ -1,7 +1,7 @@
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  name: difiori-shop
+  name: zetatech-shop
   labels:
     cloud.googleapis.com/location: us-central1
 spec:
@@ -15,7 +15,7 @@ spec:
     spec:
       containerConcurrency: 80
       containers:
-        - image: us-central1-docker.pkg.dev/${PROJECT_ID}/difiori-repo/difiori-shop:latest
+        - image: us-central1-docker.pkg.dev/${PROJECT_ID}/zetatech-repo/zetatech-shop:latest
           ports:
             - containerPort: 8080
           resources:
@@ -26,7 +26,11 @@ spec:
             - name: NODE_ENV
               value: "production"
             - name: APP_PUBLIC_SITE_URL
-              value: "https://difiori.com"
+              value: "https://tu-dominio.com"
+            # URL interna/pública del servicio Cloud Run del API admin. El
+            # navegador solo usa la URL principal; el servidor proxya /api/*.
+            - name: BACKEND_URL
+              value: "https://api-admin-tu-proyecto.run.app"
             # Sin esta variable el sitio no carga Google Analytics.
             - name: GA_MEASUREMENT_ID
               value: "G-XXXXXXXXXX"

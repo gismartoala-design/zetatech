@@ -6,6 +6,18 @@ export function getDistPath() {
   return path.resolve(__dirname, "public");
 }
 
+export function serveAdminStatic(app: Express) {
+  const adminPath = path.resolve(getDistPath(), "admin");
+  const entry = path.join(adminPath, "index.html");
+  if (!fs.existsSync(entry)) return;
+
+  app.use("/admin", express.static(adminPath, { index: "index.html" }));
+  app.use("/admin", (req, res, next) => {
+    if (req.method !== "GET" || path.extname(req.path)) return next();
+    return res.sendFile(entry);
+  });
+}
+
 export async function getProdTemplate() {
   // Keep the generated stylesheet as a render-blocking stylesheet. Converting it
   // to an asynchronous preload made the SSR markup paint before its CSS arrived,
