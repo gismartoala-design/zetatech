@@ -595,6 +595,25 @@ async function proxyToBackend(req: Request, res: Response) {
   res.once("close", abortRequest);
 
   try {
+    // JSON is already parsed by Express, but multipart must reach Multer as
+    // the original stream, including its boundary and binary bytes.
+    const bodyOptions: RequestInit & { duplex?: "half" } = {};
+    if (!["GET", "HEAD"].includes(req.method)) {
+      if (Buffer.isBuffer(req.rawBody)) {
+        bodyOptions.body = req.rawBody;
+      } else if (req.is("application/x-www-form-urlencoded")) {
+        const form = new URLSearchParams();
+        for (const [key, value] of Object.entries(req.body || {})) {
+          for (const item of Array.isArray(value) ? value : [value]) form.append(key, String(item));
+        }
+        bodyOptions.body = form.toString();
+      } else if (req.is("application/json")) {
+        bodyOptions.body = req.body === undefined ? undefined : JSON.stringify(req.body);
+      } else {
+        bodyOptions.body = req as unknown as BodyInit;
+        bodyOptions.duplex = "half";
+      }
+    }
     const response = await fetchWithTimeout(backendUrl, {
       method: req.method,
       headers: {
@@ -610,7 +629,7 @@ async function proxyToBackend(req: Request, res: Response) {
         ...(req.originalUrl.startsWith('/api/external/website') ? { Origin: req.get('Origin') || `${req.protocol}://${req.get('host')}` } : {}),
       },
       signal: abortController.signal,
-      body: ["POST", "PUT", "PATCH"].includes(req.method) ? JSON.stringify(req.body) : undefined,
+      ...bodyOptions,
     }, getProxyTimeoutMs(req));
 
     // Do not proxy the raw admin configuration into the browser or SSR state.
@@ -672,7 +691,9 @@ async function proxyToBackend(req: Request, res: Response) {
       return res.status(504).json({
         status: "error",
         message:
-          "Tu pedido esta tardando en confirmarse. No lo envies de nuevo: escribenos por WhatsApp y lo verificamos contigo.",
+          (contentType || '').includes('multipart/form-data')
+            ? "La subida del archivo tardó demasiado. Revisa la conexión del almacenamiento e intenta nuevamente."
+            : "Tu pedido esta tardando en confirmarse. No lo envies de nuevo: escribenos por WhatsApp y lo verificamos contigo.",
       });
     }
 

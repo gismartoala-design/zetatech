@@ -6,7 +6,13 @@ const cookieParser = require("cookie-parser");
 const authMiddleware = require("./middlewares/authMiddleware");
 const featureMiddleware = require("./middlewares/featureMiddleware");
 
+const inheritedEnvKeys = new Set(Object.keys(process.env));
 dotenv.config();
+const sharedEnvPath = require('path').resolve(__dirname, '../../../.env');
+if (require('fs').existsSync(sharedEnvPath)) {
+  const sharedEnv = dotenv.parse(require('fs').readFileSync(sharedEnvPath));
+  require('./services/storageConfig').loadSharedStorageEnv(sharedEnv, process.env, inheritedEnvKeys);
+}
 
 const path = require('path');
 // Inicializar la aplicación Express
@@ -97,7 +103,7 @@ const filterRoutes = require("./routes/filters/index");
 app.use("/api/filters", authMiddleware, filterRoutes);
 
 const discountsRoutes = require("./routes/discounts/index");
-app.use("/api/discounts", featureMiddleware("discounts"), discountsRoutes);
+app.use("/api/discounts", authMiddleware, featureMiddleware("discounts"), discountsRoutes);
 const couponsRoutes = require("./routes/coupons/index");
 app.use("/api/coupons", authMiddleware, couponsRoutes);
 const reportsRoutes = require("./routes/reports/index");

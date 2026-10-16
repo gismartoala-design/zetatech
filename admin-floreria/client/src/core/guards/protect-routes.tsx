@@ -66,7 +66,6 @@ export default function ProtectRoutes({
 
         // Si ya hay usuario y dentro de TTL, no refetch
         if (user && Date.now() - lastFetchedAt < TTL_MS) {
-          console.log("ANTES DE CONSULTAR FEATURES");
           const features = await featuresService();
           setFeatures(features ?? []);
           setStatus(rolesOk ? "ready" : "forbidden");
@@ -80,9 +79,7 @@ export default function ProtectRoutes({
         if (!mounted.current) return;
         if (resp?.status === "success" && resp?.data?.admin) {
           setUser(resp.data.admin);
-          console.log("ANTES DE CONSULTAR FEATURES DESPUES DE CONSULTAR METADATA.");
           const FeaturesResponse = await featuresService();
-          console.log("RESPUESTA DE FEATURES DESPUES DE METADATA: ", FeaturesResponse);
           setFeatures(FeaturesResponse);
           markFetchedNow();
           setStatus(

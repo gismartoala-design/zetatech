@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const { db: prisma } = require('../../lib/prisma');
 const { hashPassword } = require('../../lib/password');
-const { getTenantIdByDomain, getAvailableFeatures } = require('../../../prisma/prisma-service');
+const { getFeaturesForAdmin } = require('../../services/adminFeatures');
 const { isEnabled: testDatabaseEnabled, findUserById: findTestUser } = require('../../lib/testDatabase');
 
 exports.me = async (req, res) => {
@@ -89,77 +89,14 @@ exports.updateMe = async (req, res) => {
   }
 };
 
-function extractTenantDomain(fullHost) {
-  if (!fullHost) return null;
-
-  // Quitar puerto y normalizar
-  const host = fullHost.split(":")[0].toLowerCase();
-
-  // 🧪 Ambiente local
-  if (host === "localhost" || host.endsWith(".localhost")) {
-    const parts = host.split(".");
-    // perfumeriasz.localhost -> perfumeriasz
-    return parts.length > 1 ? parts[0] : "localhost";
-  }
-
-  const parts = host.split(".");
-
-  // admin.perfumeriasz.com → perfumeriasz
-  // perfumeriasz.com → perfumeriasz
-  if (parts.length >= 2) {
-    return parts[parts.length - 2];
-  }
-
-  return null;
-}
-
 exports.features = async (req, res) => {
   try {
-    const fullHost = req.headers.host;
-    const tenantDomain = extractTenantDomain(fullHost);
-
-    if (!tenantDomain) {
-      return res.status(400).json({ status: "error", message: "Dominio inválido", data: null });
-    }
-
-    console.log(`Me Controller: Extracted tenant domain: ${tenantDomain}`);
-    const tenantId = await getTenantIdByDomain(tenantDomain);
-    // const tenantId = null; // Deshabilitado temporalmente
-    console.log(`Me Controller: Resolved tenant ID: ${tenantId} for domain: ${tenantDomain}`);
-
-    let finalTenantId = tenantId;
-    
-    // 🧪 Fallback para desarrollo: si no se encuentra el tenant por dominio (ej: localhost)
-    // intentamos usar el primer tenant disponible en la base de datos.
-    if (!finalTenantId) {
-      console.warn(`Me Controller: Tenant no encontrado para el dominio: ${tenantDomain}. Buscando el primero disponible (Fallback Dev)...`);
-      const firstTenant = await prisma.tenants.findFirst({ select: { id: true } });
-      if (firstTenant) {
-        finalTenantId = firstTenant.id;
-        console.log(`Me Controller: Usando Tenant ID de fallback: ${finalTenantId}`);
-      }
-    }
-
-    if (!finalTenantId) {
-      console.error(`Me Controller: No se pudo encontrar ningún Tenant.`);
-      return res.status(404).json({ status: "error", message: "Tenant no encontrado para esta sesión.", data: null });
-    }
-
-    const features = await getAvailableFeatures(finalTenantId);
-
-    return res.status(200).json({
-      status: "success",
-      message: "Características obtenidas",
-      data: {
-        features: features.map(item => ({display_name: item.features.display_name, name: item.features.name}))
-      }
-    });
+    const features = testDatabaseEnabled()
+      ? []
+      : await getFeaturesForAdmin(prisma, req.user?.adminId);
+    return res.status(200).json({status:'success',message:'Características obtenidas',data:{features}});
   } catch (error) {
-    console.error("Error fetching features:", error);
-    return res.status(500).json({
-      status: "error",
-      message: "Error al obtener las características",
-      data: null
-    });
+    console.error('Error fetching features:', error.message);
+    return res.status(error.status || 500).json({status:'error',message:error.status ? error.message : 'Error al obtener las características',data:null});
   }
-}
+};

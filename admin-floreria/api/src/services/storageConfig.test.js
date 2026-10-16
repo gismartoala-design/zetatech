@@ -1,0 +1,15 @@
+const assert=require('node:assert/strict');
+const {storageConfiguration,requireStorageConfiguration,loadSharedStorageEnv}=require('./storageConfig');
+assert.throws(()=>requireStorageConfiguration({STORAGE_TYPE:'minio'}),e=>e.status===503&&e.code==='STORAGE_NOT_CONFIGURED'&&e.message.includes('MINIO_PUBLIC_URL'));
+const sftp={STORAGE_TYPE:'sftp',FTP_HOST:'files.example.test',FTP_PORT:'65002',FTP_USER:'fixture',FTP_PASSWORD:' a password ',FTP_REMOTE_PATH:'/web/images/',FTP_PUBLIC_URL:'https://cdn.example.test/images/'};
+const valid=storageConfiguration(sftp);
+assert.equal(valid.configured,true);assert.equal(valid.config.password,' a password ');assert.equal(valid.config.remotePath,'/web/images');
+assert.equal(storageConfiguration({...sftp,FTP_PUBLIC_URL:'not-an-absolute-url'}).configured,false);
+assert.equal(storageConfiguration({...sftp,FTP_PORT:'ftp'}).configured,false);
+const minio=storageConfiguration({STORAGE_TYPE:'minio',MINIO_ENDPOINT:'https://s3.example.test',MINIO_ACCESS_KEY:'fixture',MINIO_SECRET_KEY:'fixture',MINIO_PUBLIC_URL:'https://cdn.example.test/bucket'});
+assert.equal(minio.configured,true);assert.equal(minio.config.endpoint,'s3.example.test');assert.equal(minio.config.port,443);assert.equal(minio.config.useSSL,true);
+const local={STORAGE_TYPE:'minio',DATABASE_URL:'unchanged'};
+loadSharedStorageEnv({...sftp,DATABASE_URL:'not-a-storage-setting'},local,new Set());assert.equal(local.STORAGE_TYPE,'sftp');assert.equal(local.DATABASE_URL,'unchanged');
+const runtime={STORAGE_TYPE:'cloudinary'};loadSharedStorageEnv(sftp,runtime,new Set(['STORAGE_TYPE']));assert.equal(runtime.STORAGE_TYPE,'cloudinary');
+assert.equal(storageConfiguration({STORAGE_TYPE:'unknown'}).configured,false);
+console.log('PASS: storage validation, endpoint normalization, runtime/local precedence');

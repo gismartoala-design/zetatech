@@ -1,7 +1,7 @@
 const { Prisma } = require("@prisma/client");
 const { db: prisma } = require("../../lib/prisma");
 const { orderEvents } = require("../../events/orderEvents");
-const minioClient = require("../../lib/s3Config");
+const { storageConfiguration } = require('../../services/storageConfig');
 const { businessLog, businessError } = require("../../utils/logger");
 
 const PROOFS_BUCKET_NAME = process.env.MINIO_BUCKET || "zetatech";
@@ -132,6 +132,7 @@ function isAbsoluteHttpUrl(value) {
 }
 
 function parseMinioObjectFromUrl(fileUrl) {
+  if (storageConfiguration().provider !== 'minio') return null;
   if (!fileUrl) return null;
 
   try {
@@ -177,12 +178,14 @@ function buildMinioPublicUrl(objectName) {
 
 function findLatestPaymentProofInMinio(orderNumber) {
   return new Promise((resolve) => {
-    if (!orderNumber) {
+    const storage = storageConfiguration();
+    if (!orderNumber || storage.provider !== 'minio' || !storage.configured) {
       resolve(null);
       return;
     }
 
     const prefix = `payment-proofs/${orderNumber}-`;
+    const minioClient = require('../../lib/s3Config');
     const objectsStream = minioClient.listObjectsV2(
       PROOFS_BUCKET_NAME,
       prefix,
@@ -375,6 +378,7 @@ exports.getPaymentProofImage = async (req, res) => {
       });
     }
 
+    const minioClient = require('../../lib/s3Config');
     const stat = await minioClient.statObject(
       minioFile.bucketName,
       minioFile.objectName

@@ -1,8 +1,8 @@
 const path = require("path");
 const SftpClient = require("ssh2-sftp-client");
 const streamifier = require("streamifier");
-const minioClient = require("../lib/s3Config");
 const { cloudinary, isCloudinaryConfigured } = require("../lib/cloudinary");
+const { requireStorageConfiguration } = require('./storageConfig');
 
 function getStorageType() {
   return String(process.env.STORAGE_TYPE || "minio").toLowerCase();
@@ -31,18 +31,8 @@ function getMinioConfig() {
   return { bucketName, publicBaseUrl };
 }
 
-function getSftpConfig() {
-  return {
-    host: process.env.FTP_HOST,
-    port: Number(process.env.FTP_PORT || 22),
-    username: process.env.FTP_USER,
-    password: process.env.FTP_PASSWORD,
-    remotePath: String(process.env.FTP_REMOTE_PATH || "").replace(/\/+$/g, ""),
-    publicBaseUrl: normalizePublicBaseUrl(process.env.FTP_PUBLIC_URL),
-  };
-}
-
 async function ensureMinioBucket(bucketName) {
+  const minioClient = require('../lib/s3Config');
   const exists = await minioClient.bucketExists(bucketName);
   if (!exists) {
     await minioClient.makeBucket(bucketName, "us-east-1");
@@ -50,6 +40,7 @@ async function ensureMinioBucket(bucketName) {
 }
 
 async function uploadToMinio({ objectName, buffer, contentType }) {
+  const minioClient = require('../lib/s3Config');
   const { bucketName, publicBaseUrl } = getMinioConfig();
 
   await ensureMinioBucket(bucketName);
@@ -66,7 +57,7 @@ async function uploadToMinio({ objectName, buffer, contentType }) {
 }
 
 async function uploadToSftp({ objectName, buffer }) {
-  const config = getSftpConfig();
+  const {config} = requireStorageConfiguration();
 
   if (
     !config.host ||
@@ -89,6 +80,8 @@ async function uploadToSftp({ objectName, buffer }) {
       port: config.port,
       username: config.username,
       password: config.password,
+      readyTimeout: 15000,
+      retries: 1,
     });
     await sftp.mkdir(remoteDir, true);
     await sftp.put(buffer, remoteFilePath);
@@ -146,6 +139,7 @@ async function uploadToCloudinary({ objectName, buffer, contentType }) {
 }
 
 async function uploadBuffer({ objectName, buffer, contentType }) {
+  requireStorageConfiguration();
   const storageType = getStorageType();
 
   if (storageType === "cloudinary") {

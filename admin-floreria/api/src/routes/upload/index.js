@@ -3,6 +3,11 @@ const express = require("express");
 const uploadController = require("../../controllers/upload/indexController");
 
 const router = express.Router();
+router.get('/status', (_req,res)=>{
+  const {provider,configured,missing,invalid}=require('../../services/storageConfig').storageConfiguration();
+  res.set('Cache-Control','private, no-store');
+  res.json({status:'success',data:{provider,configured,missing,invalid}});
+});
 
 const multer = require("multer");
 

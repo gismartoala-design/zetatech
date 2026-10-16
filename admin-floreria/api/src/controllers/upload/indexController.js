@@ -65,9 +65,10 @@ exports.uploadFile = async (req, res) => {
       fs.unlinkSync(req.file.path);
     }
 
-    return res.status(500).json({
+    return res.status(error.status || 502).json({
       status: "error",
-      message: error.message || "Error interno del servidor",
+      code: error.code === 'STORAGE_NOT_CONFIGURED' ? error.code : 'STORAGE_UPLOAD_FAILED',
+      message: error.code === 'STORAGE_NOT_CONFIGURED' ? error.message : "No se pudo subir el archivo al almacenamiento. Revisa la conexión y los permisos del proveedor configurado.",
     });
   }
 };
