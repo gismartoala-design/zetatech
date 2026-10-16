@@ -41,13 +41,14 @@ type PaymentSettings = {
   ownerNotificationName: string;
 };
 
-const DEFAULT_TRANSFER_INSTRUCTIONS = `Banco Pichincha cta ahorro # 2202306049
+const DEFAULT_TRANSFER_INSTRUCTIONS = `Configura aquí las instrucciones de transferencia de Zetatech.
+Banco Pichincha cta ahorro # 2202306049
 Banco Bolivariano cta ahorro # 0851179635
 Banco Guayaquil cta ahorro # 1389429
 
-Nombre: Maritza Iveth Medranda Flor
-CI: 0910784024
-Correo: ventas@difiori.com.ec`;
+Titular: Zetatech
+Identificación: configura este dato desde el administrador
+Correo: ventas@zetatech.ec`;
 
 function normalizeTransferInstructions(value: unknown) {
   if (typeof value !== "string" || !value.trim()) return DEFAULT_TRANSFER_INSTRUCTIONS;
@@ -337,7 +338,8 @@ export default function PaymentsPage() {
 
       <section className="rounded-xl border bg-white p-6 shadow-sm">
         <h2 className="mb-3 text-lg font-semibold">Datafast / Dataweb</h2>
-        <p className="mb-4 text-sm text-gray-600">Usa las credenciales asignadas a este ambiente. Datafast permanece inactivo hasta completar la configuración; producción requiere la certificación del comercio.</p>
+        <p className="mb-4 text-sm text-gray-600">Solo coloca los identificadores entregados por Datafast: Entity ID, token, MID, TID, PSERV y nombre de riesgo. El sistema elige automáticamente la URL de pruebas o producción y devuelve a <code>/payment-result</code>; no se guardan datos de tarjeta.</p>
+        <div className="mb-5 grid gap-3 rounded-lg bg-slate-50 p-4 text-xs text-gray-600 md:grid-cols-2"><div><strong>Pruebas</strong><br />eu-test.oppwa.com</div><div><strong>Producción</strong><br />eu-prod.oppwa.com</div></div>
         <label className="mb-4 block text-sm">Ambiente<select className="ml-3 rounded border p-2" value={form.datafastEnvironment} onChange={e=>setForm({...form,datafastEnvironment:e.target.value})}><option value="sandbox">Pruebas</option><option value="live">Producción</option></select></label>
         <div className="grid gap-4 md:grid-cols-2">{([
           ['datafastEntityId','Entity ID'], ['datafastToken','Access token'], ['datafastMid','MID'], ['datafastTid','TID'], ['datafastPserv','PSERV'], ['datafastRisk','Nombre de riesgo del comercio'], ['datafastVatRate','Tasa de impuesto incluida en los precios (ej.: 0.15)'],
@@ -383,7 +385,7 @@ export default function PaymentsPage() {
       <section className="rounded-xl border bg-white p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900">PayPhone</h2>
         <p className="mt-1 text-sm text-gray-500">
-          Configura el mismo dominio y URL de respuesta en PayPhone Developer: difiori.com.ec y https://difiori.com.ec/payment-result.
+          Configura en PayPhone Developer la URL pública de Zetatech y su ruta de respuesta: /payment-result.
         </p>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">

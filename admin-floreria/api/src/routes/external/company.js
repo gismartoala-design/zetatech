@@ -27,9 +27,9 @@ router.get('/', async (req, res) => {
       return res.status(200).json({ 
         status: 'success', 
         data: {
-          name: "DIFIORI",
-          email: "ventas@difiori.com.ec",
-          phone: "+(593) 099 7984 583",
+          name: "Zetatech",
+          email: "ventas@zetatech.ec",
+          phone: "",
           address: "Guayaquil, Ecuador"
         } 
       });

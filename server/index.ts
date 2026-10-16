@@ -25,7 +25,7 @@ import { categoriesQueryKey, fetchCategories } from "../client/src/hooks/useCate
 import { companyQueryKey, fetchCompany } from "../client/src/hooks/useCompany";
 import { productsQueryKey, fetchProducts } from "../client/src/hooks/useProducts";
 import { DEFAULT_COMPANY } from "../client/src/lib/site";
-import { INITIAL_PRODUCTS, TESTIMONIALS, type Product } from "../client/src/data/mock";
+import { TESTIMONIALS, type Product } from "../client/src/data/mock";
 import type { QueryClient } from "@tanstack/react-query";
 import type { ViteDevServer } from "vite";
 import type { renderApp as renderAppFn } from "../client/src/server-entry";
@@ -278,39 +278,6 @@ function createSuccessPayload(data: unknown) {
   return { status: "success", data };
 }
 
-function getPublicProductsFallback(req: Request) {
-  const category = String(req.query.category || "").trim();
-  const featured = String(req.query.featured || "").trim() === "true";
-  const limit = Number.parseInt(String(req.query.limit || ""), 10);
-
-  let products = INITIAL_PRODUCTS.filter(isPublicCatalogProduct);
-
-  if (category && category !== "all") {
-    const normalizedCategory = category.toLocaleLowerCase("es");
-    products = products.filter((product) => product.category.toLocaleLowerCase("es") === normalizedCategory);
-  }
-
-  if (featured) {
-    products = products.filter((product) => product.isBestSeller);
-  }
-
-  if (Number.isFinite(limit) && limit > 0) {
-    products = products.slice(0, limit);
-  }
-
-  return products;
-}
-
-function getPublicCategoriesFallback() {
-  return Array.from(
-    new Set(
-      INITIAL_PRODUCTS.filter(isPublicCatalogProduct)
-        .map((product) => product.category)
-        .filter(Boolean),
-    ),
-  ).sort((left, right) => getCategorySlug(left).localeCompare(getCategorySlug(right), "es"));
-}
-
 function getHomeHeroFallback() {
   return {
     id: 0,
@@ -387,10 +354,9 @@ function tryHandlePublicApiFallback(req: Request, res: Response) {
   const requestPath = req.originalUrl.split("?")[0] || req.path;
   let payload: { status: string; data: unknown } | null = null;
 
-  if (requestPath === "/api/external/products") {
-    payload = createSuccessPayload(getPublicProductsFallback(req));
-  } else if (requestPath === "/api/external/products/categories") {
-    payload = createSuccessPayload(getPublicCategoriesFallback());
+  if (requestPath === "/api/external/products" || requestPath === "/api/external/products/categories") {
+    res.setHeader("Cache-Control", "no-store");
+    return res.status(503).json({ status: "error", message: "El catálogo no está disponible temporalmente. Intenta nuevamente." });
   } else if (requestPath === "/api/external/cms/home-hero") {
     payload = createSuccessPayload(getHomeHeroFallback());
   } else if (requestPath === "/api/external/company") {

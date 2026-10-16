@@ -103,3 +103,15 @@ docker compose --env-file deploy.env --profile all up -d --build
 
 El `.env` del API está excluido de la imagen y solo se inyecta al contenedor en
 runtime. No uses `admin123` ni `localhost` en un despliegue público.
+
+### Base existente y Prisma
+
+La base ya tenía datos antes de incorporar el historial de Prisma. El baseline
+se registra una sola vez y, desde la raíz del proyecto, se verifica con:
+
+```bash
+npm run db:migrate:deploy
+```
+
+Después del baseline, las nuevas migraciones pueden ejecutarse normalmente con
+el mismo comando. No uses `prisma migrate dev` contra producción.

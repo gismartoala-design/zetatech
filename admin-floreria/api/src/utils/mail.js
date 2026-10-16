@@ -63,7 +63,7 @@ function resolveLocalPublicImagePath(imagePath) {
 function buildEmailImageSource(imagePath, attachments, cidPrefix, storeUrl) {
   const localPath = resolveLocalPublicImagePath(imagePath);
   if (localPath) {
-    const cid = `${cidPrefix}-${sanitizeCidFragment(path.basename(localPath), "image")}@difiori`;
+    const cid = `${cidPrefix}-${sanitizeCidFragment(path.basename(localPath), "image")}@zetatech`;
     attachments.push({
       filename: path.basename(localPath),
       path: localPath,

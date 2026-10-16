@@ -35,7 +35,7 @@ function getSalesNotificationEmail(explicitRecipient) {
     explicitRecipient ||
       process.env.OWNER_NOTIFICATION_EMAIL ||
       process.env.SALES_NOTIFICATION_EMAIL ||
-      "ventas@difiori.com.ec"
+      "ventas@zetatech.ec"
   ).trim();
 }
 

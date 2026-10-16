@@ -120,7 +120,7 @@ router.post("/", async (req, res) => {
         total: Number(total) || 0,
         items: formattedItems,
         source: source || "CHECKOUT_WEB",
-        ownerEmail: paymentSettings.ownerNotificationEmail || "ventas@difiori.com.ec",
+        ownerEmail: paymentSettings.ownerNotificationEmail || "ventas@zetatech.ec",
         abandonedAt: abandonedAt ? new Date(abandonedAt) : new Date(),
       },
     });
@@ -133,7 +133,7 @@ router.post("/", async (req, res) => {
           phone,
           items: formattedItems,
           total: Number(total),
-          recipientEmail: paymentSettings.ownerNotificationEmail || "ventas@difiori.com.ec",
+          recipientEmail: paymentSettings.ownerNotificationEmail || "ventas@zetatech.ec",
           ownerName: paymentSettings.ownerNotificationName || company?.name,
           senderName,
           senderEmail,

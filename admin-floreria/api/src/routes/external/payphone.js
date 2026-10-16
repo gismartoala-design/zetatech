@@ -22,7 +22,9 @@ function getActivePayphoneCredentials(paymentSettings = {}) {
 function isProductionStoreUrl(value) {
   try {
     const hostname = new URL(String(value || '')).hostname.toLowerCase();
-    return hostname === 'difiori.com.ec' || hostname === 'www.difiori.com.ec';
+    const configured = String(process.env.APP_PUBLIC_SITE_URL || process.env.PUBLIC_SITE_URL || '').trim();
+    const configuredHost = configured ? new URL(configured).hostname.toLowerCase() : '';
+    return Boolean(configuredHost && hostname === configuredHost);
   } catch {
     return false;
   }
@@ -75,7 +77,7 @@ router.get('/health', async (_req, res) => {
         tokenConfigured: Boolean(credentials.token),
         storeIdConfigured: Boolean(credentials.storeId),
         sdkVersion: '2.0',
-        responseUrl: 'https://difiori.com.ec/payment-result',
+        responseUrl: `${String(process.env.APP_PUBLIC_SITE_URL || '').replace(/\/$/, '')}/payment-result`,
       },
     });
   } catch (error) {

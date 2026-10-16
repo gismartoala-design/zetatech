@@ -12,6 +12,7 @@
     "docker:admin": "docker compose --profile admin up -d --build",
     "docker:all": "docker compose --profile all up -d --build",
     "docker:down": "docker compose down",
+    "db:migrate:deploy": "cd admin-floreria/api && npx prisma migrate deploy --schema prisma/schema.prisma",
     "smoke:e2e": "tsx script/smoke-e2e.ts",
     "check": "tsc",
     "db:push": "drizzle-kit push",

@@ -80,7 +80,9 @@ function getPaypalBaseUrl(environment) {
 function isProductionStoreUrl(value) {
   try {
     const hostname = new URL(String(value || "")).hostname.toLowerCase();
-    return hostname === "difiori.com.ec" || hostname === "www.difiori.com.ec";
+    const configured = String(process.env.APP_PUBLIC_SITE_URL || process.env.PUBLIC_SITE_URL || "").trim();
+    const configuredHost = configured ? new URL(configured).hostname.toLowerCase() : "";
+    return Boolean(configuredHost && hostname === configuredHost);
   } catch {
     return false;
   }
