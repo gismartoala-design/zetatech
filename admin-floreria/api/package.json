@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "node src/validations/productSchema.test.js && node src/middlewares/prisma-error-map.test.js && node src/controllers/products/reorder-rules.test.js && node scripts/sales-watchdog-rules.test.js && node src/services/paypal-errors.test.js",
+    "test": "node src/validations/productSchema.test.js && node src/middlewares/prisma-error-map.test.js && node src/controllers/products/reorder-rules.test.js && node scripts/sales-watchdog-rules.test.js && node src/services/paypal-errors.test.js && node src/services/adminFeatures.test.js && node src/services/storageConfig.test.js",
     "dev": "nodemon src/index.js",
     "admin:create": "node create-admin.js",
     "db:migrate:deploy": "prisma migrate deploy --schema prisma/schema.prisma",

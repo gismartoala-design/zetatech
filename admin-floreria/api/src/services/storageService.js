@@ -5,7 +5,7 @@ const { cloudinary, isCloudinaryConfigured } = require("../lib/cloudinary");
 const { requireStorageConfiguration } = require('./storageConfig');
 
 function getStorageType() {
-  return String(process.env.STORAGE_TYPE || "minio").toLowerCase();
+  return String(process.env.STORAGE_TYPE || "minio").trim().toLowerCase();
 }
 
 function trimSlashes(value = "") {

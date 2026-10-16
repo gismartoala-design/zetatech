@@ -4,7 +4,7 @@ const STORE_FEATURES = [{ name: 'discounts', display_name: 'Descuentos' }];
 // Cloud Run hostname is not a tenant identifier and must not pick another plan.
 async function getFeaturesForAdmin(db, adminId, env = process.env) {
   if (!adminId) { const e = new Error('No autenticado'); e.status = 401; throw e; }
-  const user = await db.users.findUnique({where:{id:adminId},include:{company:true}});
+  const user = await db.users.findUnique({where:{id:adminId},select:{isActive:true,role:true,company:{select:{id:true,slug:true,isActive:true,allowedDomains:true,website:true}}}});
   if (!user?.isActive || !user.company?.isActive) { const e = new Error('Cuenta no disponible'); e.status = 403; throw e; }
   if (user.role !== 'ADMIN') return [];
   const company = user.company;

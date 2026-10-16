@@ -53,7 +53,7 @@ Para probar la imagen completa localmente:
 
 ```bash
 docker build -t zetatech .
-docker run --env-file admin-floreria/api/.env -e PORT=8080 -p 5000:8080 zetatech
+docker run --env-file admin-floreria/api/.env --env-file .env -e PORT=8080 -p 5000:8080 zetatech
 ```
 
 Para producción, configurar `DATABASE_URL` y `JWT_SECRET` en el entorno de
@@ -91,6 +91,24 @@ Antes de desplegar, comprobar que ese servicio tenga `DATABASE_URL` y
 `JWT_SECRET` configurados. Este comando no copia el `.env` ni crea secretos.
 
 ## Producción
+
+### Subida de productos y archivos
+
+Para SFTP, define `STORAGE_TYPE=sftp`, `FTP_HOST`, `FTP_PORT`, `FTP_USER`,
+`FTP_PASSWORD`, `FTP_REMOTE_PATH` y `FTP_PUBLIC_URL`. Las dos últimas deben
+apuntar al mismo directorio: una es la ruta del servidor y otra la URL pública.
+En Cloud Run se configuran como variables de ejecución. En local y Compose
+se usan las variables de almacenamiento del `.env` principal; las variables
+heredadas explícitamente por el proceso tienen prioridad en la API.
+
+El endpoint autenticado `GET /api/upload/status` devuelve solo el proveedor,
+si la configuración está completa y los nombres de variables faltantes.
+No devuelve credenciales ni afirma que la conexión haya sido comprobada.
+Las subidas multipart atraviesan el proxy como archivos binarios, no como JSON.
+
+La instalación de una sola tienda no necesita crear registros SaaS de tenants
+para cargar sus funcionalidades. Se identifican mediante la empresa del admin
+y `STOREFRONT_COMPANY_ID`; el menú y el acceso a descuentos usan la misma regla.
 
 Antes de publicar, configura en `admin-floreria/api/.env` el dominio real de
 `CORS_ORIGIN`, un `JWT_SECRET` largo y una contraseña de administrador distinta

@@ -31,7 +31,7 @@ function storageConfiguration(env = process.env) {
   } else if (provider==='cloudinary') {
     config={cloudName:requireValue('CLOUDINARY_CLOUD_NAME'),apiKey:requireValue('CLOUDINARY_API_KEY'),apiSecret:requireValue('CLOUDINARY_API_SECRET')};
   } else {invalid.push('STORAGE_TYPE (minio, sftp o cloudinary)');config={};}
-  if(config.publicBaseUrl) {try {const url=new URL(config.publicBaseUrl);if(!['http:','https:'].includes(url.protocol)||url.username||url.password)throw new Error();}catch{invalid.push(provider==='minio'?'MINIO_PUBLIC_URL':'FTP_PUBLIC_URL');}}
+  if(config.publicBaseUrl) {try {const url=new URL(config.publicBaseUrl);if(!['http:','https:'].includes(url.protocol)||url.username||url.password||url.search||url.hash)throw new Error();}catch{invalid.push(provider==='minio'?'MINIO_PUBLIC_URL':'FTP_PUBLIC_URL');}}
   return {provider,config,missing,invalid,configured:missing.length===0&&invalid.length===0};
 }
 

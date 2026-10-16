@@ -7,6 +7,13 @@ module.exports = function errorHandler(err, req, res, next) {
   // If headers already sent, delegate to default Express handler
   if (res.headersSent) return next(err);
 
+  if (err.name === 'MulterError') {
+    return res.status(err.code === 'LIMIT_FILE_SIZE' ? 413 : 400).json({status:'error',code:err.code,message:err.code === 'LIMIT_FILE_SIZE' ? 'El archivo supera el tamaño permitido.' : 'No se pudo leer el archivo enviado.'});
+  }
+  if (['Unexpected end of form','Multipart: Boundary not found'].includes(err.message)) {
+    return res.status(400).json({status:'error',code:'INVALID_MULTIPART',message:'La transferencia del archivo llegó incompleta. Selecciónalo nuevamente e intenta subirlo.'});
+  }
+
   // Prisma known request errors
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
     const { status, ...cuerpo } = mapearErrorPrisma(err.code, err.meta);
