@@ -38,6 +38,7 @@ async function main() {
     assert.equal(created.orderNumber,stored.orderNumber);assert.equal(stored.total,43);assert.equal(stored.paymentStatus,'PENDING');assert.ok(!JSON.stringify(created).includes('datafastToken'));
     assert.ok(!JSON.stringify(created).includes('Bearer'));
     global.fetch=async()=>{remoteCalls++;return new Response(JSON.stringify({...approved,merchantTransactionId:stored.orderNumber}),{status:200});};
+    company.settings.paymentSettings.enabledMethods=[]; // Finish an existing payment even if the admin disables new checkouts.
     await assert.rejects(()=>confirmDatafastPayment(db,'https://example.invalid/steal'),/referencia/);
     const confirmed=await confirmDatafastPayment(db,'/v1/checkouts/checkout-fixture-12345/payment');
     assert.equal(confirmed.paymentStatus,'PAID');assert.equal(confirmed.email,payload.senderEmail);

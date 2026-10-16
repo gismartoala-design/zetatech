@@ -2,12 +2,14 @@ const fail = (message, statusCode = 400) => { const error = new Error(message); 
 const money = value => Math.round(Number(value) * 100) / 100;
 const normalize = value => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
 const { getProductOffer } = require('../utils/productPricing');
+const { assertPaymentMethodEnabled } = require('../utils/paymentMethods');
 
 async function quoteStorefrontOrder(db, payload) {
   const companies = await db.company.findMany({ where: { isActive: true, ...(process.env.STOREFRONT_COMPANY_ID ? { id: process.env.STOREFRONT_COMPANY_ID } : {}) }, take: 2 });
   if (companies.length !== 1) fail('Configura la empresa de la tienda.', 503);
   const company = companies[0];
   if (company.settings?.acceptOrders === false) fail('Tienda cerrada temporalmente.', 503);
+  if (payload.paymentMethod !== undefined) assertPaymentMethodEnabled(company.settings?.paymentSettings,payload.paymentMethod);
   const incoming = Array.isArray(payload.items) && payload.items.length ? payload.items : payload.productId ? [{ productId: payload.productId, quantity: payload.quantity || 1 }] : [];
   if (!Array.isArray(incoming) || !incoming.length || incoming.length > 60) fail('El carrito no es válido.');
   const quantities = new Map();

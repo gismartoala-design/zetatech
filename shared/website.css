@@ -13,7 +13,7 @@
 .zt-header-dock{position:sticky;top:0;z-index:40;display:flex;justify-content:center;pointer-events:none}
 .zt-header-dock .zt-header{pointer-events:auto}
 .zt-header{width:100%;display:flex;align-items:center;gap:28px;flex-wrap:wrap;padding:18px 5%;margin-top:0;color:#fff;
-  background-color:color-mix(in srgb,color-mix(in srgb,var(--zt-accent) 65%,#071b12) 78%,transparent);
+  background-color:color-mix(in srgb,var(--zt-accent) 65%,#071b12);
   background-image:linear-gradient(180deg,#ffffff14,#ffffff00 60%);
   backdrop-filter:blur(22px) saturate(180%);
   -webkit-backdrop-filter:blur(22px) saturate(180%);
@@ -25,7 +25,7 @@
   margin-top:14px;
   padding:10px 24px;
   border-radius:999px;
-  background-color:color-mix(in srgb,color-mix(in srgb,var(--zt-accent) 55%,#071b12) 82%,transparent);
+  background-color:color-mix(in srgb,var(--zt-accent) 55%,#071b12);
   box-shadow:inset 0 1px 0 #ffffff30,inset 0 -1px 0 #00000030,0 16px 40px -14px #000a,0 0 0 1px color-mix(in srgb,var(--zt-accent) 35%,transparent);
 }
 .zt-brand{font-weight:800;font-size:1.4em;display:flex;align-items:center;gap:12px;text-decoration:none;letter-spacing:-.02em}

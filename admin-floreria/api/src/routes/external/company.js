@@ -9,6 +9,7 @@ const { publicSettings } = require('../../services/siteDocument');
  * Route pública para obtener información básica de la floristería.
  */
 router.get('/', async (req, res) => {
+  res.set('Cache-Control','no-store');
   try {
     // Buscamos la primera empresa (o la principal)
     const company = await prisma.company.findFirst({

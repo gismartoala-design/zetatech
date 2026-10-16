@@ -1,0 +1,22 @@
+const assert=require('node:assert/strict');
+const {enabledPaymentMethods,validateEnabledMethods,assertPaymentMethodEnabled}=require('./paymentMethods');
+const {publicSettings}=require('../services/siteDocument');
+const {quoteStorefrontOrder}=require('../services/storefrontQuote');
+const {createDatafastCheckout}=require('../services/datafastService');
+(async()=>{
+  assert.ok(enabledPaymentMethods().includes('Banco'),'existing stores keep their current methods');
+  assert.deepEqual(enabledPaymentMethods({enabledMethods:[]}),[],'an explicit empty list disables every method');
+  assert.deepEqual(validateEnabledMethods(['Banco','Banco','Contra entrega']),['Banco','Contra entrega']);
+  assert.throws(()=>validateEnabledMethods(['unknown']),e=>e.statusCode===400);
+  assert.throws(()=>validateEnabledMethods('Banco'),e=>e.statusCode===400);
+  assert.throws(()=>assertPaymentMethodEnabled({enabledMethods:['Banco']},'PayPal'),e=>e.statusCode===409);
+  assert.throws(()=>assertPaymentMethodEnabled({},'spoof'),e=>e.statusCode===400);
+  const safe=publicSettings({paymentSettings:{enabledMethods:['Banco'],zelleInstructions:'Zelle fixture',datafastToken:'private-fixture',paypalLiveClientSecret:'private-fixture',transferInstructions:'Bank fixture'},websiteEditor:{draft:'private-fixture'}});
+  assert.deepEqual(safe.paymentSettings.enabledMethods,['Banco']);assert.equal(safe.paymentSettings.zelleInstructions,'Zelle fixture');assert.ok(!JSON.stringify(safe).includes('private-fixture'));
+  let productReads=0;
+  const db={company:{findMany:async()=>[{id:'fixture',settings:{paymentSettings:{enabledMethods:['Banco']}}}]},product:{findMany:async()=>{productReads++;throw new Error('disabled method must stop before pricing/order creation');}}};
+  await assert.rejects(quoteStorefrontOrder(db,{paymentMethod:'PayPal'}),e=>e.statusCode===409);
+  await assert.rejects(createDatafastCheckout(db,{paymentMethod:'Banco'}),e=>e.statusCode===409,'Datafast cannot be enabled by spoofing a manual method');
+  assert.equal(productReads,0);
+  console.log('PASS: payment switches, backwards compatibility, server enforcement and private settings filtering');
+})().catch(e=>{console.error(e);process.exitCode=1});

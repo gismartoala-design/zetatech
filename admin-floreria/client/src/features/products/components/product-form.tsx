@@ -5,6 +5,7 @@ import { ArrowDown, ArrowUp, Plus, Star, Trash2 } from "lucide-react";
 import ImageUpload from "./image-upload";
 import type { FormData, Variant } from "../types";
 import { Textarea } from "@/shared/components/ui/textarea";
+import CategorySelect from './category-select';
 
 type ProductFormProps = {
   handleSubmit: (e: React.FormEvent) => void;
@@ -51,7 +52,6 @@ export default function ProductForm({
     setPriceInput(formData.price > 0 ? String(formData.price) : "");
   }, [formData.price]);
 
-  const quickCategories = categorySuggestions.slice(0, 8);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -75,75 +75,7 @@ export default function ProductForm({
         />
       </div>
 
-      <div className="space-y-3">
-        <div>
-          <label className="mb-1 block text-sm font-medium">Categoria</label>
-          {categorySuggestions.length > 0 ? (
-            <select
-              value={
-                categorySuggestions.includes(formData.category)
-                  ? formData.category
-                  : ""
-              }
-              onChange={(e) =>
-                setFormData({ ...formData, category: e.target.value })
-              }
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-            >
-              <option value="">Selecciona una categoria guardada</option>
-              {categorySuggestions.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          ) : null}
-        </div>
-
-        <div>
-          <Input
-            list="product-category-suggestions"
-            value={formData.category}
-            onChange={(e) =>
-              setFormData({ ...formData, category: e.target.value })
-            }
-            placeholder="Escribe o elige una categoria"
-            required
-          />
-          <datalist id="product-category-suggestions">
-            {categorySuggestions.map((category) => (
-              <option key={category} value={category} />
-            ))}
-          </datalist>
-          <p className="mt-2 text-xs text-gray-500">
-            Puedes elegir una categoria existente o escribir una nueva.
-          </p>
-        </div>
-
-        {quickCategories.length > 0 ? (
-          <div>
-            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">
-              Accesos rapidos
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {quickCategories.map((category) => (
-                <button
-                  key={category}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, category })}
-                  className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                    formData.category === category
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  {category}
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : null}
-      </div>
+      <CategorySelect value={formData.category} suggestions={categorySuggestions} onChange={category=>setFormData(current=>({...current,category}))}/>
 
       {!formData.hasVariants && (
         <div>

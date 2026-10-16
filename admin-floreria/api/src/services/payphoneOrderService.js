@@ -55,7 +55,7 @@ async function resolveCoupon(prisma, { couponCode, total, shippingCost }) {
 
 async function createPendingPayphoneOrder(prisma, payload) {
   const { quoteStorefrontOrder } = require('./storefrontQuote');
-  const quote = await quoteStorefrontOrder(prisma, payload);
+  const quote = await quoteStorefrontOrder(prisma, {...payload,paymentMethod:'Payphone'});
   payload = { ...payload, items: quote.items, total: quote.total, shippingCost: quote.shipping };
   const {
     productId,

@@ -120,7 +120,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
+              className="h-auto min-h-16 data-[slot=sidebar-menu-button]:!p-1.5"
               onClick={() => navigate("/app/dashboard")}
             >
               <span className="flex items-center gap-2">

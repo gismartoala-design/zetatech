@@ -17,7 +17,7 @@ export type { CompanyInfo };
 
 export async function fetchCompany(baseUrl?: string): Promise<CompanyInfo> {
   try {
-    const res = await fetch(resolveApiUrl(API_URL, baseUrl));
+    const res = await fetch(resolveApiUrl(API_URL, baseUrl),{cache:'no-store'});
     if (!res.ok) throw new Error("Error al cargar informacion de la empresa");
     const json = await res.json();
     return json.data;
@@ -37,8 +37,10 @@ export function useCompany(enabled = true) {
     queryKey: companyQueryKey,
     queryFn: () => fetchCompany(),
     enabled,
-    staleTime: 1000 * 60 * 5,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
+    staleTime: 30_000,
+    refetchInterval: 30_000,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
+    refetchOnWindowFocus: true,
   });
 }

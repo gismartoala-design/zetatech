@@ -83,10 +83,9 @@ export function ProductModal({
         </DialogTrigger>
         <DialogContent className="sm:max-w-2xl lg:max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Formulario</DialogTitle>
+            <DialogTitle>{typeform === 'add' ? 'Nuevo producto' : 'Editar producto'}</DialogTitle>
             <DialogDescription>
-              Realiza cambios en la información del producto aquí. Haz clic en
-              guardar cuando hayas terminado.
+              Completa la información y elige una categoría existente o crea una nueva. Guarda el producto cuando hayas terminado.
             </DialogDescription>
           </DialogHeader>
           <ProductForm
@@ -118,9 +117,9 @@ export function ProductModal({
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader className="text-left">
-          <DrawerTitle>Formulario de producto</DrawerTitle>
+          <DrawerTitle>{typeform === 'add' ? 'Nuevo producto' : 'Editar producto'}</DrawerTitle>
           <DrawerDescription>
-            Make changes to your profile here. Click save when you&apos;re done.
+            Completa la información y elige o crea la categoría del producto.
           </DrawerDescription>
         </DrawerHeader>
         <ProductForm
@@ -139,7 +138,7 @@ export function ProductModal({
         />
         <DrawerFooter className="pt-2">
           <DrawerClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">Cancelar</Button>
           </DrawerClose>
         </DrawerFooter>
       </DrawerContent>

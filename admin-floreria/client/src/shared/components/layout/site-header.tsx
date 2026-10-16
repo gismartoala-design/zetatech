@@ -14,8 +14,8 @@ export function SiteHeader() {
           className="mx-2 data-[orientation=vertical]:h-4"
         />
         <div>
-          <h1 className="text-base font-semibold text-slate-900">Panel administrativo</h1>
-          <p className="text-xs text-slate-500">Gestion de tienda y operaciones</p>
+          <h1 className="text-base font-semibold text-slate-900 dark:text-slate-100">Panel administrativo</h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Gestión de tienda y operaciones</p>
         </div>
         <div className="ml-auto flex items-center gap-2">
           <ModeToggle />

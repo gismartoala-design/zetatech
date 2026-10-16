@@ -4,7 +4,7 @@ const ProductCreateSchema = z.object({
   name: z.string().min(1, "El nombre es requerido"),
   description: z.string().optional(),
   image: z.string().optional(),
-  category: z.string().min(1, "La categoría es requerida"),
+  category: z.string().trim().min(1, "La categoría es requerida").max(120, "La categoría admite hasta 120 caracteres"),
   price: z.coerce.number().min(0, "El precio debe ser mayor o igual a 0").optional(),
   // Sin esto, el stock escrito en el panel se descartaba al validar y todos los
   // productos quedaban con existencia 0.

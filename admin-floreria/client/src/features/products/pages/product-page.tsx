@@ -4,8 +4,11 @@ import Loading from "@/shared/components/loading";
 import { ProductCard } from "../components/product-card";
 import useProducts from "../hooks/use-products";
 import { ProductModal } from "../components/product-modal";
+import {useState} from 'react';
+import {areSameCategory} from '@site/catalog';
 
 export default function ProductsPage() {
+  const [categoryFilter,setCategoryFilter]=useState('');
   const {
     products,
     search,
@@ -30,6 +33,7 @@ export default function ProductsPage() {
     moveProduct,
     resetProductOrder,
   } = useProducts();
+  const visibleProducts=products.filter(product=>!categoryFilter||areSameCategory(product.category,categoryFilter));
 
   if (isLoading) {
     return (
@@ -60,6 +64,7 @@ export default function ProductsPage() {
           className="w-full sm:max-w-sm"
         />
         <div className="flex-1" />
+        <select aria-label="Filtrar productos por categoría" value={categoryFilter} onChange={e=>setCategoryFilter(e.target.value)} className="h-10 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 sm:max-w-xs"><option value="">Todas las categorías</option>{categorySuggestions.map(name=><option key={name} value={name}>{name}</option>)}</select>
         <ProductModal
           typeform="add"
           open={showModal && !editingProduct}
@@ -82,7 +87,7 @@ export default function ProductsPage() {
       {/* Divisor */}
       <hr className="my-4 border-gray-300" />
 
-      {!search ? (
+      {!search && !categoryFilter ? (
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <span>
@@ -103,30 +108,30 @@ export default function ProductsPage() {
         </div>
       ) : (
         <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
-          Estás buscando productos. Limpia la búsqueda para reordenar el catálogo
+          Hay filtros activos. Limpia la búsqueda y la categoría para reordenar el catálogo
           completo sin mezclar posiciones ocultas.
         </div>
       )}
 
       {/* Products Grid */}
-      {products.length === 0 && !isLoading && (
+      {visibleProducts.length === 0 && !isLoading && (
         <div className="text-center py-12">
           <p className="text-gray-500 text-lg">No se encontraron productos</p>
           <p className="text-gray-400 text-sm mt-2">
-            {search ? 'Intenta con otro término de búsqueda' : 'Agrega tu primer producto para comenzar'}
+            {search || categoryFilter ? 'Prueba otra categoría o término de búsqueda' : 'Agrega tu primer producto para comenzar'}
           </p>
         </div>
       )}
 
       <div className="overflow-y-auto max-h-[calc(100vh-280px)] mt-4 pt-2 pb-2 px-1">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          {products.map((product, index) => (
+          {visibleProducts.map((product, index) => (
             <ProductCard
               key={product.id}
               product={product}
               index={index}
               totalProducts={products.length}
-              canReorder={!search}
+              canReorder={!search && !categoryFilter}
               moveProduct={moveProduct}
               handleEdit={() => handleEdit(product)}
               handleDelete={() => handleDelete(product.id)}

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const productsController = require('../../controllers/products/indexController');
 const reorderController = require('../../controllers/products/reorderController');
+router.use('/categories', require('./categories'));
 
 // Obtener productos destacados
 router.get('/featured', productsController.getProductsFeatured);

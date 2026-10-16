@@ -34,9 +34,9 @@ import { Seo } from "@/components/Seo";
 import { DEFAULT_COMPANY } from "@/lib/site";
 import { formatCategoryDisplayName, getNumericPriceValue, getProductSku } from "@shared/catalog";
 import { isValidCustomerDocument, isValidContactPhone, type CustomerDocumentType } from "@shared/checkout";
+import {enabledPaymentMethods,type StorePaymentMethod as PaymentMethod} from '@shared/payment-methods';
 
 type OrderStatus = "idle" | "loading" | "success" | "error";
-type PaymentMethod = "PayPal" | "Payphone" | "Datafast" | "Banco" | "Zelle" | "Contra entrega";
 type SelectedPaymentMethod = PaymentMethod | "";
 type CheckoutStep = "sender" | "receiver" | "payment";
 type ShippingSectorRate = { sector: string; cost: number };
@@ -207,6 +207,13 @@ const PAYMENT_METHODS: {
     Icon: Truck,
   },
   {
+    label: 'Payphone',
+    description: 'Pago con tarjeta mediante PayPhone',
+    trustLabel: 'Pasarela segura',
+    nextStep: 'Completarás el pago en el formulario seguro de PayPhone.',
+    Icon: Smartphone,
+  },
+  {
     label: "Banco",
     description: "Transferencia bancaria con comprobante",
     trustLabel: "Validación manual",
@@ -240,20 +247,13 @@ const CHECKOUT_TRUST_BADGES = [
   },
 ];
 
-const DEFAULT_TRANSFER_INSTRUCTIONS = `Banco Pichincha cta ahorro # 2202306049
-Banco Bolivariano cta ahorro # 0851179635
-Banco Guayaquil cta ahorro # 1389429
-
-Nombre: Maritza Iveth Medranda Flor
-CI: 0910784024
-Correo: hello@zetatech.ec`;
+const DEFAULT_TRANSFER_INSTRUCTIONS = 'Contacta a soporte de ventas para solicitar los datos bancarios antes de realizar la transferencia.';
 
 function normalizeTransferInstructions(value: string) {
-  return value.replace(/Banco Pac[ií]fico/gi, "Banco Bolivariano");
+  return value.trim();
 }
 
-const DEFAULT_ZELLE_INSTRUCTIONS = `Correo Zelle: rosamoncada085@gmail.com
-Titular: Roberto Rodriguez`;
+const DEFAULT_ZELLE_INSTRUCTIONS = 'Contacta a soporte de ventas para confirmar los datos de Zelle antes de realizar el pago.';
 
 function normalizeSectorRates(value: unknown): ShippingSectorRate[] {
   if (!Array.isArray(value)) return [];
@@ -319,6 +319,9 @@ export default function Checkout() {
   const { items, cartTotal, clearCart, setIsCartOpen, isCartLoading } = useCart();
   const [, setLocation] = useLocation();
   const { data: company } = useCompany();
+  const enabledMethods=useMemo(()=>enabledPaymentMethods(company?.settings?.paymentSettings?.enabledMethods),[company?.settings?.paymentSettings?.enabledMethods]);
+  const visiblePaymentMethods=PAYMENT_METHODS.filter(method=>enabledMethods.includes(method.label));
+  const zelleInstructions=company?.settings?.paymentSettings?.zelleInstructions||DEFAULT_ZELLE_INSTRUCTIONS;
   const [activeStep, setActiveStep] = useState<CheckoutStep>("sender");
   const [paymentMethod, setPaymentMethod] = useState<SelectedPaymentMethod>("");
   const [orderStatus, setOrderStatus] = useState<OrderStatus>("idle");
@@ -450,8 +453,8 @@ export default function Checkout() {
     };
   }, [formRevision, hasConfiguredShippingSectors, sectorInput, senderDocumentType]);
 
-  const canConfirmOrder = items.length > 0 && checkoutReadiness.canChoosePayment && Boolean(paymentMethod);
-  const selectedPaymentDetails = PAYMENT_METHODS.find((method) => method.label === paymentMethod);
+  const canConfirmOrder = items.length > 0 && checkoutReadiness.canChoosePayment && Boolean(paymentMethod) && enabledMethods.includes(paymentMethod as PaymentMethod);
+  const selectedPaymentDetails = visiblePaymentMethods.find((method) => method.label === paymentMethod);
 
   const updateCheckoutProgress = () => {
     setFormRevision((current) => current + 1);
@@ -480,29 +483,32 @@ export default function Checkout() {
           environment,
           message: configured && productionHost && environment !== "live"
             ? "Temporalmente no disponible: la pasarela sigue en modo de pruebas."
-            : "Temporalmente no disponible. Elige transferencia, Zelle o solicita ayuda.",
+            : "Temporalmente no disponible. Elige otro método habilitado o contacta a soporte.",
         }];
       } catch {
         return [method, {
           status: "unavailable",
-          message: "No pudimos verificar esta pasarela. Elige transferencia, Zelle o solicita ayuda.",
+          message: "No pudimos verificar esta pasarela. Elige otro método habilitado o contacta a soporte.",
         }];
       }
     };
 
-    Promise.all([
-      checkProvider("Payphone", "/api/external/payphone/health"),
-      checkProvider("Datafast", "/api/external/datafast/health"),
-      checkProvider("PayPal", "/api/external/paypal/health"),
-    ]).then((entries) => {
+    const providers:[OnlinePaymentMethod,string][]=[['Payphone','/api/external/payphone/health'],['Datafast','/api/external/datafast/health'],['PayPal','/api/external/paypal/health']];
+    Promise.all(providers.filter(([method])=>enabledMethods.includes(method)).map(([method,path])=>checkProvider(method,path))).then((entries) => {
       if (!active) return;
-      setOnlinePaymentAvailability(Object.fromEntries(entries) as Record<OnlinePaymentMethod, PaymentAvailability>);
+      setOnlinePaymentAvailability(current=>({...current,...Object.fromEntries(entries)}));
     });
 
     return () => {
       active = false;
     };
-  }, []);
+  }, [enabledMethods]);
+
+  useEffect(()=>{
+    if(paymentMethod && !enabledMethods.includes(paymentMethod)){
+      setPaymentMethod('');setErrorMsg('Este método fue desactivado por la tienda. Selecciona otro para continuar.');
+    }
+  },[enabledMethods,paymentMethod]);
 
   useEffect(() => {
     if (checkoutStartedSent.current || items.length === 0) return;
@@ -895,7 +901,7 @@ export default function Checkout() {
 
     if (!validateSenderStep() || !validateReceiverStep()) return;
 
-    if (!paymentMethod) {
+    if (!paymentMethod || !enabledMethods.includes(paymentMethod)) {
       setErrorMsg("Selecciona un método de pago para continuar.");
       scrollToCheckoutSection("payment");
       return;
@@ -906,7 +912,7 @@ export default function Checkout() {
       if (availability.status !== "available") {
         setErrorMsg(
           availability.message ||
-            `${paymentMethod} no está disponible temporalmente. Elige transferencia, Zelle o solicita ayuda.`,
+            `${paymentMethod} no está disponible temporalmente. Elige otro método habilitado o contacta a soporte.`,
         );
         scrollToCheckoutSection("payment");
         return;
@@ -1705,7 +1711,8 @@ export default function Checkout() {
                   Tengo dudas sobre el pago
                 </a>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  {PAYMENT_METHODS.map(({ label, description, trustLabel, Icon }) => {
+                  {!visiblePaymentMethods.length&&<p role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 sm:col-span-2">La tienda no tiene métodos de pago habilitados en este momento. Contacta a soporte de ventas para recibir ayuda.</p>}
+                  {visiblePaymentMethods.map(({ label, description, trustLabel, Icon }) => {
                     const availability = label === "PayPal" || label === "Payphone" || label === "Datafast"
                       ? onlinePaymentAvailability[label]
                       : null;
@@ -1781,7 +1788,7 @@ export default function Checkout() {
                   >
                     {!paymentMethod && (
                       <p className="text-base font-black text-[#4A3362]">
-                        Elige cualquiera de los métodos disponibles. Transferencia y Zelle permanecen disponibles si una pasarela está en mantenimiento.
+                        Elige uno de los métodos habilitados por la tienda para conocer los siguientes pasos.
                       </p>
                     )}
                     {selectedPaymentDetails && (
@@ -1868,7 +1875,7 @@ export default function Checkout() {
                             Pago por Zelle
                           </p>
                           <pre className="mt-2 whitespace-pre-wrap font-sans text-base leading-relaxed text-[#4A3362]">
-                            {DEFAULT_ZELLE_INSTRUCTIONS}
+                            {zelleInstructions}
                           </pre>
                           <p className="mt-3 text-base font-black text-[#4A3362]">
                             Si ya hiciste el pago, adjunta aquí tu comprobante para subirlo automáticamente al confirmar el pedido.

@@ -22,7 +22,8 @@ function validateDocument(doc) {
   return { version: 1, media: doc.media, theme: Object.fromEntries(['brand','description','footer','cartLabel','searchLabel','logo','favicon','font','fontSize','radius','accent','background','foreground','links'].map(k=>[k,t[k]])), blocks: doc.blocks.map(b=>Object.fromEntries(['id','type','hidden','title','text','image','mobileImage','alt','href','button','background','foreground','align','motion','duration','zoom','padding','category','featured','limit','items','productIds'].map(k=>[k,b[k]]))) };
 }
 function publicSettings(settings) {
-  const { websiteEditor, ...rest } = settings || {};
-  return rest;
+  const { websiteEditor, paymentSettings, ...rest } = settings || {};
+  const {enabledPaymentMethods}=require('../utils/paymentMethods');
+  return {...rest,paymentSettings:{enabledMethods:enabledPaymentMethods(paymentSettings),transferInstructions:paymentSettings?.transferInstructions||'',zelleInstructions:paymentSettings?.zelleInstructions||'',shippingSectorRates:paymentSettings?.shippingSectorRates||[]}};
 }
 module.exports = { validateDocument, publicSettings, safeUrl };

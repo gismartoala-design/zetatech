@@ -25,6 +25,7 @@ import { categoriesQueryKey, fetchCategories } from "../client/src/hooks/useCate
 import { companyQueryKey, fetchCompany } from "../client/src/hooks/useCompany";
 import { productsQueryKey, fetchProducts } from "../client/src/hooks/useProducts";
 import { DEFAULT_COMPANY } from "../client/src/lib/site";
+import {enabledPaymentMethods} from '../shared/payment-methods';
 import { TESTIMONIALS, type Product } from "../client/src/data/mock";
 import type { QueryClient } from "@tanstack/react-query";
 import type { ViteDevServer } from "vite";
@@ -243,6 +244,7 @@ function shouldIgnoreProxyStreamError(error: unknown, req: Request, res: Respons
 }
 
 function getPublicApiCacheControl(requestPath: string) {
+  if (requestPath === '/api/external/company') return 'no-store';
   if (requestPath.startsWith('/api/external/website')) return 'no-store';
   if (requestPath === "/api/external/cms/home-hero") {
     return "public, max-age=300, stale-while-revalidate=3600";
@@ -328,6 +330,8 @@ function getPublicCompanyInfo(value: unknown) {
     settings: {
       acceptOrders: settings.acceptOrders !== false,
       paymentSettings: {
+        enabledMethods: enabledPaymentMethods(paymentSettings.enabledMethods),
+        zelleInstructions: typeof paymentSettings.zelleInstructions === 'string' ? paymentSettings.zelleInstructions : '',
         ...(typeof paymentSettings.transferInstructions === "string"
           ? { transferInstructions: paymentSettings.transferInstructions }
           : {}),

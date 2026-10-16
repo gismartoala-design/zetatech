@@ -17,6 +17,8 @@ const backend = createServer(async (req, res) => {
     const authenticated = req.headers.cookie === 'session=fixture' && req.headers.authorization === 'Bearer fixture';
     res.statusCode = authenticated ? 200 : 401;
     res.end(JSON.stringify({ authenticated }));
+  } else if (req.url === '/api/external/company') {
+    res.end(JSON.stringify({data:{name:'Fixture store',settings:{paymentSettings:{enabledMethods:['Banco','Contra entrega'],zelleInstructions:'Fixture Zelle',datafastToken:'never-public-fixture'}}}}));
   } else if (req.url === '/api/upload' || req.url === '/api/cms/website/media') {
     const chunks=[];
     for await (const chunk of req) chunks.push(chunk);
@@ -55,6 +57,12 @@ try {
   assert.equal((await metadata.json()).authenticated, true);
   const anonymous = await fetch(base + '/api/admin/metadata');
   assert.equal(anonymous.status, 401);
+  const company=await fetch(base+'/api/external/company');
+  const companyData=await company.json();
+  assert.deepEqual(companyData.data.settings.paymentSettings.enabledMethods,['Banco','Contra entrega']);
+  assert.equal(companyData.data.settings.paymentSettings.zelleInstructions,'Fixture Zelle');
+  assert.equal(company.headers.get('cache-control'),'no-store');
+  assert.ok(!JSON.stringify(companyData).includes('never-public-fixture'));
   const boundary='zetatech-regression-boundary';
   const payload=Buffer.concat([Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="image.png"\r\nContent-Type: image/png\r\n\r\n`),Buffer.from([0,255,128,1,13,10]),Buffer.alloc(256*1024,201),Buffer.from(`\r\n--${boundary}--\r\n`)]);
   for (const path of ['/api/upload','/api/cms/website/media']) {

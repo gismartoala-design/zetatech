@@ -2,6 +2,7 @@ import { useEffect, useState, type InputHTMLAttributes } from "react";
 import { toast } from "sonner";
 import ecommerceService from "@/core/api/ecommerce-service";
 import { Button } from "@/shared/components/ui/button";
+import {PAYMENT_METHOD_OPTIONS,DEFAULT_ENABLED_METHODS,enabledPaymentMethods,type StorePaymentMethod} from '@site/payment-methods';
 
 type ShippingSectorRate = {
   sector: string;
@@ -9,6 +10,8 @@ type ShippingSectorRate = {
 };
 
 type PaymentSettings = {
+  enabledMethods: StorePaymentMethod[];
+  zelleInstructions: string;
   datafastEnvironment: string;
   datafastEntityId: string;
   datafastToken: string;
@@ -41,21 +44,16 @@ type PaymentSettings = {
   ownerNotificationName: string;
 };
 
-const DEFAULT_TRANSFER_INSTRUCTIONS = `Configura aquí las instrucciones de transferencia de Zetatech.
-Banco Pichincha cta ahorro # 2202306049
-Banco Bolivariano cta ahorro # 0851179635
-Banco Guayaquil cta ahorro # 1389429
-
-Titular: Zetatech
-Identificación: configura este dato desde el administrador
-Correo: ventas@zetatech.ec`;
+const DEFAULT_TRANSFER_INSTRUCTIONS = '';
 
 function normalizeTransferInstructions(value: unknown) {
   if (typeof value !== "string" || !value.trim()) return DEFAULT_TRANSFER_INSTRUCTIONS;
-  return value.replace(/Banco Pac[ií]fico/gi, "Banco Bolivariano");
+  return value;
 }
 
 const DEFAULT_SETTINGS: PaymentSettings = {
+  enabledMethods: [...DEFAULT_ENABLED_METHODS],
+  zelleInstructions: '',
   datafastEnvironment: "sandbox", datafastEntityId: "", datafastToken: "", datafastMid: "", datafastTid: "", datafastPserv: "", datafastRisk: "", datafastVatRate: "", datafastCertified: "false",
   acceptOrders: true,
   paypalEnvironment: "sandbox",
@@ -126,6 +124,7 @@ export default function PaymentsPage() {
         setForm({
           ...DEFAULT_SETTINGS,
           ...paymentSettings,
+          enabledMethods: enabledPaymentMethods(paymentSettings.enabledMethods),
           transferInstructions: normalizeTransferInstructions(paymentSettings.transferInstructions),
           acceptOrders: settings.acceptOrders ?? true,
           shippingSectorRates: ensureEditableSectorRates(
@@ -241,7 +240,7 @@ export default function PaymentsPage() {
       return true;
     } catch (error) {
       console.error("Save payment settings error:", error);
-      toast.error("No se pudo guardar la configuracion");
+      toast.error((error as {response?:{data?:{message?:string}}}).response?.data?.message || "No se pudo guardar la configuración");
       return false;
     } finally {
       setIsSaving(false);
@@ -328,13 +327,31 @@ export default function PaymentsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-gray-900">
       <header>
         <h1 className="text-3xl font-bold text-gray-900">Configuracion de Pagos</h1>
         <p className="mt-1 text-gray-600">
           Configura Datafast, PayPal, transferencias, envíos por sector y el correo de notificaciones.
         </p>
       </header>
+
+      <section className="rounded-xl border bg-white p-6 text-gray-900 shadow-sm">
+        <h2 className="text-lg font-semibold">Métodos de pago de la tienda</h2>
+        <p className="mt-2 text-sm text-gray-600">Selecciona los métodos que podrán usar tus clientes. Las pasarelas necesitan también sus credenciales válidas para recibir pagos.</p>
+        <div className="mt-5 grid gap-3 md:grid-cols-2 lg:grid-cols-3">{PAYMENT_METHOD_OPTIONS.map(method=>{
+          const active=form.enabledMethods.includes(method.id);
+          return <label key={method.id} className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 ${active?'border-emerald-500 bg-emerald-50':'border-gray-200 bg-gray-50'}`}><input type="checkbox" className="mt-1 h-4 w-4 accent-emerald-600" checked={active} disabled={isSaving} onChange={e=>updateField('enabledMethods',e.target.checked?[...form.enabledMethods,method.id]:form.enabledMethods.filter(id=>id!==method.id))}/><span><span className="block text-sm font-semibold text-gray-900">{method.name}</span><span className="mt-1 block text-xs leading-relaxed text-gray-600">{method.description}</span><span className={`mt-2 block text-xs font-semibold ${active?'text-emerald-700':'text-gray-500'}`}>{active?'Visible en el checkout':'Desactivado'}</span></span></label>;
+        })}</div>
+        {!form.enabledMethods.length&&<p className="mt-4 text-sm text-amber-700">No hay métodos seleccionados. Tus clientes podrán ver el catálogo, pero no confirmar pedidos.</p>}
+        <Button type="button" className="mt-5 bg-emerald-700 text-white hover:bg-emerald-800" disabled={isSaving} onClick={handleSave}>{isSaving?'Guardando…':'Guardar métodos de pago'}</Button>
+      </section>
+
+      <section className="rounded-xl border bg-white p-6 text-gray-900 shadow-sm">
+        <h2 className="text-lg font-semibold">Datos de Zelle</h2>
+        <p className="mt-1 text-sm text-gray-600">Indica el correo o celular asociado, el titular y cualquier instrucción para el comprobante. Se mostrarán al elegir Zelle.</p>
+        <textarea aria-label="Instrucciones de pago Zelle" value={form.zelleInstructions} onChange={e=>updateField('zelleInstructions',e.target.value)} rows={4} placeholder="Correo o celular Zelle:\nTitular:\nInstrucciones:" className="mt-4 w-full rounded-lg border border-gray-300 bg-white p-3 text-sm text-gray-900"/>
+        <Button type="button" className="mt-3" onClick={handleSave} disabled={isSaving}>Guardar instrucciones</Button>
+      </section>
 
       <section className="rounded-xl border bg-white p-6 shadow-sm">
         <h2 className="mb-3 text-lg font-semibold">Datafast / Dataweb</h2>
@@ -589,7 +606,7 @@ export default function PaymentsPage() {
             value={form.transferInstructions}
             onChange={(e) => updateField("transferInstructions", e.target.value)}
             rows={6}
-            placeholder={DEFAULT_TRANSFER_INSTRUCTIONS}
+            placeholder="Banco:\nTipo y número de cuenta:\nTitular:\nIdentificación:\nCorreo:"
             className="w-full rounded-lg border border-gray-200 bg-white px-3 py-3 text-sm outline-none focus:border-blue-500"
           />
         </label>
@@ -602,7 +619,7 @@ export default function PaymentsPage() {
         </p>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
-          <Field label="Nombre del responsable" value={form.ownerNotificationName} onChange={(value) => updateField("ownerNotificationName", value)} placeholder="Ventas DIFIORI" />
+          <Field label="Nombre del responsable" value={form.ownerNotificationName} onChange={(value) => updateField("ownerNotificationName", value)} placeholder="Ventas ZettaTech" />
           <Field label="Email del responsable" value={form.ownerNotificationEmail} onChange={(value) => updateField("ownerNotificationEmail", value)} placeholder="ventas@midominio.com" />
         </div>
       </section>

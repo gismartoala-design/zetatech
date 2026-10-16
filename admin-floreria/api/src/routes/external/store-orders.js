@@ -138,6 +138,10 @@ router.post("/", async (req, res) => {
     {
       const { quoteStorefrontOrder } = require("../../services/storefrontQuote");
       const quote = await quoteStorefrontOrder(prisma, req.body);
+      require('../../utils/paymentMethods').assertPaymentMethodEnabled(quote.company.settings?.paymentSettings,req.body.paymentMethod);
+      if (!['Banco','Zelle','Contra entrega'].includes(req.body.paymentMethod)) {
+        return res.status(400).json({status:'error',message:'Usa la pasarela correspondiente para iniciar este pago.'});
+      }
       req.body = { ...req.body, items: quote.items, shippingCost: quote.shipping, total: quote.total };
     }
     // Verificar si la tienda acepta pedidos
@@ -468,9 +472,10 @@ router.post("/", async (req, res) => {
     });
 
     console.error("Store order error:", error);
-    return res.status(error.statusCode === 400 ? 400 : 500).json({
+    const status=[400,409,503].includes(error.statusCode)?error.statusCode:500;
+    return res.status(status).json({
       status: "error",
-      message: error.statusCode === 400 ? error.message : "Error al crear la orden",
+      message: status !== 500 ? error.message : "Error al crear la orden",
       detail: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }

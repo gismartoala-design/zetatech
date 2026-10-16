@@ -31,7 +31,7 @@ async function gateway(config, path, body) {
 }
 
 async function createDatafastCheckout(db, payload) {
-  const quote = await quoteStorefrontOrder(db, payload);
+  const quote = await quoteStorefrontOrder(db, {...payload,paymentMethod:'Datafast'});
   const config = datafastConfig(quote.company.settings?.paymentSettings);
   if (!config.ready) fail('Datafast aún no está configurado. Puedes elegir contra entrega o transferencia.', 503);
   if (payload.couponCode) fail('Los cupones con Datafast aún no están habilitados. Retira el cupón o elige otro método.');

@@ -92,6 +92,20 @@ Antes de desplegar, comprobar que ese servicio tenga `DATABASE_URL` y
 
 ## Producción
 
+### Categorías y métodos de pago desde el administrador
+
+En Productos, abre Crear/Editar y usa el selector de Categoría. El botón
+Crear categoría permite guardarla y seleccionarla antes de crear el producto.
+Las categorías propias se guardan en la configuración de la empresa y se
+combinan con las que ya usan sus productos. El listado también permite filtrar
+por categoría. No se requieren migraciones para este cambio.
+
+En Pagos, marca los métodos de pago y pulsa Guardar métodos de pago. El checkout
+solo ofrece los seleccionados y la API rechaza nuevas órdenes que usen uno
+desactivado. Desactivar una pasarela no impide verificar un pago ya iniciado.
+Configura las instrucciones de transferencia y Zelle en esa misma pantalla;
+las pasarelas conservan sus controles de credenciales y ambiente.
+
 ### Subida de productos y archivos
 
 Para SFTP, define `STORAGE_TYPE=sftp`, `FTP_HOST`, `FTP_PORT`, `FTP_USER`,

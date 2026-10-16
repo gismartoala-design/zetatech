@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import type { FormData, Product, Variant } from "../types";
 import productsService from "../api/products-service";
 import { useUserStore } from "@/store/use-user-store";
-import filtersService from "@/features/filters/api/filters-service";
+import service from '@/core/api/service';
 
 /**
  * Convierte la respuesta de error del servidor en algo que el administrador
@@ -71,9 +71,7 @@ export default function useProducts() {
       if (normalized) merged.add(normalized);
     });
 
-    setCategorySuggestions(
-      Array.from(merged).sort((a, b) => a.localeCompare(b, "es"))
-    );
+    setCategorySuggestions(current=>Array.from(new Set([...current,...merged])).sort((a,b)=>a.localeCompare(b,'es')));
   };
 
   const fetchProducts = async () => {
@@ -106,11 +104,9 @@ export default function useProducts() {
   useEffect(() => {
     const fetchCategorySuggestions = async () => {
       try {
-        const response = await filtersService.getCategories();
+        const {data:response} = await service.get('/products/categories');
         if (response.status === "success" && response.data) {
-          const filterLabels = response.data
-            .map((category) => category.label?.trim() || category.name?.trim() || "")
-            .filter(Boolean);
+          const filterLabels = (response.data as string[]).filter(Boolean);
           syncCategorySuggestions(products, filterLabels);
         }
       } catch (error) {

@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const { db: prisma } = require("../../lib/prisma");
+const {enabledPaymentMethods,validateEnabledMethods}=require('../../utils/paymentMethods');
 
 async function getCompanyForAdmin(adminId) {
   if (!adminId) return null;
@@ -68,6 +69,8 @@ function sanitizePaymentSettings(input) {
   };
 
   return {
+    enabledMethods: source.enabledMethods === undefined ? enabledPaymentMethods({}) : validateEnabledMethods(source.enabledMethods),
+    zelleInstructions: getString('zelleInstructions'),
     datafastEnvironment: getEnvironment("datafastEnvironment"),
     ...Object.fromEntries(["datafastEntityId", "datafastToken", "datafastMid", "datafastTid", "datafastPserv", "datafastRisk", "datafastVatRate", "datafastCertified"].map(key => [key, getString(key)])),
     paypalEnvironment: getEnvironment("paypalEnvironment"),
@@ -507,7 +510,7 @@ const updatePaymentSettings = async (req, res) => {
       : {};
 
     const { acceptOrders, ...paymentSettingsPayload } = req.body;
-    const paymentSettings = sanitizePaymentSettings(paymentSettingsPayload);
+    const paymentSettings = sanitizePaymentSettings({...currentSettings.paymentSettings,...paymentSettingsPayload});
     const mergedSettings = {
       ...currentSettings,
       paymentSettings,
@@ -517,17 +520,9 @@ const updatePaymentSettings = async (req, res) => {
           : currentSettings.acceptOrders ?? true,
     };
 
-    const updatedCompany = await prisma.company.update({
-      where: { id: company.id },
-      data: {
-        settings: mergedSettings,
-      },
-      select: {
-        id: true,
-        name: true,
-        settings: true,
-      },
-    });
+    const saved = await prisma.company.updateMany({where:{id:company.id,updatedAt:company.updatedAt},data:{settings:mergedSettings}});
+    if(!saved.count)return res.status(409).json({status:'error',message:'La configuración cambió en otra ventana. Recarga antes de guardar para conservar esos cambios.'});
+    const updatedCompany=await prisma.company.findUnique({where:{id:company.id},select:{id:true,name:true,settings:true}});
 
     return res.json({
       status: "success",
@@ -540,9 +535,9 @@ const updatePaymentSettings = async (req, res) => {
     });
   } catch (error) {
     console.error("Error updating payment settings:", error);
-    return res.status(500).json({
+    return res.status(error.statusCode || 500).json({
       status: "error",
-      message: "Error al guardar la configuración de pagos.",
+      message: error.statusCode ? error.message : "Error al guardar la configuración de pagos.",
     });
   }
 };
