@@ -2,6 +2,7 @@ import React from "react";
 import { cn } from "@/lib/utils";
 import { useCompany } from "@/hooks/useCompany";
 import { toPublicImageUrl } from "@/lib/media";
+import { BRAND_LOGO } from '@shared/brand';
 
 interface LogoProps {
   className?: string;
@@ -25,7 +26,7 @@ export function Logo({
   };
   const isCompactWordmark = size === "sm";
 
-  const logoUrl = getCompanyLogoUrl(company?.logo);
+  const logoUrl = getCompanyLogoUrl(company?.logo) || BRAND_LOGO;
 
   if (logoUrl) {
     return (

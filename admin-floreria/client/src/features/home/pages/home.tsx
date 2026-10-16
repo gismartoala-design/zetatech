@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/shared/components/ui/button";
 import { FadeIn } from "../components/animations";
 import "../styles/home.css";
+import { BrandLogo } from '@/shared/components/brand-logo';
 
 export default function Home() {
   return (
@@ -13,6 +14,7 @@ export default function Home() {
       {/* Hero Content */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center space-y-8 max-w-4xl mx-auto">
+          <BrandLogo className="mx-auto h-auto w-80 max-w-full"/>
 
           {/* Hero Title */}
           <FadeIn delay={300}>

@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect, useRef, useState, type CSSProperties, type ComponentType, type ReactNode } from "react";
 import { useLocation } from "wouter";
 import { Navbar } from "@/components/Navbar";
+import { Logo } from '@/components/Logo';
 import { WebsiteTheme } from '@/components/WebsiteTheme';
 import { useCompany } from "@/hooks/useCompany";
 import { useCart } from "@/context/CartContext";
@@ -278,6 +279,7 @@ export function AppFrame({ Routes, fallback = <RouteFallback /> }: AppFrameProps
           </div>
         ) : null}
         {!hideNavbar && location !== '/' && <Navbar />}
+        {hideNavbar && <header className="flex justify-center bg-[#09150f] px-6 py-4"><a href="/" aria-label="ZettaTech: volver al inicio"><Logo size="sm"/></a></header>}
         <Suspense fallback={fallback}>
           <Routes />
         </Suspense>

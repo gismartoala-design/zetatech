@@ -12,22 +12,22 @@ const {
 const { resolvePublicMediaUrl } = require("../utils/publicMediaUrl");
 const EMAIL_LOGO_PATH = path.resolve(
   __dirname,
-  "../../../client/public/zetatech.png"
+  "../assets/zettatech-logo.png"
 );
 const EMAIL_LOGO_ATTACHMENT = existsSync(EMAIL_LOGO_PATH)
   ? [
       {
-        filename: "zetatech.png",
+        filename: "zettatech-logo.png",
         path: EMAIL_LOGO_PATH,
         cid: "logo",
       },
     ]
   : [];
 const EMAIL_LOGO_HTML_SMALL = EMAIL_LOGO_ATTACHMENT.length
-  ? '<img src="cid:logo" alt="Zetatech" width="72" height="72" style="display:block;width:72px;height:72px;border-radius:18px;" />'
+  ? '<img src="cid:logo" alt="ZettaTech" width="240" height="96" style="display:block;width:240px;height:auto;max-width:100%;" />'
   : "";
 const EMAIL_LOGO_HTML_LARGE = EMAIL_LOGO_ATTACHMENT.length
-  ? '<img src="cid:logo" alt="Zetatech" width="84" height="84" style="display:block;width:84px;height:84px;border-radius:22px;" />'
+  ? '<img src="cid:logo" alt="ZettaTech" width="280" height="112" style="display:block;width:280px;height:auto;max-width:100%;" />'
   : "";
 
 function escapeHtml(value) {

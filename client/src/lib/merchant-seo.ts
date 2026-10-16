@@ -51,7 +51,7 @@ export function getMerchantOrganizationSchema() {
     name: DEFAULT_COMPANY.name,
     url: canonicalUrl("/"),
     image: absoluteUrl("/opengraph.jpg"),
-    logo: absoluteUrl("/favicon.png"),
+    logo: absoluteUrl("/brand/zettatech-logo.png"),
     telephone: `+${DEFAULT_COMPANY.phoneDigits}`,
     email: DEFAULT_COMPANY.email,
     priceRange: "$$",

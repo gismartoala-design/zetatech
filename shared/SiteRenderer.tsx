@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { type SiteBlock, type SiteDocument } from './website';
 import './website.css';
+import { BRAND_LOGO } from './brand';
 export const siteFonts = {system:'Inter, system-ui, sans-serif',serif:'Georgia, serif',mono:'ui-monospace, monospace'};
 function InlineEditable({value,tag,blockId,field,editor}:{value:string;tag:'h1'|'h2'|'p';blockId:string;field:'title'|'text';editor?:boolean}) {
   const Tag=tag;
@@ -14,8 +15,7 @@ export function SiteHeader({theme:t,cart,resolveImage=(url)=>url}:{theme:SiteDoc
     window.addEventListener('scroll',onScroll,{passive:true});
     return ()=>window.removeEventListener('scroll',onScroll);
   },[]);
-  const initial=(t.brand||'Z').trim().charAt(0).toUpperCase()||'Z';
-  return <div className="zt-header-dock"><header className="zt-header" data-scrolled={scrolled}><a href="/" className="zt-brand">{t.logo?<img src={resolveImage(t.logo)} alt={t.brand}/>:<><span className="zt-mark">{initial}</span>{t.brand}</>}</a><nav aria-label="Navegación principal">{t.links.map((l,i)=><a key={i} href={l.href.startsWith('#')?`/${l.href}`:l.href}>{l.label}</a>)}</nav><div className="zt-header-actions"><a href="/shop" aria-label={t.searchLabel}>{t.searchLabel}</a>{cart}</div></header></div>;
+  return <div className="zt-header-dock"><header className="zt-header" data-scrolled={scrolled}><a href="/" className="zt-brand"><img src={resolveImage(t.logo||BRAND_LOGO)} alt={t.brand} width="244" height="60"/></a><nav aria-label="Navegación principal">{t.links.map((l,i)=><a key={i} href={l.href.startsWith('#')?`/${l.href}`:l.href}>{l.label}</a>)}</nav><div className="zt-header-actions"><a href="/shop" aria-label={t.searchLabel}>{t.searchLabel}</a>{cart}</div></header></div>;
 }
 function AnimatedBlock({block,children,editor,onSelect}:{block:SiteBlock;children:ReactNode;editor?:boolean;onSelect?:(id:string)=>void}) {
   const ref = useRef<HTMLElement>(null);
@@ -186,6 +186,6 @@ export function SiteRenderer({document,renderProducts,cart,resolveImage=(url)=>u
       {b.type==='faq'&&b.items.map((item,i)=><details key={i}><summary>{item.title}</summary><p>{item.text}</p></details>)}
       {b.button&&b.type!=='faq'&&<a className="zt-button" href={b.href||'/shop'}>{b.button} ↗</a>}
       </>}
-    </AnimatedBlock>)}</main><footer className="zt-footer"><strong>{t.brand}</strong><p>{t.footer}</p>{t.links.map((l,i)=><a key={i} href={l.href}>{l.label}</a>)}</footer>
+    </AnimatedBlock>)}</main><footer className="zt-footer"><a href="/" aria-label={`${t.brand}: inicio`}><img className="zt-footer-logo" src={resolveImage(t.logo||BRAND_LOGO)} alt={t.brand} width="280" height="69" loading="lazy"/></a><p>{t.footer}</p>{t.links.map((l,i)=><a key={i} href={l.href}>{l.label}</a>)}</footer>
   </div>;
 }

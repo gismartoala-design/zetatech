@@ -7,6 +7,7 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
+import { BrandLogo } from '@/shared/components/brand-logo';
 
 type LoginFormProps = {
   email: string;
@@ -29,9 +30,10 @@ export function LoginForm({
     <div className="flex flex-col gap-6">
       <Card>
         <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
+          <BrandLogo className="mb-5 h-auto w-60 max-w-full self-center"/>
+          <CardTitle>Administración ZettaTech</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account
+            Ingresa tus credenciales para administrar la tienda.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -43,7 +45,7 @@ export function LoginForm({
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@bakery.com"
+                placeholder="admin@zetatech.ec"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required

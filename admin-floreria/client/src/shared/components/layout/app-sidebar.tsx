@@ -3,7 +3,6 @@ import { useNavigate } from "react-router";
 import {
   IconDashboard,
   IconDiscount,
-  IconInnerShadowTop,
   IconPackage,
   IconShoppingCart,
   IconTag,
@@ -27,6 +26,7 @@ import {
   SidebarMenuItem,
 } from "@/shared/components/ui/sidebar";
 import { useUserStore } from "@/store/use-user-store";
+import { BrandLogo } from '@/shared/components/brand-logo';
 import { NavModules } from "./nav-modules";
 // import { useUserStore } from "@/store/use-user-store"
 
@@ -124,8 +124,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               onClick={() => navigate("/app/dashboard")}
             >
               <span className="flex items-center gap-2">
-                <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Administrador</span>
+                <BrandLogo className="h-auto w-48 max-w-full"/>
               </span>
             </SidebarMenuButton>
           </SidebarMenuItem>

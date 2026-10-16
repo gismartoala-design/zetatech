@@ -14,7 +14,7 @@ import './website-editor-inline.css';
 const api=axios.create({baseURL:ADMIN_API_URL,withCredentials:true,headers:{'X-Site-Editor':'1'}});
 type State={revision:number;draft:SiteDocument|null;published:SiteDocument|null;publishedAt?:string;history:{id:string;at:string;document:SiteDocument}[]};
 const copy=<T,>(value:T):T=>JSON.parse(JSON.stringify(value));
-const asset=(url:string)=>/^https?:/.test(url)?url:new URL(url,new URL(ADMIN_API_URL,window.location.origin).origin).href;
+const asset=(url:string)=>url.startsWith('/brand/')?new URL(`${import.meta.env.BASE_URL}${url.slice(1)}`,window.location.origin).href:/^https?:/.test(url)?url:new URL(url,new URL(ADMIN_API_URL,window.location.origin).origin).href;
 function Frame({children,width,fill}:{children:ReactNode;width:string;fill?:boolean}) {
   const [body,setBody]=useState<HTMLElement|null>(null);
   return <iframe title="Vista previa privada del sitio" style={fill?{width,height:'100%',border:0,background:'white'}:{width,height:850,border:0,background:'white'}} srcDoc={'<!doctype html><html><head><style>body{margin:0}button,input{font:inherit}a{cursor:pointer}</style></head><body></body></html>'} onLoad={e=>setBody(e.currentTarget.contentDocument?.body||null)}>{body&&createPortal(<><style>{siteCss}</style>{children}</>,body)}</iframe>;
