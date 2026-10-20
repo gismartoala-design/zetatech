@@ -7,6 +7,52 @@ function InlineEditable({value,tag,blockId,field,editor}:{value:string;tag:'h1'|
   const Tag=tag;
   return <Tag className={editor?'zt-inline-editable':undefined} contentEditable={editor} suppressContentEditableWarning={editor} onBlur={editor?event=>window.parent.postMessage({type:'zetatech-editor-text',blockId,field,value:event.currentTarget.textContent||''},'*'):undefined}>{value}</Tag>;
 }
+// Mascota de marca: saluda una vez por sesión antes de que se vea la tienda,
+// con los colores de la marca activa. No bloquea el renderizado real (el
+// contenido ya está debajo, servido por SSR) ni molesta en cada visita: se
+// marca en sessionStorage y respeta preferencia de movimiento reducido.
+function BrandMascot({className}:{className?:string}) {
+  return <svg className={className} viewBox="0 0 240 300" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <ellipse cx="120" cy="286" rx="52" ry="8" fill="#000" opacity=".28"/>
+    <rect x="86" y="238" width="22" height="46" rx="10" className="zt-mascot-dark"/>
+    <rect x="132" y="238" width="22" height="46" rx="10" className="zt-mascot-dark"/>
+    <rect x="80" y="270" width="34" height="20" rx="9" fill="var(--zt-accent)"/>
+    <rect x="126" y="270" width="34" height="20" rx="9" fill="var(--zt-accent)"/>
+    <g className="zt-mascot-arm-l"><rect x="52" y="158" width="26" height="78" rx="13" className="zt-mascot-dark"/></g>
+    <rect x="70" y="140" width="100" height="116" rx="42" className="zt-mascot-dark"/>
+    <rect x="117" y="150" width="6" height="92" rx="3" fill="var(--zt-accent)" opacity=".85"/>
+    <path d="M100 148 L92 176" stroke="var(--zt-accent)" strokeWidth="5" strokeLinecap="round"/>
+    <path d="M140 148 L148 176" stroke="var(--zt-accent)" strokeWidth="5" strokeLinecap="round"/>
+    <path d="M120 176 l14 11 -5 16 h-18 l-5 -16 z" fill="var(--zt-accent)"/>
+    <g className="zt-mascot-arm-r">
+      <rect x="156" y="104" width="26" height="78" rx="13" className="zt-mascot-dark"/>
+      <circle cx="169" cy="100" r="15" className="zt-mascot-dark"/>
+    </g>
+    <path d="M58 110 C58 58 86 26 120 26 C154 26 182 58 182 110 C182 146 166 150 155 150 L85 150 C74 150 58 146 58 110 Z" className="zt-mascot-dark"/>
+    <circle cx="120" cy="106" r="54" className="zt-mascot-face"/>
+    <ellipse cx="100" cy="104" rx="9" ry="13" className="zt-mascot-eye"/>
+    <ellipse cx="140" cy="104" rx="9" ry="13" className="zt-mascot-eye"/>
+  </svg>;
+}
+function BrandSplash({brand}:{brand:string}) {
+  const [phase,setPhase]=useState<'idle'|'visible'|'leaving'|'hidden'>('idle');
+  useEffect(()=>{
+    if (typeof window==='undefined') return;
+    const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (sessionStorage.getItem('zt-splash-seen')||reduceMotion) {setPhase('hidden');return;}
+    setPhase('visible');
+    const leave=window.setTimeout(()=>setPhase('leaving'),1900);
+    const hide=window.setTimeout(()=>{setPhase('hidden');try{sessionStorage.setItem('zt-splash-seen','1');}catch{/* almacenamiento no disponible: no pasa nada, se repite la próxima vez */}},2420);
+    return ()=>{window.clearTimeout(leave);window.clearTimeout(hide);};
+  },[]);
+  if (phase==='idle'||phase==='hidden') return null;
+  return <div className={`zt-splash${phase==='leaving'?' zt-splash-leaving':''}`} role="presentation" aria-hidden="true">
+    <div className="zt-splash-stage">
+      <BrandMascot className="zt-splash-mascot"/>
+      <strong className="zt-splash-word">{brand}</strong>
+    </div>
+  </div>;
+}
 export function SiteHeader({theme:t,cart,resolveImage=(url)=>url}:{theme:SiteDocument['theme'];cart?:ReactNode;resolveImage?:(url:string)=>string}) {
   const [scrolled,setScrolled]=useState(false);
   useEffect(()=>{
@@ -175,6 +221,7 @@ export function BrandCarousel({items,resolveImage=(url)=>url}:{items:SiteBlock['
 export function SiteRenderer({document,renderProducts,cart,resolveImage=(url)=>url,preview=false,editor=preview,onSelectBlock}:{document:SiteDocument;renderProducts?:(block:SiteBlock)=>ReactNode;cart?:ReactNode;resolveImage?:(url:string)=>string;preview?:boolean;editor?:boolean;onSelectBlock?:(id:string)=>void}) {
   const t=document.theme;
   return <div className="zt-site" style={{'--zt-accent':t.accent,'--zt-radius':`${t.radius}px`,fontFamily:siteFonts[t.font],fontSize:t.fontSize,background:t.background,color:t.foreground} as CSSProperties} onClick={preview?e=>{if((e.target as HTMLElement).closest('a'))e.preventDefault();}:undefined}>
+    {!preview&&<BrandSplash brand={t.brand}/>}
     <SiteHeader theme={t} cart={cart} resolveImage={resolveImage}/>
     <main>{document.blocks.filter(b=>!b.hidden).map(b=><AnimatedBlock key={b.id} block={b} editor={editor} onSelect={onSelectBlock}>
       {(b.type==='hero'||b.type==='image')?<div className="zt-feature"><div className="zt-copy">{b.type==='hero'?<InlineEditable tag="h1" value={b.title} blockId={b.id} field="title" editor={editor}/>:<InlineEditable tag="h2" value={b.title} blockId={b.id} field="title" editor={editor}/>}<InlineEditable tag="p" value={b.text} blockId={b.id} field="text" editor={editor}/>{b.button&&<a className="zt-button" href={b.href||'/shop'}>{b.button}<span aria-hidden="true">↗</span></a>}</div>{b.image&&<picture>{b.mobileImage&&<source media="(max-width: 640px)" srcSet={resolveImage(b.mobileImage)}/>}<img src={resolveImage(b.image)} alt={b.alt} loading={b.type==='hero'?'eager':'lazy'}/></picture>}</div>:<>

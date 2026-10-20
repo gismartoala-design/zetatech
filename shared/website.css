@@ -185,3 +185,20 @@
 }
 .zt-hero:not([data-motion=zoom]) img{animation:none}
 .zt-hero[data-motion=zoom] img{animation-duration:var(--zt-duration)}
+
+/* Mascota de marca: saluda una vez por sesión antes de abrir la tienda. */
+.zt-splash{position:fixed;inset:0;z-index:999;display:grid;place-items:center;background:radial-gradient(130% 130% at 50% 18%,color-mix(in srgb,var(--zt-accent) 16%,#0c110f) 0%,#060a08 55%,#020403 100%);animation:zt-splash-in 420ms ease both}
+.zt-splash-leaving{animation:zt-splash-out 520ms cubic-bezier(.4,0,.2,1) both}
+.zt-splash-stage{display:flex;flex-direction:column;align-items:center;gap:20px}
+.zt-splash-mascot{width:min(38vw,190px);height:auto;filter:drop-shadow(0 24px 40px rgba(0,0,0,.45));animation:zt-mascot-in 640ms cubic-bezier(.2,.8,.2,1) both 100ms}
+.zt-splash-word{color:#fff;font-weight:800;font-size:1.35em;letter-spacing:.01em;opacity:0;animation:zt-word-in 480ms ease both 460ms}
+.zt-mascot-dark{fill:color-mix(in srgb,var(--zt-accent) 16%,#0a0d0c)}
+.zt-mascot-face{fill:color-mix(in srgb,var(--zt-accent) 8%,#050706)}
+.zt-mascot-eye{fill:#f5fff8}
+.zt-mascot-arm-r{transform-box:fill-box;transform-origin:50% 100%;animation:zt-wave 760ms ease-in-out 2 650ms}
+@keyframes zt-splash-in{from{opacity:0}to{opacity:1}}
+@keyframes zt-splash-out{to{opacity:0;transform:scale(1.08);filter:blur(10px)}}
+@keyframes zt-mascot-in{from{opacity:0;transform:translateY(18px) scale(.9)}to{opacity:1;transform:none}}
+@keyframes zt-word-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes zt-wave{0%,100%{transform:rotate(0deg)}30%{transform:rotate(-24deg)}60%{transform:rotate(-6deg)}}
+@media(prefers-reduced-motion:reduce){.zt-splash{display:none}}
