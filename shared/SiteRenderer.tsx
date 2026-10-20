@@ -13,25 +13,43 @@ function InlineEditable({value,tag,blockId,field,editor}:{value:string;tag:'h1'|
 // marca en sessionStorage y respeta preferencia de movimiento reducido.
 function BrandMascot({className}:{className?:string}) {
   return <svg className={className} viewBox="0 0 240 300" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <ellipse cx="120" cy="286" rx="52" ry="8" fill="#000" opacity=".28"/>
-    <rect x="86" y="238" width="22" height="46" rx="10" className="zt-mascot-dark"/>
-    <rect x="132" y="238" width="22" height="46" rx="10" className="zt-mascot-dark"/>
-    <rect x="80" y="270" width="34" height="20" rx="9" fill="var(--zt-accent)"/>
-    <rect x="126" y="270" width="34" height="20" rx="9" fill="var(--zt-accent)"/>
-    <g className="zt-mascot-arm-l"><rect x="52" y="158" width="26" height="78" rx="13" className="zt-mascot-dark"/></g>
-    <rect x="70" y="140" width="100" height="116" rx="42" className="zt-mascot-dark"/>
-    <rect x="117" y="150" width="6" height="92" rx="3" fill="var(--zt-accent)" opacity=".85"/>
-    <path d="M100 148 L92 176" stroke="var(--zt-accent)" strokeWidth="5" strokeLinecap="round"/>
-    <path d="M140 148 L148 176" stroke="var(--zt-accent)" strokeWidth="5" strokeLinecap="round"/>
-    <path d="M120 176 l14 11 -5 16 h-18 l-5 -16 z" fill="var(--zt-accent)"/>
+    <defs>
+      <radialGradient id="ztGlow" cx="50%" cy="42%" r="60%">
+        <stop offset="0%" stopColor="var(--zt-accent)" stopOpacity=".55"/>
+        <stop offset="60%" stopColor="var(--zt-accent)" stopOpacity=".18"/>
+        <stop offset="100%" stopColor="var(--zt-accent)" stopOpacity="0"/>
+      </radialGradient>
+      <linearGradient id="ztBody" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#15211b"/>
+        <stop offset="100%" stopColor="#060a08"/>
+      </linearGradient>
+      <linearGradient id="ztScreen" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor="var(--zt-accent)"/>
+        <stop offset="100%" stopColor="color-mix(in srgb,var(--zt-accent) 65%,#fff)"/>
+      </linearGradient>
+    </defs>
+    <circle className="zt-mascot-glow" cx="120" cy="130" r="128" fill="url(#ztGlow)"/>
+    <ellipse cx="120" cy="286" rx="52" ry="8" fill="#000" opacity=".4"/>
+    <rect x="86" y="238" width="22" height="46" rx="10" fill="url(#ztBody)" stroke="var(--zt-accent)" strokeOpacity=".35"/>
+    <rect x="132" y="238" width="22" height="46" rx="10" fill="url(#ztBody)" stroke="var(--zt-accent)" strokeOpacity=".35"/>
+    <rect x="80" y="270" width="34" height="20" rx="9" fill="url(#ztScreen)"/>
+    <rect x="126" y="270" width="34" height="20" rx="9" fill="url(#ztScreen)"/>
+    <g className="zt-mascot-arm-l"><rect x="52" y="158" width="26" height="78" rx="13" fill="url(#ztBody)" stroke="var(--zt-accent)" strokeOpacity=".35"/></g>
+    <rect x="70" y="140" width="100" height="116" rx="42" fill="url(#ztBody)" stroke="var(--zt-accent)" strokeWidth="1.5" strokeOpacity=".5"/>
+    <rect x="114" y="150" width="12" height="92" rx="6" fill="url(#ztScreen)"/>
+    <path d="M100 148 L90 176" stroke="var(--zt-accent)" strokeWidth="6" strokeLinecap="round"/>
+    <path d="M140 148 L150 176" stroke="var(--zt-accent)" strokeWidth="6" strokeLinecap="round"/>
+    <path d="M120 174 l16 13 -6 18 h-20 l-6 -18 z" fill="url(#ztScreen)"/>
     <g className="zt-mascot-arm-r">
-      <rect x="156" y="104" width="26" height="78" rx="13" className="zt-mascot-dark"/>
-      <circle cx="169" cy="100" r="15" className="zt-mascot-dark"/>
+      <rect x="156" y="104" width="26" height="78" rx="13" fill="url(#ztBody)" stroke="var(--zt-accent)" strokeOpacity=".35"/>
+      <circle cx="169" cy="100" r="15" fill="url(#ztBody)" stroke="var(--zt-accent)" strokeOpacity=".35"/>
     </g>
-    <path d="M58 110 C58 58 86 26 120 26 C154 26 182 58 182 110 C182 146 166 150 155 150 L85 150 C74 150 58 146 58 110 Z" className="zt-mascot-dark"/>
-    <circle cx="120" cy="106" r="54" className="zt-mascot-face"/>
-    <ellipse cx="100" cy="104" rx="9" ry="13" className="zt-mascot-eye"/>
-    <ellipse cx="140" cy="104" rx="9" ry="13" className="zt-mascot-eye"/>
+    <path d="M58 110 C58 58 86 26 120 26 C154 26 182 58 182 110 C182 146 166 150 155 150 L85 150 C74 150 58 146 58 110 Z" fill="url(#ztBody)" stroke="var(--zt-accent)" strokeWidth="1.5" strokeOpacity=".5"/>
+    <circle cx="120" cy="106" r="54" fill="#02110a"/>
+    <ellipse cx="100" cy="104" rx="10" ry="15" fill="#fff"/>
+    <ellipse cx="140" cy="104" rx="10" ry="15" fill="#fff"/>
+    <circle cx="103" cy="99" r="3" fill="var(--zt-accent)"/>
+    <circle cx="143" cy="99" r="3" fill="var(--zt-accent)"/>
   </svg>;
 }
 function BrandSplash({brand}:{brand:string}) {
