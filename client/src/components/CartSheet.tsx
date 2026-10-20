@@ -32,7 +32,7 @@ export function CartSheet() {
     <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
       <SheetContent className="w-full sm:max-w-md flex flex-col h-full bg-white border-l border-primary/20 p-0">
         <SheetHeader className="p-6 border-b border-primary/10">
-          <SheetTitle className="flex items-center gap-3 text-2xl font-serif italic text-foreground">
+          <SheetTitle className="flex items-center gap-3 font-sans text-2xl font-semibold tracking-tight text-foreground">
             <ShoppingBag className="w-6 h-6 text-accent" />
             Tu carrito
           </SheetTitle>
@@ -42,7 +42,7 @@ export function CartSheet() {
           {items.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center opacity-50 space-y-4">
               <ShoppingBag className="w-16 h-16 text-foreground/20" />
-              <p className="text-xl font-serif italic">Tu carrito está vacío</p>
+              <p className="font-sans text-lg font-medium">Tu carrito está vacío</p>
               <button 
                 onClick={() => setIsCartOpen(false)}
                 className="text-xs uppercase tracking-widest font-black text-accent mt-4 hover:underline"

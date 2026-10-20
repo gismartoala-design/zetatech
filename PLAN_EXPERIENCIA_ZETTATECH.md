@@ -1,6 +1,12 @@
 # ZettaTech: experiencia visual conectada
 
-Estado: propuesta de diseño y desarrollo; no implementada ni publicada.
+Estado: primera implementación local de la experiencia pública; pendiente de despliegue.
+
+Alcance confirmado: solo la web pública. No se implementan las ampliaciones del administrador descritas en la propuesta original. Se conservan sus pantallas y los datos existentes; los efectos nuevos se aplican únicamente al renderizado público.
+
+Implementado: recorrido conectado de portada y producto, zoom y desplazamiento con scroll en escritorio, composición móvil, categorías visuales, secciones editoriales, estilo de marcas y catálogo, navegación consistente y alternativa con movimiento reducido. El protagonista utiliza el catálogo real y muestra precio, oferta y stock; sin productos se utiliza la imagen de portada configurada, sin inventar inventario. WhatsApp deja libres los controles al abrir el carrito.
+
+Ajuste solicitado: se restaura el video original `/brand/zetatech-splash.mp4` como entrada, una vez por sesión y respetando movimiento reducido. La portada del ASUS usa una nueva copia recortada con transparencia, y las categorías predeterminadas tienen fotografías recortadas de audio, wearables y accesorios. Archivos, fuentes y prompts: `client/public/assets/storefront/PREPARACION.md`.
 
 ## Referencias revisadas
 

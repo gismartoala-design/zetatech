@@ -1,6 +1,10 @@
 import { DEFAULT_COMPANY } from "@/lib/site";
+import { useCart } from '@/context/CartContext';
 
 export function FloatingWhatsApp() {
+  const { isCartOpen } = useCart();
+  // Keep the purchase controls unobstructed, particularly on small screens.
+  if (isCartOpen) return null;
   return (
     <a
       href={`https://wa.me/${DEFAULT_COMPANY.phoneDigits}?text=${encodeURIComponent("Hola, necesito soporte de ventas de Zetatech.")}`}

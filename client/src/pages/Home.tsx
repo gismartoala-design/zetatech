@@ -1,21 +1,17 @@
 import { SiteRenderer, ProductCarousel, type CarouselProduct } from '@shared/SiteRenderer';
 import { defaultSite, ensureBrandBlock, type SiteBlock } from '@shared/website';
 import { useWebsite } from '@/hooks/useWebsite';
-import { useQuery } from '@tanstack/react-query';
-import { resolveApiUrl } from '@/lib/api';
-import type { Product } from '@/data/mock';
 import { Seo } from '@/components/Seo';
 import { useCart } from '@/context/CartContext';
 import { useCompany } from '@/hooks/useCompany';
 import { useToast } from '@/hooks/use-toast';
 import { toPublicImageUrl } from '@/lib/media';
-import { areSameCategory, getProductPath, getStockLabel, normalizeStock } from '@shared/catalog';
+import { areSameCategory, getProductPath, getStockLabel } from '@shared/catalog';
+import { useStorefrontProducts } from '@/hooks/useStorefrontProducts';
+import { CategoryScene, EditorialScene, ProductJourney, useSceneMotion } from '@/components/StorefrontScenes';
+import '@/styles/storefront-experience.css';
 function Products({block}:{block:SiteBlock}) {
-  const {data=[],isLoading,isError,refetch}=useQuery<Product[]>({queryKey:['website','products'],queryFn:async()=>{
-    const response=await fetch(resolveApiUrl('/api/external/website/products'));
-    if(!response.ok)throw new Error('No se pudo cargar el catálogo');
-    const {data}=await response.json();return data.map((p:Product)=>({...p,stock:normalizeStock(p.stock),image:toPublicImageUrl(p.image)||'',deliveryTime:'',size:'',includes:p.description||''}));
-  },staleTime:30000,retry:1});
+  const {data=[],isLoading,isError,refetch}=useStorefrontProducts();
   const {addItem,setIsCartOpen}=useCart();
   const {data:company}=useCompany();
   const {toast}=useToast();
@@ -39,5 +35,15 @@ export default function Home(){
   const {data}=useWebsite();
   const document=ensureBrandBlock(data||defaultSite);
   const {cartItemCount,setIsCartOpen}=useCart();
-  return <><Seo title={`${document.theme.brand} | Tecnología`} description={document.theme.description} path="/"/><SiteRenderer document={document} resolveImage={url=>toPublicImageUrl(url)||url} renderProducts={block=><Products block={block}/>} cart={<button onClick={()=>setIsCartOpen(true)}>{document.theme.cartLabel} ({cartItemCount})</button>}/></>;
+  const {data:products=[]}=useStorefrontProducts();
+  const sceneRef=useSceneMotion(document.blocks.map(block=>`${block.id}:${block.type}:${block.hidden}`).join('|'));
+  const productBlock=document.blocks.find(block=>block.type==='products'&&!block.hidden);
+  const eligible=products.filter(product=>product.image&&product.stock!==0&&(!productBlock?.category||areSameCategory(product.category,productBlock.category))&&(!productBlock?.featured||product.isBestSeller)&&(!productBlock?.productIds.length||productBlock.productIds.includes(product.id)));
+  const protagonist=(productBlock?.productIds.length?eligible.find(product=>product.id===productBlock.productIds[0]):undefined)||eligible.find(product=>product.isBestSeller)||eligible[0];
+  return <div ref={sceneRef}><Seo title={`${document.theme.brand} | Tecnología`} description={document.theme.description} path="/"/><SiteRenderer document={document} className="zx-storefront" showSplash resolveImage={url=>toPublicImageUrl(url)||url} renderBlock={block=>{
+    if(block.type==='hero')return <ProductJourney block={block} product={protagonist}/>;
+    if(block.type==='benefits')return <CategoryScene block={block} products={products}/>;
+    if(block.type==='image')return <EditorialScene block={block} index={document.blocks.filter(item=>item.type==='image').findIndex(item=>item.id===block.id)}/>;
+    return undefined;
+  }} renderProducts={block=><Products block={block}/>} cart={<button onClick={()=>setIsCartOpen(true)}>{document.theme.cartLabel} ({cartItemCount})</button>}/></div>;
 }
