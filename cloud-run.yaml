@@ -9,8 +9,12 @@ spec:
     metadata:
       annotations:
         # Autoscaling configuration
-        # minScale 1 evita el arranque en frio que hacia fallar checkouts.
-        autoscaling.knative.dev/minScale: "1"
+        # minScale 0: con trafico casi nulo, mantener una instancia 24/7
+        # (minScale 1) cobraba CPU/memoria reservada sin uso real. El costo
+        # de volver a minScale 1 es un arranque en frio en la primera visita
+        # tras un rato de inactividad; subelo de nuevo cuando haya trafico
+        # real que lo justifique.
+        autoscaling.knative.dev/minScale: "0"
         autoscaling.knative.dev/maxScale: "10"
     spec:
       containerConcurrency: 80
