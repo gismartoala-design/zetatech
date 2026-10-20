@@ -25,6 +25,7 @@ const productListSelect = {
   price: true,
   image: true,
   category: true,
+  sku: true,
   stock: true,
   isActive: true,
   featured: true,

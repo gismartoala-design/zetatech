@@ -198,6 +198,7 @@ export function ProductCard({
             </>}
             <span className="text-xs sm:text-sm text-gray-500">
               Stock: {product.stock}
+              {product.sku && ` · SKU: ${product.sku}`}
             </span>
           </div>
 

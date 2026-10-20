@@ -12,6 +12,7 @@ export interface Product {
   description: string | null;
   image: string | null;
   category: string;
+  sku: string | null;
   stock: number;
   isActive: boolean;
   featured: boolean;
@@ -38,6 +39,7 @@ export interface FormData {
   name: string;
   description: string;
   category: string;
+  sku: string;
   stock: number;
   price: number;
   image: string;

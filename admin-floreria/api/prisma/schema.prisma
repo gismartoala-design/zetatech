@@ -198,6 +198,10 @@ model Product {
   price                 Float?
   image                 String?
   category              String
+  // Código/SKU que el admin asigna a mano para identificar el producto en
+  // físico (etiquetas, inventario). No es obligatorio ni único: dos
+  // productos pueden quedar sin código todavía.
+  sku                   String?
   stock                 Int                  @default(0)
   isActive              Boolean              @default(true)
   featured              Boolean              @default(false)

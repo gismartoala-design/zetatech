@@ -142,7 +142,6 @@ export function ProductCarousel({products,resolveImage=(url)=>url}:{products:Car
         <div className="zt-spotlight-copy">
           {p.badge&&<span className="zt-spotlight-badge">{p.badge}</span>}
           <h3>{p.name}</h3>
-          {p.description&&<p>{p.description}</p>}
           {p.originalPrice&&<div className="zt-spotlight-offer"><del>{p.originalPrice}</del><span>Oferta · -{p.discountPercent}%</span></div>}
           <strong className="zt-spotlight-price">{p.price}</strong>
           {p.stockLabel&&<span className="zt-spotlight-stock">{p.stockLabel}</span>}

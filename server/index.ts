@@ -178,8 +178,16 @@ function formatPayphonePhone(rawPhone: unknown) {
   return normalized;
 }
 
-function buildRequestOrigin(req: Request) {
-  return `${req.protocol}://${req.get("host")}`;
+// Para precargar datos en el SSR, el servidor se llama a sí mismo (vía su
+// propio proxy /api/external/*). Usar el Host público del request rompe esto
+// en cuanto el puerto externo difiere del interno (p. ej. Docker mapea
+// 5000->8080): el contenedor intenta conectarse a su propio puerto externo,
+// que no existe por dentro, y el SSR queda en blanco con ECONNREFUSED aunque
+// la API responda perfectamente desde fuera. El loopback al puerto real en el
+// que escucha el proceso siempre es válido, sea cual sea el host público.
+function buildInternalOrigin() {
+  const port = process.env.PORT || "3000";
+  return `http://127.0.0.1:${port}`;
 }
 
 function getCanonicalHost() {
@@ -1541,8 +1549,7 @@ app.use((req, res, next) => {
       }
 
       const queryClient = createAppQueryClient();
-      const requestOrigin = buildRequestOrigin(req);
-      const statusCode = await prefetchSsrRouteData(queryClient, req.path, requestOrigin);
+      const statusCode = await prefetchSsrRouteData(queryClient, req.path, buildInternalOrigin());
       const renderApp = await loadRenderApp(vite);
       // Solo la ruta, sin query string. Con `?fbclid=...`, `?utm_source=...` o
       // `?gclid=...` el router no encontraba coincidencia y el servidor devolvia

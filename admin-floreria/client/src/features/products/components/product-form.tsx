@@ -77,6 +77,32 @@ export default function ProductForm({
 
       <CategorySelect value={formData.category} suggestions={categorySuggestions} onChange={category=>setFormData(current=>({...current,category}))}/>
 
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="mb-1 block text-sm font-medium">Código / SKU</label>
+          <Input
+            value={formData.sku}
+            onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+            placeholder="Ej: ZT-AUD-001"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium">Stock</label>
+          <Input
+            type="number"
+            min="0"
+            step="1"
+            value={formData.stock}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                stock: e.target.value === "" ? 0 : parseInt(e.target.value, 10) || 0,
+              })
+            }
+          />
+        </div>
+      </div>
+
       {!formData.hasVariants && (
         <div>
           <label className="mb-1 block text-sm font-medium">Precio ($)</label>
