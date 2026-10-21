@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import {PriceDisplay} from '@shared/PriceDisplay';
 import "./product-details.css";
 import { Link, useLocation } from "wouter";
 import { MessageSquare, Plus, Truck, ShieldCheck, Clock, ShoppingBag, Loader2 } from "lucide-react";
@@ -389,15 +390,13 @@ export default function ProductDetails() {
             </h1>
 
             <div className="flex flex-wrap items-center gap-4 mb-5">
-              {product.originalPrice && <div className="flex items-center gap-2"><del className="text-lg text-foreground/50">{product.originalPrice}</del><span className="rounded-full bg-accent/10 px-2 py-1 text-xs font-bold text-accent">-{product.discountPercent}%</span></div>}
-              <span className="text-3xl font-bold text-foreground">
-                {product.price}
-              </span>
+              <PriceDisplay price={product.price} originalPrice={product.originalPrice}/>
               <div className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${soldOut ? "bg-slate-100 text-slate-600" : "bg-accent/10 text-accent"}`} role="status">
                 {getStockLabel(product.stock)}
               </div>
             </div>
 
+            <p className="mb-5 flex items-center gap-2 text-sm font-semibold text-accent"><Truck className="h-4 w-4"/> Envío gratis en Guayaquil · Entrega en 24 horas</p>
             {product.description && <details className="product-description-panel" open>
               <summary>Descripción</summary>
               <p className="product-description-strong">{product.description}</p>

@@ -61,7 +61,7 @@ function toReadableTitleCase(value) {
 function dedupeCategoriesBySlug(categories) {
   const categoriesBySlug = new Map();
 
-  for (const category of categories) {
+  for (const category of categories.flatMap(value=>String(value||'').includes('›')?[String(value).split('›')[0].trim(),value]:[value])) {
     const normalized = normalizeDisplayText(category);
     const slug = slugify(normalized);
 
@@ -129,7 +129,7 @@ router.get('/', async (req, res) => {
     const data = products
       .filter((p) => {
         if (!requestedCategorySlug) return true;
-        return slugify(p.category) === requestedCategorySlug;
+        return slugify(p.category) === requestedCategorySlug || slugify(String(p.category).split('›')[0].trim()) === requestedCategorySlug;
       })
       .filter((p) => {
         if (!search) return true;
@@ -169,7 +169,7 @@ router.get('/', async (req, res) => {
           price: v.price,
           isDefault: v.isDefault,
         })),
-        deliveryTime: '2-3 horas',
+        deliveryTime: '24 horas',
         size: '',
         includes: summary === 'true' ? '' : fullDescription,
       };

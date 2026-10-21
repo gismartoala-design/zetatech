@@ -127,7 +127,7 @@ export function getCategoryDescription(name: string) {
 
 export function findCategoryNameBySlug(categories: string[], slug: string) {
   if (slug === BEST_SELLERS_CATEGORY_SLUG) return BEST_SELLERS_CATEGORY_NAME;
-  return categories.find((category) => getCategorySlug(category) === slug) || null;
+  return categories.find((category) => getCategorySlug(category) === slug) || buildCategoryTree(categories).find(root=>getCategorySlug(root.name)===slug)?.name || null;
 }
 
 export function dedupeCategoriesBySlug(categories: Array<string | null | undefined>) {
@@ -148,6 +148,29 @@ export function dedupeCategoriesBySlug(categories: Array<string | null | undefin
 
 export function areSameCategory(a: string | null | undefined, b: string | null | undefined) {
   return getCategorySlug(normalizeDisplayText(a)) === getCategorySlug(normalizeDisplayText(b));
+}
+
+/** Two-level taxonomy, stored compatibly in the existing category field. */
+export function splitCategoryPath(value: string) {
+  const [parent = '', child = ''] = normalizeDisplayText(value).split('›').map(part => part.trim());
+  return { parent, child };
+}
+
+export function buildCategoryTree(categories: string[]) {
+  const roots = new Map<string, { name: string; children: string[] }>();
+  for (const value of categories) {
+    const { parent, child } = splitCategoryPath(value);
+    if (!parent) continue;
+    const key = getCategorySlug(parent);
+    if (!roots.has(key)) roots.set(key, { name: parent, children: [] });
+    const root = roots.get(key)!;
+    if (child && !root.children.some(item => areSameCategory(item, value))) root.children.push(`${root.name} › ${child}`);
+  }
+  return Array.from(roots.values()).sort((a,b)=>a.name.localeCompare(b.name,'es')).map(root=>({...root,children:root.children.sort((a,b)=>a.localeCompare(b,'es'))}));
+}
+
+export function isProductInCategory(value: string, selected: string) {
+  return areSameCategory(value, selected) || (!splitCategoryPath(selected).child && areSameCategory(splitCategoryPath(value).parent, selected));
 }
 
 export function getProductSlug(product: ProductLike) {

@@ -4,6 +4,7 @@ import type { Product } from '@/data/mock';
 import { areSameCategory, getProductPath, getStockLabel } from '@shared/catalog';
 import { toPublicImageUrl } from '@/lib/media';
 import { getCategoryArtwork, getStorefrontProductImage } from '@/lib/storefront-artwork';
+import {PriceDisplay} from '@shared/PriceDisplay';
 
 export function EnergyOrbit({ className = '' }: { className?: string }) {
   return <svg className={`zx-orbit ${className}`} viewBox="0 0 800 800" fill="none" aria-hidden="true">
@@ -116,7 +117,7 @@ export function ProductJourney({ block, product }: { block: SiteBlock; product?:
         <h2>{product ? product.name : 'La tecnología se vive. No solo se mira.'}</h2>
         <p>{product ? 'Conoce sus detalles, consulta su disponibilidad y encuentra tu próxima conexión.' : 'Explora audio, wearables y accesorios. Encuentra lo que acompaña tu ritmo, tu espacio y tu forma de disfrutar.'}</p>
         {product && <div className="zx-product-facts">
-          <div><span>Precio actual</span><strong>{product.price}</strong>{product.originalPrice && <span className="zx-offer"><del>{product.originalPrice}</del>{product.discountPercent ? ` −${product.discountPercent}%` : ' Oferta'}</span>}</div>
+          <div><PriceDisplay price={product.price} originalPrice={product.originalPrice}/></div>
           <div><span>Disponibilidad</span><strong className="zx-stock">{getStockLabel(product.stock)}</strong></div>
         </div>}
         <a className="zx-text-link" href={href}>{product ? 'Ver el producto' : 'Encuentra tu próxima conexión'} <span aria-hidden="true">↗</span></a>

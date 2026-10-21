@@ -1,4 +1,5 @@
 import React from "react";
+import {PriceDisplay,comparePrices} from '@shared/PriceDisplay';
 import type { Product } from "@/data/mock";
 import { Link, useLocation } from "wouter";
 import { Clock3, Loader2, MessageSquare, Plus, ShieldCheck, ShoppingBag, Truck } from "lucide-react";
@@ -131,7 +132,7 @@ export function ProductCard({ product, priority = false, showBestSellerBadge = t
             Mas Vendido
           </div>
         )}
-        {product.originalPrice && <span className="absolute right-3 top-3 rounded-full bg-accent px-3 py-1 text-xs font-bold text-white">Oferta · -{product.discountPercent}%</span>}
+        {comparePrices(product.price,product.originalPrice).active && <span className="absolute right-3 top-3 rounded-full bg-accent px-3 py-1 text-xs font-bold text-white">Oferta</span>}
       </Link>
 
       <div className="flex flex-1 flex-col p-5 sm:p-6">
@@ -166,19 +167,17 @@ export function ProductCard({ product, priority = false, showBestSellerBadge = t
 
         <div className="mb-5 flex items-center gap-2 text-sm font-semibold text-foreground/75">
           <Clock3 className="h-4 w-4 text-accent" />
-          Entrega estimada: {product.deliveryTime || "a coordinar"}
+          Envío gratis en Guayaquil · 24 horas
         </div>
 
-        <div className="mt-auto flex w-full items-end justify-between gap-4 border-t border-primary/30 pt-4" itemProp="offers" itemScope itemType="https://schema.org/Offer">
+        <div className="mt-auto flex w-full flex-wrap items-end justify-between gap-4 border-t border-primary/30 pt-4" itemProp="offers" itemScope itemType="https://schema.org/Offer">
           <meta itemProp="url" content={productUrl} />
           <meta itemProp="priceCurrency" content="USD" />
           <meta itemProp="price" content={productPrice} />
           {product.stock != null && <link itemProp="availability" href={`https://schema.org/${soldOut ? "OutOfStock" : "InStock"}`} />}
           <link itemProp="itemCondition" href="https://schema.org/NewCondition" />
           <div>
-            <span className="block text-[10px] font-black uppercase tracking-[0.16em] text-foreground/55">Precio</span>
-            {product.originalPrice && <span className="block text-sm text-foreground/50"><span className="sr-only">Precio anterior: </span><del>{product.originalPrice}</del></span>}
-            <p className="text-2xl font-bold text-foreground">{product.price}</p>
+            <PriceDisplay price={product.price} originalPrice={product.originalPrice}/>
           </div>
           <span className={`max-w-[55%] rounded-lg px-3 py-2 text-xs font-semibold ${soldOut ? "bg-slate-100 text-slate-600" : "bg-accent/10 text-accent"}`}>{getStockLabel(product.stock)}</span>
         </div>

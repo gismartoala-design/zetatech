@@ -80,6 +80,7 @@ export function getMerchantOrganizationSchema() {
 export function getOfferShippingDetailsSchema() {
   return {
     "@type": "OfferShippingDetails",
+    shippingRate: {"@type":"MonetaryAmount",value:0,currency:'USD'},
     shippingDestination: {
       "@type": "DefinedRegion",
       addressCountry: "EC",
@@ -91,7 +92,7 @@ export function getOfferShippingDetailsSchema() {
       handlingTime: {
         "@type": "QuantitativeValue",
         minValue: 0,
-        maxValue: 1,
+        maxValue: 0,
         unitCode: "DAY",
       },
       transitTime: {

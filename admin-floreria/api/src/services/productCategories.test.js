@@ -23,6 +23,10 @@ async function request(method,body={}){
   const list=await request('get');assert.deepEqual(list.result.data,['Audio','Gaming']);assert.ok(!list.result.data.includes('Privada'));
   const duplicate=await request('post',{name:'gAmInG'});assert.equal(duplicate.status,200);assert.equal(duplicate.result.data.created,false);
   assert.equal((await request('post',{name:'   '})).status,400);
+  const child=await request('post',{name:'Teclados',parent:'Gaming'});assert.equal(child.status,201);assert.equal(child.result.data.name,'Gaming › Teclados');
+  assert.ok((await request('get')).result.data.includes('Gaming › Teclados'));
+  assert.equal((await request('post',{name:'Teclados',parent:'No existe'})).status,400);
+  assert.equal((await request('post',{name:'Uno › Dos',parent:'Gaming'})).status,400);
   conflict=true;assert.equal((await request('post',{name:'Cámaras'})).status,409);assert.ok(!companies.a.settings.productCategories.includes('Cámaras'));
   console.log('PASS: persistent categories, existing products, deduplication, company isolation and concurrent settings protection');
 })().catch(e=>{console.error(e);process.exitCode=1});

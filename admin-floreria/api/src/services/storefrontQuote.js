@@ -1,8 +1,8 @@
 const fail = (message, statusCode = 400) => { const error = new Error(message); error.statusCode = statusCode; throw error; };
 const money = value => Math.round(Number(value) * 100) / 100;
-const normalize = value => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
 const { getProductOffer } = require('../utils/productPricing');
 const { assertPaymentMethodEnabled } = require('../utils/paymentMethods');
+const {shippingForDelivery}=require('./deliveryPolicy');
 
 async function quoteStorefrontOrder(db, payload) {
   const companies = await db.company.findMany({ where: { isActive: true, ...(process.env.STOREFRONT_COMPANY_ID ? { id: process.env.STOREFRONT_COMPANY_ID } : {}) }, take: 2 });
@@ -28,11 +28,7 @@ async function quoteStorefrontOrder(db, payload) {
     return { productId: product.id, productName: product.name, quantity, price, variantName: variant?.name || null };
   });
   const subtotal = money(items.reduce((sum, item) => sum + item.price * item.quantity, 0));
-  const rates = company.settings?.paymentSettings?.shippingSectorRates || [];
-  const rate = rates.find(item => normalize(item.sector) === normalize(payload.sector));
-  if (rates.length && !rate) fail('Selecciona un sector de entrega válido.');
-  const shipping = money(rate?.cost || 0);
-  if (!Number.isFinite(shipping) || shipping < 0) fail('El costo de envío no está configurado correctamente.', 503);
+  const shipping = shippingForDelivery(payload,company.settings?.paymentSettings?.shippingSectorRates);
   return { company, items, subtotal, shipping, total: money(subtotal + shipping) };
 }
 module.exports = { quoteStorefrontOrder, fail, money };

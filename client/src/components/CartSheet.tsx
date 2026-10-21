@@ -102,7 +102,7 @@ export function CartSheet() {
             <div className="flex flex-col items-center justify-center w-full mb-4 gap-1">
               <span className="text-xs text-foreground/60 uppercase tracking-widest font-bold">Subtotal del pedido</span>
               <span className="text-4xl font-black">${cartTotal.toFixed(2)}</span>
-              <span className="mt-1 text-center text-xs text-foreground/60">El envío se calcula según el sector en el checkout.</span>
+              <span className="mt-1 text-center text-xs text-foreground/60">Guayaquil: envío gratis en 24 horas. Otras ciudades sujetas a cobertura.</span>
             </div>
             <div className="grid w-full grid-cols-2 gap-2 text-[11px] font-bold text-foreground/65">
               <span className="flex items-center justify-center gap-1.5"><ShieldCheck className="h-4 w-4 text-accent" /> Pago seguro</span>

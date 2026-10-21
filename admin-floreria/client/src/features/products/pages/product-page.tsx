@@ -5,7 +5,7 @@ import { ProductCard } from "../components/product-card";
 import useProducts from "../hooks/use-products";
 import { ProductModal } from "../components/product-modal";
 import {useState} from 'react';
-import {areSameCategory} from '@site/catalog';
+import {isProductInCategory} from '@site/catalog';
 
 export default function ProductsPage() {
   const [categoryFilter,setCategoryFilter]=useState('');
@@ -33,7 +33,7 @@ export default function ProductsPage() {
     moveProduct,
     resetProductOrder,
   } = useProducts();
-  const visibleProducts=products.filter(product=>!categoryFilter||areSameCategory(product.category,categoryFilter));
+  const visibleProducts=products.filter(product=>!categoryFilter||isProductInCategory(product.category,categoryFilter));
 
   if (isLoading) {
     return (

@@ -12,7 +12,7 @@ export async function fetchStorefrontProducts(baseUrl?: string): Promise<Product
     ...product,
     stock: normalizeStock(product.stock),
     image: toPublicImageUrl(product.image) || '',
-    deliveryTime: '',
+    deliveryTime: '24 horas',
     size: '',
     includes: product.description || '',
   }));

@@ -15,6 +15,7 @@
     "db:migrate:deploy": "cd admin-floreria/api && npx prisma migrate deploy --schema prisma/schema.prisma",
     "smoke:e2e": "tsx script/smoke-e2e.ts",
     "check": "tsc",
+    "test:commerce": "node --import tsx script/catalog-commerce.test.tsx && node admin-floreria/api/src/routes/external/catalog-hierarchy.test.js",
     "db:push": "drizzle-kit push",
     "watchdog:tienda": "tsx script/storefront-watchdog.ts"
   },

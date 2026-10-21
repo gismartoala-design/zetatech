@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { Product } from "../data/mock";
 import { resolveApiUrl } from "@/lib/api";
 import { toPublicImageUrl } from "@/lib/media";
-import { areSameCategory, isPublicCatalogProduct, normalizeStock } from "@shared/catalog";
+import { isProductInCategory, isPublicCatalogProduct, normalizeStock } from "@shared/catalog";
 
 const API_URL = "/api/external/products";
 
@@ -114,7 +114,7 @@ export async function fetchProducts(
       .filter(isPublicCatalogProduct)
       .filter((product: Product) => {
         if (!normalized.category || normalized.category === "all") return true;
-        return areSameCategory(product.category, normalized.category);
+        return isProductInCategory(product.category, normalized.category);
       });
 
     const visibleProducts = sortProductsForStorefront(products);

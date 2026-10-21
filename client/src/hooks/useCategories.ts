@@ -25,6 +25,8 @@ export function useCategories(enabled = true) {
     queryKey: categoriesQueryKey,
     queryFn: () => fetchCategories(),
     enabled,
-    staleTime: 1000 * 60 * 10,
+    staleTime: 30_000,
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
   });
 }

@@ -129,7 +129,7 @@ exports.getAllProducts = async (req, res) => {
     where.isDeleted = false; // Excluir productos eliminados
 
     if (category) {
-      where.category = category;
+      where.AND=[{OR:[{category},{category:{startsWith:`${category} › `}}]}];
     }
     if (search) {
       where.OR = [

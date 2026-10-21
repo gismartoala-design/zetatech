@@ -21,12 +21,15 @@ router.get('/',async(req,res,next)=>{
 });
 router.post('/',async(req,res,next)=>{
   try {
-    const name=categoryName(req.body.name);
-    if(!name||name.length>120)return res.status(400).json({message:'Escribe un nombre de categoría de 1 a 120 caracteres.'});
+    const label=categoryName(req.body.name),parent=categoryName(req.body.parent);
+    if(!label||label.includes('›')||parent.includes('›')||(req.body.parent!==undefined&&typeof req.body.parent!=='string'))return res.status(400).json({message:'Escribe un nombre válido. Solo se admite categoría y subcategoría.'});
+    const name=parent?`${parent} › ${label}`:label;
+    if(name.length>120)return res.status(400).json({message:'La categoría y subcategoría juntas deben tener hasta 120 caracteres.'});
     const result=await db.$transaction(async tx=>{
       const company=await tx.company.findUnique({where:{id:req.categoryCompanyId},select:{id:true,settings:true,updatedAt:true}});
       const products=await tx.product.findMany({where:{companyId:company.id,isDeleted:false},distinct:['category'],select:{category:true}});
       const existing=mergeCategories(company.settings?.productCategories,products.map(p=>p.category));
+      if(parent&&!existing.some(item=>!item.includes('›')&&categoryKey(item)===categoryKey(parent))){const e=new Error('Crea o selecciona primero la categoría principal.');e.status=400;throw e;}
       const savedName=existing.find(item=>categoryKey(item)===categoryKey(name));
       if(savedName)return {name:savedName,created:false};
       const registered=mergeCategories(company.settings?.productCategories,[name]);

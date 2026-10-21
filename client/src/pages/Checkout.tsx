@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import {LOCAL_DELIVERY_CITY,resolveDelivery} from '@shared/delivery';
 import {
   ShoppingBag,
   ChevronLeft,
@@ -265,6 +266,7 @@ function normalizeSectorRates(value: unknown): ShippingSectorRate[] {
         ? String((source as { sector?: unknown }).sector).trim()
         : "";
       const rawCost = (source as { cost?: unknown }).cost;
+      if(rawCost===null||rawCost===''||typeof rawCost==='boolean')return null;
       const cost = Number(rawCost);
 
       if (!sector || !Number.isFinite(cost) || cost < 0) return null;
@@ -274,42 +276,6 @@ function normalizeSectorRates(value: unknown): ShippingSectorRate[] {
     .filter((item): item is ShippingSectorRate => Boolean(item));
 }
 
-function resolveShippingCostBySector(
-  sector: string,
-  rates: ShippingSectorRate[]
-) {
-  const normalizedSector = normalizeSectorName(sector);
-  if (!normalizedSector) {
-    return { cost: 0, matchedSector: "", isMatched: false };
-  }
-
-  const exactMatch = rates.find(
-    (item) => normalizeSectorName(item.sector) === normalizedSector
-  );
-
-  if (exactMatch) {
-    return {
-      cost: exactMatch.cost,
-      matchedSector: exactMatch.sector,
-      isMatched: true,
-    };
-  }
-
-  const partialMatch = rates.find((item) => {
-    const candidate = normalizeSectorName(item.sector);
-    return normalizedSector.includes(candidate) || candidate.includes(normalizedSector);
-  });
-
-  if (partialMatch) {
-    return {
-      cost: partialMatch.cost,
-      matchedSector: partialMatch.sector,
-      isMatched: true,
-    };
-  }
-
-  return { cost: 0, matchedSector: "", isMatched: false };
-}
 
 export default function Checkout() {
   useEffect(() => {
@@ -334,6 +300,7 @@ export default function Checkout() {
   const [formRevision, setFormRevision] = useState(0);
   const [couponCode, setCouponCode] = useState("");
   const [sectorInput, setSectorInput] = useState("");
+  const [deliveryCity,setDeliveryCity]=useState(LOCAL_DELIVERY_CITY);
   const [senderDocumentType, setSenderDocumentType] = useState<CustomerDocumentType>("CEDULA");
   const [appliedCoupon, setAppliedCoupon] = useState<{
     code: string;
@@ -366,10 +333,10 @@ export default function Checkout() {
     () => normalizeSectorRates(company?.settings?.paymentSettings?.shippingSectorRates),
     [company?.settings?.paymentSettings?.shippingSectorRates]
   );
-  const hasConfiguredShippingSectors = shippingSectorRates.length > 0;
+  const hasConfiguredShippingSectors = deliveryCity!==LOCAL_DELIVERY_CITY && shippingSectorRates.length > 0;
   const shippingResolution = useMemo(
-    () => resolveShippingCostBySector(sectorInput, shippingSectorRates),
-    [sectorInput, shippingSectorRates]
+    () => resolveDelivery(deliveryCity,sectorInput, shippingSectorRates),
+    [deliveryCity,sectorInput, shippingSectorRates]
   );
   const receiverNameRef = useRef<HTMLInputElement>(null);
   const receiverPhoneRef = useRef<HTMLInputElement>(null);
@@ -420,7 +387,7 @@ export default function Checkout() {
       deliveryDateTime,
       address,
       sector,
-      exactAddress: address,
+      exactAddress: `${address}, ${deliveryCity}`,
       observations,
     };
   };
@@ -438,7 +405,7 @@ export default function Checkout() {
     } = readCheckoutFields();
     const hasValidSenderEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(senderEmail);
     const senderComplete = Boolean(senderName && isValidContactPhone(senderPhone) && isValidCustomerDocument(senderDocument, senderDocumentType) && hasValidSenderEmail);
-    const deliveryComplete = Boolean(
+    const deliveryComplete = Boolean(shippingResolution.isAvailable&&
       receiverName &&
         (hasConfiguredShippingSectors ? sector : true) &&
         deliveryDateTime &&
@@ -451,7 +418,7 @@ export default function Checkout() {
       hasDestination: Boolean(sector),
       canChoosePayment: senderComplete && deliveryComplete,
     };
-  }, [formRevision, hasConfiguredShippingSectors, sectorInput, senderDocumentType]);
+  }, [formRevision, hasConfiguredShippingSectors, sectorInput, senderDocumentType,deliveryCity,shippingResolution.isAvailable]);
 
   const canConfirmOrder = items.length > 0 && checkoutReadiness.canChoosePayment && Boolean(paymentMethod) && enabledMethods.includes(paymentMethod as PaymentMethod);
   const selectedPaymentDetails = visiblePaymentMethods.find((method) => method.label === paymentMethod);
@@ -756,6 +723,7 @@ export default function Checkout() {
   };
 
   const validateReceiverStep = () => {
+    if(!shippingResolution.isAvailable){setErrorMsg('No hay una tarifa de envío configurada para esa ciudad y sector. Contacta a soporte de ventas.');focusCheckoutField('receiver',hasConfiguredShippingSectors?sectorSelectRef:sectorInputRef);return false;}
     const {
       receiverName,
       receiverPhone,
@@ -944,6 +912,7 @@ export default function Checkout() {
       exactAddress,
       sector,
       shippingCost,
+      deliveryCity,
       observations,
       // Enviamos el total sin descontar el cupon: el backend valida el codigo
       // contra la base y aplica el descuento. Si mandamos el total ya rebajado
@@ -1432,7 +1401,7 @@ export default function Checkout() {
                   <div className="checkout-summary-row">
                     <span>Envío</span>
                     <span>
-                      {shippingResolution.isMatched
+                      {deliveryCity===LOCAL_DELIVERY_CITY?'Gratis':shippingResolution.isMatched
                         ? `+$${shippingCost.toFixed(2)}`
                         : sectorInput
                           ? "A coordinar"
@@ -1455,13 +1424,13 @@ export default function Checkout() {
                       ${finalTotal.toFixed(2)}
                     </span>
                   </div>
-                  {shippingResolution.isMatched ? (
+                  {deliveryCity===LOCAL_DELIVERY_CITY?<p className="text-right text-sm font-semibold text-green-700">Envío gratis dentro de Guayaquil · Entrega en 24 horas.</p>:shippingResolution.isMatched ? (
                     <p className="text-right text-[0.82rem] font-black text-[#4A3362]">
                       Total con envío adicional de ${shippingCost.toFixed(2)} para {formatSectorLabel(shippingResolution.matchedSector)}.
                     </p>
                   ) : (
                     <p className="text-right text-[0.82rem] font-black text-[#4A3362]">
-                      El costo de envío de tu sector se confirma por WhatsApp antes del despacho.
+                      Selecciona una ruta con cobertura o contacta a soporte de ventas antes de continuar.
                     </p>
                   )}
                 </div>
@@ -1615,6 +1584,15 @@ export default function Checkout() {
                   </label>
                   <label className="checkout-field">
                     <span>
+                      <MapPin className="h-5 w-5" /> Ciudad de entrega *
+                    </span>
+                    <select aria-label="Ciudad de entrega" className="checkout-input" value={deliveryCity} onChange={event=>{setDeliveryCity(event.target.value);setSectorInput('');updateCheckoutProgress();}}>
+                      {['Guayaquil','Samborondón','Daule','Durán'].map(city=><option key={city} value={city}>{city}</option>)}
+                    </select>
+                    <span className="text-sm text-green-700">{deliveryCity===LOCAL_DELIVERY_CITY?'Envío GRATIS en Guayaquil. Entrega en 24 horas.':'Fuera de Guayaquil: disponible solo con tarifa y sector configurados.'}</span>
+                  </label>
+                  <label className="checkout-field">
+                    <span>
                       <MapPin className="h-5 w-5" /> {hasConfiguredShippingSectors ? "Sector *" : "Sector o zona"}
                     </span>
                     {hasConfiguredShippingSectors ? (
@@ -1632,7 +1610,7 @@ export default function Checkout() {
                         </option>
                         {shippingSectorRates.map((item) => (
                           <option key={item.sector} value={item.sector}>
-                            {formatSectorLabel(item.sector)} — ${item.cost.toFixed(2)}
+                            {formatSectorLabel(item.sector)} — {deliveryCity===LOCAL_DELIVERY_CITY?'Gratis':`$${item.cost.toFixed(2)}`}
                           </option>
                         ))}
                       </select>
@@ -1645,14 +1623,14 @@ export default function Checkout() {
                           updateCheckoutProgress();
                         }}
                         className="checkout-input"
-                        placeholder="Ej: Urdesa, Samborondón, vía a la costa"
+                        placeholder="Ej: Urdesa, norte, sur, vía a la costa"
                       />
                     )}
                     <span className="text-sm font-black text-[#4A3362]">
-                      {shippingResolution.isMatched
+                      {deliveryCity===LOCAL_DELIVERY_CITY?'Envío gratis. Completa la dirección y las referencias para la entrega.':shippingResolution.isMatched
                         ? `Costo de envío para ${formatSectorLabel(shippingResolution.matchedSector)}: $${shippingCost.toFixed(2)}`
                         : shippingSectorRates.length === 0
-                          ? "Aún no hay sectores precargados. Escribe tu zona y te contactaremos para confirmar el envío."
+                          ? "No hay cobertura configurada fuera de Guayaquil. Contacta a soporte de ventas."
                           : "Selecciona tu sector para calcular el envío."}
                     </span>
                   </label>

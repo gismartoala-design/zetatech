@@ -2,6 +2,7 @@ import { Fragment, useEffect, useRef, useState, type CSSProperties, type ReactNo
 import { type SiteBlock, type SiteDocument } from './website';
 import './website.css';
 import { BRAND_LOGO } from './brand';
+import {PriceDisplay} from './PriceDisplay';
 export const siteFonts = {system:'Inter, system-ui, sans-serif',serif:'Georgia, serif',mono:'ui-monospace, monospace'};
 function InlineEditable({value,tag,blockId,field,editor}:{value:string;tag:'h1'|'h2'|'p';blockId:string;field:'title'|'text';editor?:boolean}) {
   const Tag=tag;
@@ -181,8 +182,7 @@ export function ProductCarousel({products,resolveImage=(url)=>url}:{products:Car
         <div className="zt-spotlight-copy">
           {p.badge&&<span className="zt-spotlight-badge">{p.badge}</span>}
           <h3>{p.name}</h3>
-          {p.originalPrice&&<div className="zt-spotlight-offer"><del>{p.originalPrice}</del><span>Oferta · -{p.discountPercent}%</span></div>}
-          <strong className="zt-spotlight-price">{p.price}</strong>
+          <PriceDisplay price={p.price} originalPrice={p.originalPrice}/>
           {p.stockLabel&&<span className="zt-spotlight-stock">{p.stockLabel}</span>}
           <div className="zt-spotlight-actions">
             {p.onAdd&&<button type="button" className="zt-button" onClick={p.onAdd}>{p.addLabel||'Añadir al carrito'}</button>}

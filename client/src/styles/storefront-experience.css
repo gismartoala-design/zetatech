@@ -33,6 +33,9 @@
 .zx-product-halo{position:absolute;width:66%;aspect-ratio:1;border-radius:50%;background:radial-gradient(ellipse,#2cae4d35,transparent 68%);filter:blur(24px);z-index:-1}
 .zx-product-visual{width:76%;height:64%;display:flex;align-items:center;justify-content:center;transform:translateX(calc(var(--zx-progress)*-4%)) rotate(calc(var(--zx-progress)*-5deg)) scale(calc(1 + var(--zx-progress)*.13));will-change:transform}
 .zx-product-visual img{height:100%;width:100%;object-fit:contain;filter:drop-shadow(0 30px 38px #0006);border-radius:18px}
+/* Exact HP derivative: trim only the extraction fringe outside the metal
+   silhouette. A square image box keeps these coordinates stable at every size. */
+.zx-product-visual img[src*="/hp-laptop-cutout.png"]{width:auto;height:auto;max-width:100%;max-height:100%;aspect-ratio:1;border-radius:0;clip-path:polygon(11.5% 17.3%,88.5% 17.3%,89.7% 18.5%,89.7% 65.9%,90.5% 66.5%,97.1% 87.7%,96.7% 88.7%,3.3% 88.7%,2.8% 87.7%,9.5% 66.5%,10.3% 65.9%,10.3% 18.5%)}
 .zx-journey:not(.zx-journey-product) .zx-product-visual{width:100%;height:72%;mask-image:linear-gradient(90deg,transparent,#000 12%,#000 92%,transparent)}
 .zx-journey:not(.zx-journey-product) .zx-product-visual img{object-fit:cover;border-radius:0;mask-image:linear-gradient(0deg,transparent,#000 12%,#000 88%,transparent)}
 .zx-stage-caption{position:absolute;bottom:10%;right:12%;font-size:10px;letter-spacing:.12em;text-transform:uppercase;max-width:75%;border-top:1px solid #ffffff25;padding-top:14px;color:#d8e6d7a6}
@@ -46,6 +49,8 @@
 .zx-product-facts .zx-stock{font-size:13px;color:var(--zx-lime);font-weight:500}
 .zx-offer{font-size:12px;color:var(--zx-lime)}
 .zx-offer del{color:#b1bbae;margin-right:8px}
+.zx-journey .zt-pricing-current,.zx-journey .zt-pricing-saving{color:var(--zx-lime)}
+.zx-journey .zt-pricing-saving{background:#9df4771a}
 .zx-text-link{display:inline-flex;align-items:center;justify-content:space-between;gap:36px;color:inherit;font-size:13px;font-weight:600;text-decoration:none;border-bottom:1px solid currentColor;padding:12px 0}
 .zx-text-link>span{transition:transform .25s}.zx-text-link:hover>span{transform:translate(3px,-3px)}
 .zx-journey-exit{position:absolute;bottom:-45px;left:50%;width:1px;height:90px;z-index:3;background:linear-gradient(var(--zx-lime),var(--zt-accent));pointer-events:none}
