@@ -157,7 +157,7 @@ async function obtenerPulsoDeVentas({ horasVentana = 5, horaInicio = 8, horaFin 
     horasDesdeUltimaVenta,
     aceptaPedidos: empresa?.settings?.acceptOrders !== false,
     productosActivos,
-    empresa: empresa?.name || "DIFIORI",
+    empresa: empresa?.name || "Zetatech",
     correoEmpresa: empresa?.email || null,
   };
 }

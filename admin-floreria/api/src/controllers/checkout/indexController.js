@@ -281,9 +281,14 @@ exports.processCheckout = async (req, res) => {
           tax, // Iva calculado despues de aplicar todos los descuentos
           shipping, // Reserva
           total, // Total despues de aplicar descuentos y sumar iva
-          paymentStatus: orderData.paymentStatus,
+          // El estado de pago y la fecha de pago nunca deben salir del cuerpo
+          // de la petición: un cliente podría mandar paymentStatus "SUCCEEDED"
+          // o un paidAt arbitrario y el pedido quedaría marcado como pagado
+          // sin que ninguna pasarela lo haya confirmado. El pago real se
+          // confirma después, vía el webhook/callback de cada pasarela.
+          paymentStatus: "PENDING",
           createdAt: new Date().toISOString(),
-          paidAt: orderData.paidAt ? new Date(orderData.paidAt) : null,
+          paidAt: null,
           orderItems: {
             create: computedItems.map((item) => ({
               quantity: item.quantity,

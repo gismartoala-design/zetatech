@@ -71,7 +71,7 @@ router.post("/", async (req, res) => {
     const hydratedItems = await hydrateStorefrontItems(prisma, normalizedItems);
 
     const formattedItems = hydratedItems.map((item) => ({
-      name: item.productName || "Producto DIFIORI",
+      name: item.productName || "Producto",
       quantity: Number(item.quantity || 1),
       price: item.price || 0,
       image: item.productImage || null,

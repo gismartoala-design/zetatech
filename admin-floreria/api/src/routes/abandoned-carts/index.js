@@ -73,7 +73,7 @@ router.get("/", async (req, res) => {
           ...cart,
           items: hydratedItems.map((item) => ({
             ...item,
-            name: item.productName || "Producto DIFIORI",
+            name: item.productName || "Producto",
             image: resolvePublicMediaUrl(item.productImage || item.image) || item.productImage || item.image || null,
             productImage:
               resolvePublicMediaUrl(item.productImage || item.image) ||

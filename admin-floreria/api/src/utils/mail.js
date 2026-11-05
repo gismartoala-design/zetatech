@@ -114,7 +114,7 @@ async function sendAbandonedCartEmail({
     const lineTotal = price * quantity;
 
     return {
-      name: item.name || "Producto DIFIORI",
+      name: item.name || "Producto",
       quantity,
       price,
       imageUrl,
@@ -159,7 +159,7 @@ async function sendAbandonedCartEmail({
     : `<tr><td style="padding:18px 0;color:#5e4b70;font-size:16px;">Sin productos detallados</td></tr>`;
 
   const waLink = `https://wa.me/${String(phone || "").replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
-    `Hola ${customerName}, vimos que te interesaste en nuestros productos en DIFIORI. Podemos ayudarte con tu pedido?`
+    `Hola ${customerName}, vimos que te interesaste en nuestros productos en Zetatech. Podemos ayudarte con tu pedido?`
   )}`;
 
   const formattedAbandonedAt = abandonedAt
@@ -205,7 +205,7 @@ async function sendAbandonedCartEmail({
     html: `
       <div style="font-family:Arial,Helvetica,sans-serif;max-width:760px;margin:0 auto;border:1px solid #eee;padding:28px;border-radius:22px;background:#fff;">
         <div style="font-size:14px;font-weight:800;color:#7c6a8d;text-transform:uppercase;letter-spacing:.12em;">Carrito abandonado</div>
-        <h2 style="margin:10px 0 8px;color:#5A3F73;font-size:34px;line-height:1.15;">${escapeHtml(customerName || "Cliente DIFIORI")}</h2>
+        <h2 style="margin:10px 0 8px;color:#5A3F73;font-size:34px;line-height:1.15;">${escapeHtml(customerName || "Cliente Zetatech")}</h2>
         <p style="margin:0 0 18px;font-size:18px;line-height:1.5;color:#5e4b70;">Alguien comenzó el proceso de compra pero no lo finalizó. Primero verás el producto y luego todo el detalle del contacto.</p>
         <h3 style="margin:0 0 12px;color:#3d2852;font-size:28px;">Productos del carrito</h3>
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:24px;">${itemsHtml}</table>
@@ -227,7 +227,7 @@ async function sendAbandonedCartEmail({
           </a>
         </div>
         <p style="margin-top:30px;font-size:13px;color:#777;">
-          Este es un aviso automático del sistema de recuperación de carritos de DIFIORI.
+          Este es un aviso automático del sistema de recuperación de carritos de Zetatech.
         </p>
       </div>
     `,

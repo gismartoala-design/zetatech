@@ -96,7 +96,7 @@ function buildEmailImageSource(imagePath, attachments, cidPrefix, fallbackBaseUr
 function normalizeEmailItems(items, storeUrl) {
   const attachments = [];
   const normalizedItems = (Array.isArray(items) ? items : []).map((item, index) => {
-    const name = item.productName || item.name || "Producto DIFIORI";
+    const name = item.productName || item.name || "Producto";
     const quantity = Number(item.quantity || 1);
     const price = Number(item.price || 0);
     const lineTotal = quantity * price;
@@ -350,125 +350,7 @@ class EmailService {
 
   async sendNewOrderAlert(orderData) {
     try {
-      const recipientEmail =
-        getSalesNotificationEmail(orderData.recipientEmail);
-      const storeUrl = String(
-        orderData.storeUrl ||
-        process.env.STORE_URL ||
-        process.env.CLIENT_URL ||
-        ""
-      ).trim();
-      const { items, attachments: itemAttachments } = normalizeEmailItems(orderData.items, storeUrl);
-      const total = Number(orderData.total || 0);
-      const subtotal = Number(orderData.subtotal || 0);
-      const shipping = Number(orderData.shipping || 0);
-      const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-
-      const details = [
-        ["Pedido", orderData.orderNumber],
-        ["Fecha", orderData.createdAt],
-        ["Estado de pago", orderData.paymentStatus || "PENDING"],
-        ["Metodo de pago", orderData.paymentMethod || orderData.paymentLabel],
-        ["Quien envia", orderData.customerName],
-        ["Correo", orderData.customerEmail],
-        ["Telefono", orderData.customerPhone],
-        ["Documento del comprador", orderData.senderDocument ? `${orderData.senderDocumentType || "CEDULA"}: ${orderData.senderDocument}` : null],
-        ["Quien recibe", orderData.billingContactName || orderData.receiverName],
-        ["Telefono receptor", orderData.receiverPhone],
-        ["Direccion", orderData.billingPrincipalAddress || orderData.exactAddress],
-        ["Sector", orderData.billingCity || orderData.sector],
-        ["Fecha de entrega", orderData.deliveryDateTime],
-        ["Mensaje de tarjeta", orderData.cardMessage || orderData.deliveryNotes],
-        ["Observaciones", orderData.observations || orderData.customerReference],
-        ["Cupon", orderData.couponCode || orderData.couponDiscountCode],
-      ].filter(([, value]) => value && String(value).trim() !== "");
-
-      const detailsHtml = details
-        .map(
-          ([label, value]) => `
-            <tr>
-              <td style="padding:7px 0;color:#7c6a8d;font-size:13px;font-weight:700;width:180px;">${escapeHtml(label)}</td>
-              <td style="padding:7px 0;color:#2f2438;font-size:14px;">${escapeHtml(value)}</td>
-            </tr>
-          `
-        )
-        .join("");
-      const detailsText = details.map(([label, value]) => `${label}: ${value}`).join("\n");
-      const itemsHtml = renderItemsTable(items);
-      const itemsText = items.length
-        ? items
-            .map((item) =>
-              `- ${item.name}${item.variantName ? ` (${item.variantName})` : ""} | Cant: ${item.quantity} | Precio: $${formatMoney(item.price)} | Total: $${formatMoney(item.lineTotal)}`
-            )
-            .join("\n")
-        : "- Sin productos detallados";
-
-      const whatsappPhone = String(orderData.customerPhone || orderData.phone || "")
-        .replace(/[^0-9]/g, "");
-      const whatsappLink = whatsappPhone
-        ? `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
-            `Hola, te escribimos de DIFIORI por tu pedido ${orderData.orderNumber}.`
-          )}`
-        : "";
-
-      const mailOptions = {
-        from: getDefaultFrom(),
-        to: recipientEmail,
-        subject: `Nuevo pedido DIFIORI - ${orderData.orderNumber}`,
-        html: `
-          <div style="font-family:Arial,Helvetica,sans-serif;max-width:720px;margin:0 auto;color:#222;border:1px solid #eee;padding:24px;border-radius:18px;background:#fff;">
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;">
-              <div>
-                <h2 style="margin:0 0 8px;color:#77472b;">Nuevo pedido recibido</h2>
-                <p style="margin:0;color:#5e4b70;">Se registró un nuevo pedido en la tienda DIFIORI.</p>
-              </div>
-              ${EMAIL_LOGO_HTML_SMALL}
-            </div>
-            <div style="margin-bottom:18px;padding:18px;border-radius:16px;background:#fff8fb;border:1px solid #f1d7e5;">
-              <div style="font-size:13px;font-weight:700;color:#7c6a8d;text-transform:uppercase;letter-spacing:.08em;">Total del pedido</div>
-              <div style="margin-top:8px;font-size:30px;font-weight:800;color:#3d2852;">$${formatMoney(total)}</div>
-              <div style="margin-top:8px;font-size:14px;color:#5e4b70;">
-                Subtotal: $${formatMoney(subtotal)} | Envío / reserva: $${formatMoney(shipping)} | Productos: ${totalItems}
-              </div>
-            </div>
-            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:20px;">
-              ${detailsHtml}
-            </table>
-            <h3 style="margin:18px 0 10px;color:#3d2852;">Productos</h3>
-            <table role="presentation" width="100%" cellspacing="0" cellpadding="0">${itemsHtml}</table>
-            ${
-              whatsappLink
-                ? `<p style="margin-top:24px;"><a href="${whatsappLink}" style="display:inline-block;background:#25D366;color:#fff;padding:12px 18px;border-radius:999px;text-decoration:none;font-weight:bold;">Contactar por WhatsApp</a></p>`
-                : ""
-            }
-            <p style="margin-top:24px;font-size:12px;color:#777;">Aviso automático de pedidos DIFIORI.</p>
-          </div>
-        `,
-        text: `Nuevo pedido recibido\n\n${detailsText}\n\nSubtotal: $${formatMoney(subtotal)}\nEnvio / reserva: $${formatMoney(shipping)}\nTotal: $${formatMoney(total)}\n\nProductos:\n${itemsText}${whatsappLink ? `\n\nWhatsApp: ${whatsappLink}` : ""}`,
-        attachments: [
-          ...EMAIL_LOGO_ATTACHMENT,
-          ...itemAttachments,
-        ],
-      };
-
-      const result = await this.transporter.sendMail(mailOptions);
-      console.log("New order alert sent successfully:", result.messageId);
-
-      return {
-        success: true,
-        messageId: result.messageId,
-      };
-    } catch (error) {
-      console.error("Error sending new order alert:", error);
-      return {
-        success: false,
-        error: error.message,
-      };
-    }
-  }
-
-  async sendNewOrderAlert(orderData) {
-    try {
+      const companyName = orderData.companyName || process.env.COMPANY_NAME || "Zetatech";
       const recipientEmail =
         getSalesNotificationEmail(orderData.recipientEmail);
       const storeUrl = String(
@@ -526,19 +408,19 @@ class EmailService {
         .replace(/[^0-9]/g, "");
       const whatsappLink = whatsappPhone
         ? `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
-            `Hola, te escribimos de DIFIORI por tu pedido ${orderData.orderNumber}.`
+            `Hola, te escribimos de ${companyName} por tu pedido ${orderData.orderNumber}.`
           )}`
         : "";
 
       const mailOptions = {
         from: getDefaultFrom(),
         to: recipientEmail,
-        subject: `Nuevo pedido DIFIORI - ${orderData.orderNumber}`,
+        subject: `Nuevo pedido ${companyName} - ${orderData.orderNumber}`,
         html: `
           <div style="font-family:Arial,Helvetica,sans-serif;max-width:760px;margin:0 auto;color:#222;border:1px solid #eee;padding:28px;border-radius:22px;background:#fff;">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px;">
               <div>
-                <div style="font-size:14px;font-weight:800;color:#7c6a8d;text-transform:uppercase;letter-spacing:.12em;">Nuevo pedido DIFIORI</div>
+                <div style="font-size:14px;font-weight:800;color:#7c6a8d;text-transform:uppercase;letter-spacing:.12em;">Nuevo pedido ${escapeHtml(companyName)}</div>
                 <h2 style="margin:10px 0 8px;color:#77472b;font-size:34px;line-height:1.15;">Pedido ${escapeHtml(orderData.orderNumber || "")}</h2>
                 <p style="margin:0;font-size:18px;line-height:1.5;color:#5e4b70;">Se registro un nuevo pedido en la tienda. Primero veras el producto y luego todo el detalle del cliente.</p>
               </div>
@@ -565,7 +447,7 @@ class EmailService {
                 ? `<p style="margin-top:26px;"><a href="${whatsappLink}" style="display:inline-block;background:#25D366;color:#fff;padding:16px 24px;border-radius:999px;text-decoration:none;font-weight:800;font-size:18px;">Contactar por WhatsApp</a></p>`
                 : ""
             }
-            <p style="margin-top:28px;font-size:13px;color:#777;">Aviso automatico de pedidos DIFIORI.</p>
+            <p style="margin-top:28px;font-size:13px;color:#777;">Aviso automatico de pedidos ${escapeHtml(companyName)}.</p>
           </div>
         `,
         text: `Nuevo pedido recibido\n\n${detailsText}\n\nSubtotal: $${formatMoney(subtotal)}\nEnvio / reserva: $${formatMoney(shipping)}\nTotal: $${formatMoney(total)}\n\nProductos:\n${itemsText}${whatsappLink ? `\n\nWhatsApp: ${whatsappLink}` : ""}`,

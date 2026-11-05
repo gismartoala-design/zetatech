@@ -246,7 +246,7 @@ async function createPendingPaypalOrder(prisma, payload) {
   });
 
   const finalTotal = Number(total) - couponDiscountAmount;
-  const orderNumber = `DIFIORI-${Date.now()}`;
+  const orderNumber = `ZETATECH-${Date.now()}`;
   const clientTransactionId = nanoid(16);
   const senderParts = splitFullName(senderName);
   const normalizedItems = normalizeStorefrontItems(rawItems, {
@@ -353,7 +353,7 @@ async function createPendingPaypalOrder(prisma, payload) {
       couponCode: appliedCouponCode,
       storeUrl,
       items: hydratedItems.map((item) => ({
-        productName: item.productName || "Producto DIFIORI",
+        productName: item.productName || "Producto",
         quantity: Number(item.quantity || 1),
         price: parseStorefrontMoney(item.price),
         productImage: item.productImage || null,
@@ -465,7 +465,7 @@ async function createPaypalCheckoutOrder(prisma, payload) {
       payment_source: {
         paypal: {
           experience_context: {
-            brand_name: company.name || "DIFIORI",
+            brand_name: company.name || "Zetatech",
             locale: "es-EC",
             landing_page: "LOGIN",
             shipping_preference: "NO_SHIPPING",
@@ -479,7 +479,7 @@ async function createPaypalCheckoutOrder(prisma, payload) {
         {
           reference_id: pendingOrder.order.orderNumber,
           custom_id: pendingOrder.clientTransactionId,
-          description: `Pedido DIFIORI ${pendingOrder.order.orderNumber}`,
+          description: `Pedido Zetatech ${pendingOrder.order.orderNumber}`,
           amount: {
             currency_code: "USD",
             value: formatAmount(pendingOrder.finalTotal),

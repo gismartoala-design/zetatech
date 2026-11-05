@@ -97,7 +97,7 @@ async function createPendingPayphoneOrder(prisma, payload) {
 
   const finalTotal = Number(total) - couponDiscountAmount;
   const amountInCents = Math.round(finalTotal * 100);
-  const orderNumber = `DIFIORI-${Date.now()}`;
+  const orderNumber = `ZETATECH-${Date.now()}`;
   const clientTransactionId = nanoid(16);
   const senderParts = splitFullName(senderName);
   const normalizedItems = normalizeStorefrontItems(rawItems, {
@@ -196,7 +196,7 @@ async function createPendingPayphoneOrder(prisma, payload) {
       couponCode: appliedCouponCode,
       storeUrl,
       items: hydratedItems.map((item) => ({
-        productName: item.productName || "Producto DIFIORI",
+        productName: item.productName || "Producto",
         quantity: Number(item.quantity || 1),
         price: parseStorefrontMoney(item.price),
         productImage: item.productImage || null,

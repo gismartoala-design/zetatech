@@ -179,7 +179,7 @@ async function hydrateStorefrontItems(prisma, items) {
             ...item,
             productId: product.id,
             productImage: resolvePublicMediaUrl(product.image || item.productImage) || null,
-            productName: item.productName || product.name || "Producto DIFIORI",
+            productName: item.productName || product.name || "Producto",
           };
         }
       }
@@ -197,7 +197,7 @@ async function hydrateStorefrontItems(prisma, items) {
         ...item,
         productId: product?.id || null,
         productImage: resolvePublicMediaUrl(product?.image || item.productImage) || null,
-        productName: item.productName || product?.name || "Producto DIFIORI",
+        productName: item.productName || product?.name || "Producto",
       };
     })
   );

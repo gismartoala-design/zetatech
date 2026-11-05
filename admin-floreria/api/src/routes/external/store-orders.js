@@ -381,7 +381,7 @@ router.post("/", async (req, res) => {
 
     const customerName =
       [senderName, receiverName].find((value) => value && String(value).trim()) ||
-      "Cliente DIFIORI";
+      "Cliente Zetatech";
 
     const emailData = {
       cashOnDelivery,
@@ -410,12 +410,12 @@ router.post("/", async (req, res) => {
         month: "long",
         day: "numeric",
       }),
-      companyName: process.env.COMPANY_NAME || "DIFIORI",
+      companyName: process.env.COMPANY_NAME || "Zetatech",
       companyEmail: process.env.COMPANY_EMAIL || process.env.EMAIL_USER,
       companyPhone: process.env.COMPANY_PHONE || "",
       storeUrl,
       items: hydratedItems.map((item) => ({
-        productName: item.productName || "Producto DIFIORI",
+        productName: item.productName || "Producto",
         variantName: item.variantName || null,
         quantity: Number(item.quantity || 1),
         price: parseStorefrontMoney(item.price),
