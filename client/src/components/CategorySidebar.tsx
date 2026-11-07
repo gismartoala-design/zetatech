@@ -27,7 +27,7 @@ export function CategorySidebar({activeCategory=null,setActiveCategory,variant='
     const className=cn('block w-full rounded-lg px-3 py-3 text-left text-sm transition-colors hover:bg-accent/10',child&&'border-l border-accent/20 pl-5 text-foreground/75',active?'bg-accent/10 font-semibold text-accent':'text-foreground');
     return variant==='filter'?<button type="button" className={className} aria-pressed={active} onClick={()=>select(name)}>{label}</button>:<Link href={(name?getCategoryPath(name):'/shop')+'#product-list'} className={className} aria-current={active?'page':undefined} onClick={e=>{e.preventDefault();select(name);}}>{label}</Link>;
   };
-  return <div className="w-full lg:w-72">
+  return <div className="w-full">
     <button type="button" className="mb-3 flex w-full items-center justify-between rounded-xl border border-border bg-white px-5 py-4 text-sm font-semibold lg:hidden" aria-expanded={isOpen} aria-controls="catalog-category-tree" onClick={()=>setIsOpen(value=>!value)}><span className="flex items-center gap-2"><Filter className="h-4 w-4 text-accent"/>{activeCategory?formatCategoryDisplayName(activeCategory):'Categorías y subcategorías'}</span><ChevronDown className={cn('h-4 w-4 transition-transform',isOpen&&'rotate-180')}/></button>
     <nav id="catalog-category-tree" aria-label="Categorías y subcategorías" className={cn('surface-card max-h-[70vh] overflow-y-auto p-5 lg:block',!isOpen&&'hidden')}>
       <h2 className="mb-4 font-sans text-lg font-semibold">Categorías</h2>
