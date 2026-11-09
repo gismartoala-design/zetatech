@@ -41,7 +41,7 @@ export default function Home(){
   const productBlock=document.blocks.find(block=>block.type==='products'&&!block.hidden);
   const eligible=products.filter(product=>product.image&&product.stock!==0&&(!productBlock?.category||isProductInCategory(product.category,productBlock.category))&&(!productBlock?.featured||product.isBestSeller)&&(!productBlock?.productIds.length||productBlock.productIds.includes(product.id)));
   const protagonist=(productBlock?.productIds.length?eligible.find(product=>product.id===productBlock.productIds[0]):undefined)||eligible.find(product=>product.isBestSeller)||eligible[0];
-  return <div ref={sceneRef}><Seo title={`${document.theme.brand} | Tecnología`} description={document.theme.description} path="/"/><DeliveryNotice/><SiteRenderer document={document} className="zx-storefront" showSplash resolveImage={url=>toPublicImageUrl(url)||url} renderBlock={block=>{
+  return <div ref={sceneRef}><Seo title={`${document.theme.brand} | Tecnología`} description={document.theme.description} path="/"/><DeliveryNotice/><SiteRenderer document={document} className="zx-storefront" showSplash={false} resolveImage={url=>toPublicImageUrl(url)||url} renderBlock={block=>{
     if(block.type==='hero')return <ProductJourney block={block} product={protagonist}/>;
     if(block.type==='benefits')return <CategoryScene block={block} products={products}/>;
     if(block.type==='image')return <EditorialScene block={block} index={document.blocks.filter(item=>item.type==='image').findIndex(item=>item.id===block.id)}/>;
