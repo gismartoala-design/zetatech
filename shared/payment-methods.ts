@@ -1,4 +1,5 @@
 export const PAYMENT_METHOD_OPTIONS = [
+  {id:'Coordinar con ventas',name:'Coordinar entrega y pago con ventas',description:'Genera el pedido sin pagar ahora. Ventas te contactará para coordinar la entrega y el pago.'},
   {id:'Datafast',name:'Datafast / tarjetas',description:'Tarjetas mediante el formulario seguro de Datafast.'},
   {id:'PayPal',name:'PayPal',description:'Pago internacional desde tu cuenta o tarjeta.'},
   {id:'Payphone',name:'PayPhone',description:'Paga con tarjeta o saldo PayPhone mediante su formulario seguro.'},
@@ -7,7 +8,7 @@ export const PAYMENT_METHOD_OPTIONS = [
   {id:'Contra entrega',name:'Pago contra entrega',description:'El cliente paga al recibir y obtiene su guía de pedido.'},
 ] as const;
 export type StorePaymentMethod = typeof PAYMENT_METHOD_OPTIONS[number]['id'];
-export const DEFAULT_ENABLED_METHODS:StorePaymentMethod[]=['Datafast','PayPal','Banco','Zelle','Contra entrega'];
+export const DEFAULT_ENABLED_METHODS:StorePaymentMethod[]=['Coordinar con ventas','Datafast','PayPal','Banco','Zelle','Contra entrega'];
 export function enabledPaymentMethods(value:unknown):StorePaymentMethod[] {
   if(!Array.isArray(value))return [...DEFAULT_ENABLED_METHODS];
   return PAYMENT_METHOD_OPTIONS.map(m=>m.id).filter(id=>value.includes(id));

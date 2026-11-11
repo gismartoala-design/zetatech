@@ -4,6 +4,7 @@ const juice = require("juice");
 const fs = require("fs").promises;
 const { existsSync } = require("fs");
 const path = require("path");
+const {orderReceiptAttachment} = require('./orderReceipt');
 const {
   getDefaultFrom,
   getSalesNotificationEmail,
@@ -302,11 +303,14 @@ class EmailService {
       const isReservation = orderData.cashOnDelivery === true;
       const chargedAmount = orderData.paymentStatus === "PAID" ? Number(orderData.total || 0) : 0;
       const remainingBalance = orderData.paymentStatus === "PAID" ? 0 : Number(orderData.total || 0);
+      const hasReceipt=Boolean(orderData.receiptBuffer || orderData.items?.length);
+      const receiptAttachments=hasReceipt?[await orderReceiptAttachment(orderData)]:[];
 
       const confirmationData = {
         ...orderData,
         isReservation,
         isPaid: orderData.paymentStatus === "PAID",
+        hasReceipt,
         chargedAmount,
         remainingBalance,
         formattedChargedAmount: `$${chargedAmount.toFixed(2)}`,
@@ -329,7 +333,8 @@ class EmailService {
         to: orderData.customerEmail,
         subject: `Confirmación de pedido #${orderData.orderNumber}`,
         html: htmlContent,
-        attachments: EMAIL_LOGO_ATTACHMENT,
+        replyTo: orderData.companyEmail || undefined,
+        attachments: [...EMAIL_LOGO_ATTACHMENT,...receiptAttachments],
       };
 
       const result = await this.transporter.sendMail(mailOptions);
@@ -370,7 +375,7 @@ class EmailService {
         ["Fecha", orderData.createdAt],
         ["Estado de pago", orderData.paymentStatus || "PENDING"],
         ["Metodo de pago", orderData.paymentMethod || orderData.paymentLabel],
-        ["Quien envia", orderData.customerName],
+        ["Comprador", orderData.customerName],
         ["Correo", orderData.customerEmail],
         ["Telefono", orderData.customerPhone],
         ["Documento del comprador", orderData.senderDocument ? `${orderData.senderDocumentType || "CEDULA"}: ${orderData.senderDocument}` : null],
@@ -404,8 +409,9 @@ class EmailService {
             .join("\n")
         : "- Sin productos detallados";
 
-      const whatsappPhone = String(orderData.customerPhone || orderData.phone || "")
+      const phoneDigits = String(orderData.customerPhone || orderData.phone || "")
         .replace(/[^0-9]/g, "");
+      const whatsappPhone = /^09\d{8}$/.test(phoneDigits)?`593${phoneDigits.slice(1)}`:phoneDigits;
       const whatsappLink = whatsappPhone
         ? `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
             `Hola, te escribimos de ${companyName} por tu pedido ${orderData.orderNumber}.`
@@ -422,7 +428,7 @@ class EmailService {
               <div>
                 <div style="font-size:14px;font-weight:800;color:#7c6a8d;text-transform:uppercase;letter-spacing:.12em;">Nuevo pedido ${escapeHtml(companyName)}</div>
                 <h2 style="margin:10px 0 8px;color:#77472b;font-size:34px;line-height:1.15;">Pedido ${escapeHtml(orderData.orderNumber || "")}</h2>
-                <p style="margin:0;font-size:18px;line-height:1.5;color:#5e4b70;">Se registro un nuevo pedido en la tienda. Primero veras el producto y luego todo el detalle del cliente.</p>
+                <p style="margin:0;font-size:18px;line-height:1.5;color:#31553d;">Se registró un pedido. El comprobante PDF está adjunto. Contacta al cliente para coordinar la entrega${orderData.paymentStatus==='PAID'?'': ' y el pago pendiente'}.</p>
               </div>
               ${EMAIL_LOGO_HTML_LARGE}
             </div>
@@ -454,6 +460,7 @@ class EmailService {
         attachments: [
           ...EMAIL_LOGO_ATTACHMENT,
           ...itemAttachments,
+          ...(orderData.receiptBuffer || orderData.items?.length ? [await orderReceiptAttachment(orderData)] : []),
         ],
       };
 

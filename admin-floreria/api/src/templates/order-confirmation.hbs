@@ -119,16 +119,16 @@
         <!-- Header -->
         <div class="header">
             <div class="checkmark">✅</div>
-            <h1>¡Pedido Confirmado!</h1>
-            <p>Tu pedido ha sido recibido y procesado exitosamente</p>
+            <h1>¡Muchas gracias por tu compra!</h1>
+            <p>Tu pedido ha sido registrado</p>
         </div>
 
         <!-- Content -->
         <div class="content">
             <p>Hola <strong>{{customerName}}</strong>,</p>
             
-            <p>¡Gracias por tu compra! Hemos recibido tu pedido. {{#if isPaid}}El pago ha sido aprobado.{{else}}El pago está pendiente; si elegiste contra entrega, pagarás al recibir.{{/if}}
-            Te enviaremos actualizaciones sobre el estado de tu pedido a medida que avance.</p>
+            <p>Hemos recibido tu pedido. {{#if isPaid}}El pago ha sido aprobado. Nuestro equipo coordinará contigo la entrega.{{else}}El pago está pendiente. Nuestro equipo de ventas te contactará por teléfono o WhatsApp para coordinar contigo la entrega y el pago.{{/if}}</p>
+            {{#if hasReceipt}}<p>Adjuntamos el <strong>comprobante PDF</strong> con los productos, cantidades, precios y total del pedido. Consérvalo junto con tu número de pedido.</p>{{/if}}
 
             <!-- Order Summary -->
             <div class="order-summary">
@@ -174,9 +174,9 @@
             <div class="next-steps">
                 <h3>🚀 ¿Qué sigue?</h3>
                 <ol class="steps-list">
-                    <li><strong>Preparación:</strong> Comenzaremos a preparar tu pedido inmediatamente</li>
-                    <li><strong>Notificaciones:</strong> Te enviaremos actualizaciones por email sobre el progreso</li>
-                    <li><strong>Entrega/Recogida:</strong> Te notificaremos cuando esté listo para entregar o recoger</li>
+                    <li><strong>Comprobante:</strong> Revisa y guarda el PDF adjunto.</li>
+                    <li><strong>Contacto personal:</strong> Ventas se comunicará contigo en el celular registrado.</li>
+                    <li><strong>Coordinación:</strong> Acordaremos la entrega y {{#unless isPaid}}la forma de pago{{else}}los detalles del despacho{{/unless}}.</li>
                     <li><strong>Disfruta:</strong> ¡Disfruta tu tecnología Zetatech!</li>
                 </ol>
             </div>
@@ -194,7 +194,7 @@
         <!-- Footer -->
         <div class="footer">
             <p><strong>¡Gracias por elegirnos!</strong></p>
-            <p>{{companyName}} - Horneando felicidad desde siempre</p>
+            <p>{{companyName}} · Tecnología para tu día a día</p>
             <p style="font-size: 0.9em; color: #999;">
                 Este es un email automático, por favor no respondas a este mensaje.
             </p>

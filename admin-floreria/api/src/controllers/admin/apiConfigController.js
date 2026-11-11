@@ -1,6 +1,6 @@
 const crypto = require("crypto");
 const { db: prisma } = require("../../lib/prisma");
-const {enabledPaymentMethods,validateEnabledMethods}=require('../../utils/paymentMethods');
+const {configuredPaymentMethods,validateEnabledMethods}=require('../../utils/paymentMethods');
 
 async function getCompanyForAdmin(adminId) {
   if (!adminId) return null;
@@ -69,7 +69,8 @@ function sanitizePaymentSettings(input) {
   };
 
   return {
-    enabledMethods: source.enabledMethods === undefined ? enabledPaymentMethods({}) : validateEnabledMethods(source.enabledMethods),
+    enabledMethods: configuredPaymentMethods(source),
+    assistedCheckoutEnabled: source.assistedCheckoutEnabled !== false,
     zelleInstructions: getString('zelleInstructions'),
     datafastEnvironment: getEnvironment("datafastEnvironment"),
     ...Object.fromEntries(["datafastEntityId", "datafastToken", "datafastMid", "datafastTid", "datafastPserv", "datafastRisk", "datafastVatRate", "datafastCertified"].map(key => [key, getString(key)])),
@@ -510,6 +511,10 @@ const updatePaymentSettings = async (req, res) => {
       : {};
 
     const { acceptOrders, ...paymentSettingsPayload } = req.body;
+    if (paymentSettingsPayload.enabledMethods !== undefined) {
+      validateEnabledMethods(paymentSettingsPayload.enabledMethods);
+      paymentSettingsPayload.assistedCheckoutEnabled = paymentSettingsPayload.enabledMethods.includes('Coordinar con ventas');
+    }
     const paymentSettings = sanitizePaymentSettings({...currentSettings.paymentSettings,...paymentSettingsPayload});
     const mergedSettings = {
       ...currentSettings,

@@ -187,6 +187,13 @@ const PAYMENT_METHODS: {
   Icon: typeof CreditCard;
 }[] = [
   {
+    label: 'Coordinar con ventas',
+    description: 'Genera tu pedido sin pagar ahora. Ventas te contactará por teléfono o WhatsApp.',
+    trustLabel: 'Sin pago inmediato',
+    nextStep: 'Recibirás el comprobante PDF por correo y nuestro equipo coordinará contigo la entrega y el pago.',
+    Icon: MessageSquare,
+  },
+  {
     label: "PayPal",
     description: "Pago internacional o con tarjeta de crédito",
     trustLabel: "Pasarela segura",
@@ -408,7 +415,7 @@ export default function Checkout() {
     const deliveryComplete = Boolean(shippingResolution.isAvailable&&
       receiverName &&
         (hasConfiguredShippingSectors ? sector : true) &&
-        deliveryDateTime &&
+        (paymentMethod==='Coordinar con ventas' || deliveryDateTime) &&
         address
     );
 
@@ -418,7 +425,7 @@ export default function Checkout() {
       hasDestination: Boolean(sector),
       canChoosePayment: senderComplete && deliveryComplete,
     };
-  }, [formRevision, hasConfiguredShippingSectors, sectorInput, senderDocumentType,deliveryCity,shippingResolution.isAvailable]);
+  }, [formRevision, hasConfiguredShippingSectors, sectorInput, senderDocumentType,deliveryCity,shippingResolution.isAvailable,paymentMethod]);
 
   const canConfirmOrder = items.length > 0 && checkoutReadiness.canChoosePayment && Boolean(paymentMethod) && enabledMethods.includes(paymentMethod as PaymentMethod);
   const selectedPaymentDetails = visiblePaymentMethods.find((method) => method.label === paymentMethod);
@@ -678,7 +685,7 @@ export default function Checkout() {
     return [
       [receiverName, "nombre de quien recibe"],
       ...(hasConfiguredShippingSectors ? [[sector, "sector"] as const] : []),
-      [deliveryDateTime, "hora de entrega"],
+      ...(paymentMethod==='Coordinar con ventas'?[]:[[deliveryDateTime, "hora de entrega"]]),
       [address, "dirección exacta"],
     ]
       .filter(([value]) => !value)
@@ -739,7 +746,7 @@ export default function Checkout() {
         focusCheckoutField("receiver", receiverNameRef);
       } else if (!sector) {
         focusCheckoutField("receiver", hasConfiguredShippingSectors ? sectorSelectRef : sectorInputRef);
-      } else if (!deliveryDateTime) {
+      } else if (!deliveryDateTime && paymentMethod!=='Coordinar con ventas') {
         focusCheckoutField("receiver", dateTimeRef);
       } else if (!address) {
         focusCheckoutField("receiver", addressRef);
@@ -1022,7 +1029,7 @@ export default function Checkout() {
       if (data.status === "success") {
         const createdOrderNumber = data.data?.orderNumber || "ZETATECH-OK";
         setOrderNumber(createdOrderNumber);
-        setConfirmationDetails({ orderNumber: createdOrderNumber, email: senderEmail, paymentMethod, paymentStatus: "PENDING", total: Number(data.data?.total ?? finalTotal), customerName: senderName, receiverName, address: exactAddress, items: orderItemsPayload });
+        setConfirmationDetails({ orderNumber: createdOrderNumber, email: senderEmail, paymentMethod, paymentStatus: "PENDING", total: Number(data.data?.total ?? finalTotal), customerName: senderName, receiverName, address: exactAddress, items: orderItemsPayload, customerNotificationSent:data.data?.customerNotificationSent, receipt:data.data?.receipt });
         setOrderStatus("success");
         // Una transferencia o Zelle todavía están pendientes de validación.
         // Marcarlos como compra entrenaba las campañas con pedidos no pagados.
@@ -1446,11 +1453,11 @@ export default function Checkout() {
                       {orderStatus === "loading" ? "Procesando..." : "Cargando..."}
                     </>
                   ) : (
-                    `Confirmar pedido $${finalTotal.toFixed(2)}`
+                    paymentMethod==='Coordinar con ventas' ? `Generar pedido · $${finalTotal.toFixed(2)}` : `Confirmar pedido $${finalTotal.toFixed(2)}`
                   )}
                 </button>
                 <p className="mt-3 rounded-2xl bg-white px-4 py-3 text-center text-xs font-black leading-relaxed text-[#4A3362]">
-                  Al confirmar, registramos tu orden y te mostramos el siguiente paso según tu método de pago. Si elegiste banco, Zelle o PayPal con comprobante, el equipo valida el pago antes del despacho.
+                  {paymentMethod==='Coordinar con ventas'?'No pagarás en este paso. Registraremos el pedido y ventas te contactará para acordar la entrega y el pago. Recibirás un comprobante PDF por correo.':'Al confirmar, registramos tu orden y te mostramos el siguiente paso según tu método de pago. El equipo valida los pagos manuales antes del despacho.'}
                 </p>
               </div>
             </div>
@@ -1636,7 +1643,7 @@ export default function Checkout() {
                   </label>
                   <label className="checkout-field">
                     <span>
-                      <Clock className="h-5 w-5" /> Hora de entrega *
+                      <Clock className="h-5 w-5" /> {paymentMethod==='Coordinar con ventas'?'Horario preferido (opcional)':'Hora de entrega *'}
                     </span>
                     <input
                       ref={dateTimeRef}
@@ -1726,8 +1733,8 @@ export default function Checkout() {
                               : "text-[#4A3362]"
                           )}
                         />
-                        <span className="flex w-full items-center justify-between gap-2 text-2xl font-black">
-                          {label}
+                        <span className="flex w-full flex-wrap items-center justify-between gap-2 text-base font-semibold leading-snug">
+                          {label==='Coordinar con ventas'?'Coordinar entrega y pago con ventas':label}
                           <span
                             className={cn(
                               "rounded-full px-2.5 py-1 text-[0.62rem] font-black uppercase tracking-[0.08em]",
@@ -1741,7 +1748,7 @@ export default function Checkout() {
                         </span>
                         <span
                           className={cn(
-                            "text-base font-black leading-snug",
+                            "text-sm font-medium leading-relaxed",
                             paymentMethod === label
                               ? "text-white/80"
                               : "text-[#4A3362]"
@@ -1904,12 +1911,12 @@ export default function Checkout() {
                         Procesando...
                       </>
                     ) : (
-                      `Confirmar pedido $${finalTotal.toFixed(2)}`
+                      paymentMethod==='Coordinar con ventas' ? `Generar pedido · $${finalTotal.toFixed(2)}` : `Confirmar pedido $${finalTotal.toFixed(2)}`
                     )}
                   </button>
                 </div>
                 <p className="rounded-2xl bg-[#FBF7FD] px-4 py-3 text-center text-sm font-black leading-relaxed text-[#4A3362]">
-                  Después de confirmar te guiamos al pago o guardamos tu comprobante. Zetatech revisa la orden y coordina el envío contigo.
+                  {paymentMethod==='Coordinar con ventas'?'Al generar el pedido recibirás tu comprobante PDF. Ventas se comunicará contigo para coordinar la entrega y el pago.':'Después de confirmar te guiamos al pago o guardamos tu comprobante. Zetatech revisa la orden y coordina el envío contigo.'}
                 </p>
               </div>
             </div>

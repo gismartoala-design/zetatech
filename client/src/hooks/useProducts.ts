@@ -91,12 +91,12 @@ export async function fetchProducts(
 
     const products = json.data
       .map((p: any): Product => {
-        const fullDescription = normalizePublicProductText(p.description);
+        const fullDescription = String(p.description ?? '').replace(/\r\n?/g, '\n');
 
         return {
           id: String(p.id),
           name: normalizePublicProductText(p.name),
-          description: normalized.summary ? fullDescription.slice(0, 220) : fullDescription,
+          description: normalized.summary ? normalizePublicProductText(fullDescription).slice(0, 220) : fullDescription,
           category: p.category || "General",
           price: p.price || "$0.00",
           originalPrice: p.originalPrice || null,
@@ -108,7 +108,7 @@ export async function fetchProducts(
           additionalImages: Array.isArray(p.additionalImages) ? p.additionalImages.map(getImageUrl) : [],
           deliveryTime: p.deliveryTime || "",
           size: normalizePublicProductText(p.size),
-          includes: normalized.summary ? "" : normalizePublicProductText(p.includes || p.description),
+          includes: normalized.summary ? "" : String(p.includes || p.description || '').replace(/\r\n?/g, '\n'),
         };
       })
       .filter(isPublicCatalogProduct)

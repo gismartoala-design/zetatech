@@ -10,6 +10,8 @@ async function update(body){let status=200,result;const res={status(s){status=s;
   assert.equal(company.settings.websiteEditor.revision,7);assert.deepEqual(company.settings.productCategories,['Audio']);
   assert.equal((await update({ownerNotificationName:'Sales'})).status,200);assert.deepEqual(company.settings.paymentSettings.enabledMethods,['Contra entrega'],'partial saves preserve selected methods');
   const before=writes;assert.equal((await update({enabledMethods:['invalid']})).status,400);assert.equal(writes,before);
+  assert.equal((await update({enabledMethods:['Banco','Coordinar con ventas']})).status,200);assert.equal(company.settings.paymentSettings.assistedCheckoutEnabled,true);assert.ok(company.settings.paymentSettings.enabledMethods.includes('Coordinar con ventas'));
+  assert.equal((await update({enabledMethods:['Contra entrega']})).status,200);assert.equal(company.settings.paymentSettings.assistedCheckoutEnabled,false);
   conflict=true;assert.equal((await update({enabledMethods:[]})).status,409);assert.deepEqual(company.settings.paymentSettings.enabledMethods,['Contra entrega']);
   console.log('PASS: payment selections persist, credentials/categories/editor survive partial saves and concurrent changes are protected');
 })().catch(e=>{console.error(e);process.exitCode=1});

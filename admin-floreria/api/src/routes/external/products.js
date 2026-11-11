@@ -144,9 +144,11 @@ router.get('/', async (req, res) => {
       .slice(0, limit || products.length)
       .map((p) => {
       const offer = getProductOffer(p);
-      const fullDescription = normalizeDisplayText(p.description);
+      // Descriptions are authored as multiline text in the administrator.
+      // Preserve paragraphs, indentation and quotes; only normalize line endings.
+      const fullDescription = String(p.description ?? '').replace(/\r\n?/g, '\n');
       const publicDescription = summary === 'true'
-        ? fullDescription.slice(0, 220)
+        ? normalizeDisplayText(fullDescription).slice(0, 220)
         : fullDescription;
 
       // Calcular si es best seller (featured)

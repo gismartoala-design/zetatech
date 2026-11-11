@@ -11,6 +11,7 @@ const {
 } = require("../../utils/storefrontCartItems");
 const { uploadBuffer } = require("../../services/storageService");
 const { businessLog, businessError } = require("../../utils/logger");
+const {buildOrderReceipt} = require('../../services/orderReceipt');
 
 const router = express.Router();
 
@@ -76,55 +77,20 @@ function parseDataUrl(dataUrl) {
 }
 
 /**
- * Confirma la alerta interna antes de responder y deja la confirmación del
- * cliente en segundo plano. Un fallo SMTP nunca revierte la venta registrada.
+ * Espera ambos envíos antes de responder: Cloud Run puede suspender el trabajo
+ * en segundo plano. Un fallo SMTP nunca revierte el pedido registrado.
  */
 async function sendStoreOrderEmails(emailData, senderEmail, orderNumber) {
-  let ownerNotificationSent = false;
-
-  try {
-    const alertResult = await emailService.sendNewOrderAlert(emailData);
-    ownerNotificationSent = alertResult?.success === true;
-    if (!ownerNotificationSent) {
-      businessError("ORDER", "ALERT_EMAIL_FAILED", alertResult?.error || "SMTP no confirmó el envío", {
-        orderNumber,
-      });
-    }
-  } catch (emailError) {
-    businessError("ORDER", "ALERT_EMAIL_FAILED", emailError, { orderNumber });
-  }
-
-  if (senderEmail) {
-    setImmediate(async () => {
-      try {
-        const activeCompany = await prisma.company.findFirst({
-          where: { isActive: true },
-          select: { name: true, email: true, phone: true },
-        });
-
-        const confirmationResult = await emailService.sendOrderConfirmation({
-          ...emailData,
-          orderNumber,
-          companyName: activeCompany?.name || process.env.COMPANY_NAME || "Zetatech",
-          companyEmail:
-            activeCompany?.email || process.env.COMPANY_EMAIL || process.env.EMAIL_USER,
-          companyPhone: activeCompany?.phone || process.env.COMPANY_PHONE || "",
-        });
-        if (confirmationResult?.success !== true) {
-          businessError(
-            "ORDER",
-            "CONFIRMATION_EMAIL_FAILED",
-            confirmationResult?.error || "SMTP no confirmó el envío",
-            { orderNumber }
-          );
-        }
-      } catch (emailError) {
-        businessError("ORDER", "CONFIRMATION_EMAIL_FAILED", emailError, { orderNumber });
-      }
-    });
-  }
-
-  return ownerNotificationSent;
+  const results=await Promise.allSettled([
+    emailService.sendNewOrderAlert(emailData),
+    senderEmail?emailService.sendOrderConfirmation(emailData):Promise.resolve({success:false}),
+  ]);
+  const sent=results.map((result,index)=>{
+    const ok=result.status==='fulfilled'&&result.value?.success===true;
+    if(!ok)businessError('ORDER',index===0?'ALERT_EMAIL_FAILED':'CONFIRMATION_EMAIL_FAILED',result.status==='rejected'?result.reason:result.value?.error || 'SMTP no confirmó el envío',{orderNumber});
+    return ok;
+  });
+  return {ownerNotificationSent:sent[0],customerNotificationSent:sent[1]};
 }
 
 /**
@@ -135,20 +101,19 @@ router.post("/", async (req, res) => {
   const startedAt = Date.now();
 
   try {
+    let storefrontCompany;
     {
       const { quoteStorefrontOrder } = require("../../services/storefrontQuote");
       const quote = await quoteStorefrontOrder(prisma, req.body);
+      storefrontCompany=quote.company;
       require('../../utils/paymentMethods').assertPaymentMethodEnabled(quote.company.settings?.paymentSettings,req.body.paymentMethod);
-      if (!['Banco','Zelle','Contra entrega'].includes(req.body.paymentMethod)) {
+      if (!['Banco','Zelle','Contra entrega','Coordinar con ventas'].includes(req.body.paymentMethod)) {
         return res.status(400).json({status:'error',message:'Usa la pasarela correspondiente para iniciar este pago.'});
       }
       req.body = { ...req.body, items: quote.items, shippingCost: quote.shipping, total: quote.total };
     }
     // Verificar si la tienda acepta pedidos
-    const company = await prisma.company.findFirst({
-      where: { isActive: true },
-      select: { settings: true },
-    });
+    const company = storefrontCompany;
 
     const acceptOrders = company?.settings?.acceptOrders ?? true;
     if (!acceptOrders) {
@@ -206,6 +171,9 @@ router.post("/", async (req, res) => {
         status: "error",
         message: "Faltan datos obligatorios: nombre del receptor, emisor, telefono y total.",
       });
+    }
+    if(typeof senderEmail!=='string'||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(senderEmail.trim())){
+      return res.status(400).json({status:'error',message:'Escribe un correo válido para recibir el comprobante del pedido.'});
     }
 
     let couponDiscountAmount = 0;
@@ -405,14 +373,16 @@ router.post("/", async (req, res) => {
       cardMessage,
       observations,
       couponCode: appliedCouponCode,
+      couponDiscountAmount,
       createdAt: new Date(order.createdAt).toLocaleDateString("es-EC", {
         year: "numeric",
         month: "long",
         day: "numeric",
       }),
-      companyName: process.env.COMPANY_NAME || "Zetatech",
-      companyEmail: process.env.COMPANY_EMAIL || process.env.EMAIL_USER,
-      companyPhone: process.env.COMPANY_PHONE || "",
+      companyName: company.name || process.env.COMPANY_NAME || "ZettaTech",
+      companyEmail: company.email || process.env.COMPANY_EMAIL || process.env.EMAIL_USER,
+      companyPhone: company.phone || process.env.COMPANY_PHONE || "",
+      recipientEmail: company.settings?.paymentSettings?.ownerNotificationEmail || undefined,
       storeUrl,
       items: hydratedItems.map((item) => ({
         productName: item.productName || "Producto",
@@ -425,7 +395,10 @@ router.post("/", async (req, res) => {
 
     // Confirmamos la alerta comercial antes de responder. La orden no se pierde
     // si SMTP falla, pero el fallo queda visible y deja de pasar silenciosamente.
-    const ownerNotificationSent = await sendStoreOrderEmails(
+    let receiptBuffer;
+    try {receiptBuffer=await buildOrderReceipt(emailData);emailData.receiptBuffer=receiptBuffer;}
+    catch(error){businessError('ORDER','RECEIPT_PDF_FAILED',error,{orderNumber:order.orderNumber});}
+    const {ownerNotificationSent,customerNotificationSent} = await sendStoreOrderEmails(
       emailData,
       storefrontDetails.senderEmail,
       order.orderNumber
@@ -458,6 +431,8 @@ router.post("/", async (req, res) => {
         orderId: order.id,
         orderNumber: order.orderNumber,
         ownerNotificationSent,
+        customerNotificationSent,
+        receipt: receiptBuffer?{filename:`pedido-${order.orderNumber}.pdf`,contentType:'application/pdf',base64:receiptBuffer.toString('base64')}:null,
         cashOnDelivery,
         paymentStatus: "PENDING",
         total: parseMoney(total) - couponDiscountAmount,

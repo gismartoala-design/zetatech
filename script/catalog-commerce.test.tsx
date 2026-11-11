@@ -5,6 +5,7 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import {buildCategoryTree,isProductInCategory,findCategoryNameBySlug,getCategorySlug} from '../shared/catalog';
 import {PriceDisplay,comparePrices} from '../shared/PriceDisplay';
 import {resolveDelivery} from '../shared/delivery';
+import {fetchProducts} from '../client/src/hooks/useProducts';
 const require=createRequire(import.meta.url);
 const {shippingForDelivery}=require('../admin-floreria/api/src/services/deliveryPolicy');
 const {quoteStorefrontOrder}=require('../admin-floreria/api/src/services/storefrontQuote');
@@ -33,4 +34,14 @@ assert.equal(shippingForDelivery({sector:'Urdesa'},rates),5,'Legacy quotes retai
 const db={company:{findMany:async()=>[{id:'fixture',settings:{paymentSettings:{shippingSectorRates:rates}}}]},product:{findMany:async()=>[{id:'p',name:'Fixture',price:80,stock:2,hasVariants:false,variants:[],discounts_products:[]}]}};
 const quote=await quoteStorefrontOrder(db,{deliveryCity:'Guayaquil',sector:'Urdesa',shippingCost:999,items:[{productId:'p',quantity:1}]});
 assert.equal(quote.shipping,0);assert.equal(quote.total,80);
+const savedFetch=globalThis.fetch;
+const formattedDescription='Pantalla de 15"\r\n\r\nCaracterísticas:\r\n  • Memoria:  8 GB\r\n  • Incluye “cargador”';
+try {
+  globalThis.fetch=async()=>new Response(JSON.stringify({status:'success',data:[{id:'formatted',name:'Laptop para trabajar',description:formattedDescription,includes:formattedDescription,category:'Computadoras',price:'$80.00',image:'/laptop.png',stock:2}]}),{headers:{'Content-Type':'application/json'}});
+  const [full]=await fetchProducts();
+  assert.equal(full.description,formattedDescription.replace(/\r\n/g,'\n'),'The storefront must preserve authored whitespace and quotes');
+  assert.equal(full.includes,full.description);
+  const [summary]=await fetchProducts({summary:true});
+  assert.doesNotMatch(summary.description,/\n/,'Card summaries remain compact');
+} finally {globalThis.fetch=savedFetch;}
 console.log('PASS: category/subcategory navigation, real before/after pricing, free Guayaquil delivery enforced by server, outside coverage and legacy quotes. No real database used.');

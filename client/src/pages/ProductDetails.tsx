@@ -412,7 +412,7 @@ export default function ProductDetails() {
                       {item.title}
                     </h4>
                     {typeof item.content === "string" ? (
-                      <p className="text-sm leading-relaxed text-foreground/70">
+                      <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/70">
                         {item.content}
                       </p>
                     ) : (
