@@ -21,6 +21,20 @@ export function getStorefrontProductImage(product: Pick<Product, 'image'>): stri
   return cutout ? toPublicImageUrl(cutout) || cutout : product.image;
 }
 
+// Stable campaign artwork, independent of catalogue order or stock changes.
+// Explicit administrator uploads always take precedence over the legacy default.
+export function getHeroImage(source: string): string {
+  if (!source || sourceFile(source) === 'zetatech-hero.png') return '/assets/storefront/asus-vivobook-cutout.png';
+  return getStorefrontProductImage({ image: toPublicImageUrl(source) || source });
+}
+
+export function getEditorialImage(source: string): string {
+  const file = sourceFile(source);
+  if (file === 'zetatech-audio.jpg') return '/assets/storefront/audio-cutout.png';
+  if (file === 'zetatech-watch.jpg') return '/assets/storefront/wearables-cutout.png';
+  return getStorefrontProductImage({ image: toPublicImageUrl(source) || source });
+}
+
 export function getCategoryArtwork(title: string): string {
   const name = title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   const file = /audio|audifon|auricular/.test(name) ? 'audio-cutout.png'

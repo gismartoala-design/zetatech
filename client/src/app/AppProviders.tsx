@@ -9,6 +9,7 @@ interface AppProvidersProps {
   queryClient: QueryClient;
   dehydratedState?: DehydratedState;
   routerHook?: BaseLocationHook;
+  routerSearch?: string;
   seoManager?: SeoManager;
 }
 
@@ -17,6 +18,7 @@ export function AppProviders({
   queryClient,
   dehydratedState,
   routerHook,
+  routerSearch,
   seoManager,
 }: AppProvidersProps) {
   const content = (
@@ -33,6 +35,6 @@ export function AppProviders({
     return content;
   }
 
-  return <Router hook={routerHook}>{content}</Router>;
+  return <Router hook={routerHook} ssrSearch={routerSearch}>{content}</Router>;
 }
 

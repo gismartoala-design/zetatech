@@ -4,6 +4,7 @@ import { CategorySidebar } from "@/components/CategorySidebar";
 import { Seo } from "@/components/Seo";
 import { absoluteUrl, canonicalUrl } from "@/lib/site";
 import { getProductPath } from "@shared/catalog";
+import {comparePrices} from '@shared/PriceDisplay';
 import { useEffect, useMemo, useState } from "react";
 import {
   Breadcrumb,
@@ -12,7 +13,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { Link } from "wouter";
+import { Link, useSearch } from "wouter";
 
 const INITIAL_VISIBLE_PRODUCTS = 12;
 const LOAD_MORE_PRODUCTS = 16;
@@ -31,13 +32,17 @@ function getNumericPrice(price: string) {
 }
 
 export default function Shop() {
+  const params = new URLSearchParams(useSearch());
+  const search = (params.get('q') || '').trim().slice(0,120);
+  const offersOnly = params.get('ofertas') === '1';
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE_PRODUCTS);
   const [priceRange, setPriceRange] = useState<(typeof PRICE_FILTERS)[number]["value"]>("all");
-  const hasActiveFilters = priceRange !== "all";
-  const requestedProductCount = hasActiveFilters ? 60 : visibleCount;
+  const hasActiveFilters = priceRange !== "all" || offersOnly;
+  const requestedProductCount = hasActiveFilters ? undefined : visibleCount;
   const { data: allProducts = [], isLoading } = useProducts({
     limit: requestedProductCount,
     summary: true,
+    search,
   });
 
   // El servidor entrega 12 productos reales en el HTML para que Google y el
@@ -49,13 +54,13 @@ export default function Shop() {
 
     return allProducts.filter((product) => {
       const price = getNumericPrice(product.price);
-      return price >= priceFilter.min && price <= priceFilter.max;
+      return price >= priceFilter.min && price <= priceFilter.max && (!offersOnly || comparePrices(product.price,product.originalPrice).active);
     });
-  }, [allProducts, priceRange]);
+  }, [allProducts, priceRange, offersOnly]);
 
   useEffect(() => {
     setVisibleCount(INITIAL_VISIBLE_PRODUCTS);
-  }, [priceRange]);
+  }, [priceRange, search, offersOnly]);
 
   const visibleProducts = useMemo(
     () => filteredProducts.slice(0, visibleCount),
@@ -115,7 +120,7 @@ export default function Shop() {
   };
 
   return (
-    <div className="page-shell">
+    <div className="page-shell zx-shop">
       <Seo
         title="Catálogo de tecnología | Zetatech"
         description="Explora el catálogo de Zetatech con gadgets, accesorios y tecnología para tu día a día."
@@ -139,7 +144,7 @@ export default function Shop() {
 
         <div className="page-header">
           <div className="page-kicker">Tienda oficial</div>
-          <h1 className="page-title">Nuestro Catálogo</h1>
+          <h1 className="page-title">{search ? `Resultados para “${search}”` : offersOnly ? 'Ofertas para conectar más' : 'Encuentra tu próxima conexión'}</h1>
           <p className="page-copy">
             Encuentra el gadget ideal para tu presupuesto; explora a tu ritmo o usa los filtros para elegir más fácil.
           </p>
@@ -172,7 +177,7 @@ export default function Shop() {
                   </label>
                 </div>
                 <div className="mb-6 rounded-2xl border border-primary/15 bg-white/80 px-5 py-4 text-sm font-bold text-foreground shadow-sm">
-                  Mostrando {visibleProducts.length} de {filteredProducts.length} productos. Usa los filtros o carga más para explorar el catálogo completo.
+                  {visibleProducts.length} productos en esta selección. {hasMoreProducts ? 'Puedes cargar más al final.' : ''} {(search || offersOnly) && <a href="/shop" className="ml-3 underline">Ver todo el catálogo</a>}
                 </div>
                 {visibleProducts.length > 0 ? (
                   <div className="product-grid">
@@ -201,7 +206,8 @@ export default function Shop() {
               </>
             ) : (
               <div className="empty-state">
-                <p className="empty-state-title">No hay productos disponibles en este momento.</p>
+                <p className="empty-state-title">{search || offersOnly ? 'No encontramos productos para esta selección.' : 'No hay productos disponibles en este momento.'}</p>
+                {(search || offersOnly) && <a href="/shop" className="ui-btn-secondary mt-4">Ver todo el catálogo</a>}
               </div>
             )}
           </section>

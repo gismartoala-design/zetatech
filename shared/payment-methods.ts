@@ -1,7 +1,7 @@
 export const PAYMENT_METHOD_OPTIONS = [
   {id:'Datafast',name:'Datafast / tarjetas',description:'Tarjetas mediante el formulario seguro de Datafast.'},
   {id:'PayPal',name:'PayPal',description:'Pago internacional desde tu cuenta o tarjeta.'},
-  {id:'Payphone',name:'PayPhone',description:'Pasarela PayPhone, disponible si conservas esta integración.'},
+  {id:'Payphone',name:'PayPhone',description:'Paga con tarjeta o saldo PayPhone mediante su formulario seguro.'},
   {id:'Banco',name:'Transferencia bancaria',description:'El cliente recibe las instrucciones y adjunta su comprobante.'},
   {id:'Zelle',name:'Zelle',description:'Pago con las instrucciones que configures para Zelle.'},
   {id:'Contra entrega',name:'Pago contra entrega',description:'El cliente paga al recibir y obtiene su guía de pedido.'},

@@ -48,7 +48,7 @@
     -moz-osx-font-smoothing: grayscale;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-serif font-semibold;
+    @apply font-sans font-semibold;
   }
 
   /* Foco visible para quien navega con teclado; antes no habia ninguna pista. */

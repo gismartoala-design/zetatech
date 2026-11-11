@@ -24,6 +24,7 @@ import { DEFAULT_SEO_STATE, renderSeoTags, type SeoState } from "../client/src/c
 import { categoriesQueryKey, fetchCategories } from "../client/src/hooks/useCategories";
 import { companyQueryKey, fetchCompany } from "../client/src/hooks/useCompany";
 import { productsQueryKey, fetchProducts } from "../client/src/hooks/useProducts";
+import { fetchStorefrontProducts } from '../client/src/hooks/useStorefrontProducts';
 import { DEFAULT_COMPANY } from "../client/src/lib/site";
 import {enabledPaymentMethods} from '../shared/payment-methods';
 import { TESTIMONIALS, type Product } from "../client/src/data/mock";
@@ -35,7 +36,6 @@ const app = express();
 app.set("trust proxy", 1);
 const httpServer = createServer(app);
 const INITIAL_CATALOG_PRODUCTS = 12;
-const HOME_CATALOG_PRODUCTS = 8;
 
 function hydrateEnvFile(envPath: string) {
   if (!existsSync(envPath)) return;
@@ -504,7 +504,7 @@ async function loadRenderApp(vite?: ViteDevServer): Promise<RenderApp> {
   return (await import("../client/src/server-entry")).renderApp;
 }
 
-async function prefetchSsrRouteData(queryClient: QueryClient, path: string, baseUrl: string) {
+async function prefetchSsrRouteData(queryClient: QueryClient, path: string, baseUrl: string, searchString = '') {
   const { fetchWebsite } = await import('../client/src/hooks/useWebsite');
   await queryClient.prefetchQuery({queryKey:['website','published'],queryFn:()=>fetchWebsite(baseUrl)});
   await queryClient.prefetchQuery({
@@ -517,16 +517,16 @@ async function prefetchSsrRouteData(queryClient: QueryClient, path: string, base
   }
 
   if (path === "/") {
-    // Categorías y una vitrina corta permiten comprar desde el primer HTML sin
-    // volver pesada la portada. El catálogo completo llega tras hidratar.
+    // La cuadrícula y las categorías de portada comparten la misma consulta
+    // publicada que el cliente, para que ya estén presentes en el primer HTML.
     await Promise.all([
       queryClient.prefetchQuery({
         queryKey: categoriesQueryKey,
         queryFn: () => fetchCategories(baseUrl),
       }),
       queryClient.prefetchQuery({
-        queryKey: productsQueryKey({ limit: HOME_CATALOG_PRODUCTS, summary: true }),
-        queryFn: () => fetchProducts({ limit: HOME_CATALOG_PRODUCTS, summary: true }, baseUrl),
+        queryKey: ['website','products'],
+        queryFn: () => fetchStorefrontProducts(baseUrl),
       }),
     ]);
 
@@ -534,12 +534,15 @@ async function prefetchSsrRouteData(queryClient: QueryClient, path: string, base
   }
 
   if (path === "/shop") {
+    const params = new URLSearchParams(searchString);
+    const search = (params.get('q') || '').trim().slice(0,120);
+    const options = { limit: params.get('ofertas') === '1' ? undefined : INITIAL_CATALOG_PRODUCTS, summary: true, search };
     // Entrega una vitrina real y ligera en el HTML inicial. El navegador carga
     // el resto después; así Google descubre productos desde /shop sin volver a
     // incrustar todo el inventario en cada respuesta.
     await queryClient.prefetchQuery({
-      queryKey: productsQueryKey({ limit: INITIAL_CATALOG_PRODUCTS, summary: true }),
-      queryFn: () => fetchProducts({ limit: INITIAL_CATALOG_PRODUCTS, summary: true }, baseUrl),
+      queryKey: productsQueryKey(options),
+      queryFn: () => fetchProducts(options, baseUrl),
     });
 
     return 200;
@@ -1549,7 +1552,8 @@ app.use((req, res, next) => {
       }
 
       const queryClient = createAppQueryClient();
-      const statusCode = await prefetchSsrRouteData(queryClient, req.path, buildInternalOrigin());
+      const searchString = new URL(req.originalUrl, 'http://internal').search;
+      const statusCode = await prefetchSsrRouteData(queryClient, req.path, buildInternalOrigin(), searchString);
       const renderApp = await loadRenderApp(vite);
       // Solo la ruta, sin query string. Con `?fbclid=...`, `?utm_source=...` o
       // `?gclid=...` el router no encontraba coincidencia y el servidor devolvia
@@ -1557,6 +1561,7 @@ app.use((req, res, next) => {
       // anuncio o una campana, hasta que el navegador hidrataba y lo corregia.
       const { appHtml, dehydratedState, seo } = renderApp({
         path: req.path,
+        search: searchString,
         queryClient,
       });
 

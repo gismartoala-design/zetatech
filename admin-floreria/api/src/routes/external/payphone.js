@@ -7,17 +7,7 @@ const {
 const { businessLog, businessError } = require('../../utils/logger');
 const router = express.Router();
 const PAYPHONE_CONFIRM_URL = 'https://paymentbox.payphonetodoesposible.com/api/confirm';
-
-function getActivePayphoneCredentials(paymentSettings = {}) {
-  const environment = paymentSettings.payphoneEnvironment === 'live' ? 'live' : 'sandbox';
-  const prefix = environment === 'live' ? 'payphoneLive' : 'payphoneSandbox';
-
-  return {
-    environment,
-    token: paymentSettings[`${prefix}Token`] || process.env.PAYPHONE_WEB_TOKEN || process.env.PAYPHONE_TOKEN || '',
-    storeId: paymentSettings[`${prefix}StoreId`] || process.env.PAYPHONE_WEB_STORE_ID || process.env.PAYPHONE_STORE_ID || '',
-  };
-}
+const {getActivePayphoneCredentials}=require('../../services/payphoneConfig');
 
 function isProductionStoreUrl(value) {
   try {
@@ -68,15 +58,19 @@ router.get('/health', async (_req, res) => {
     });
     const credentials = getActivePayphoneCredentials(company?.settings?.paymentSettings || {});
 
-    return res.status(credentials.token && credentials.storeId ? 200 : 503).json({
-      status: credentials.token && credentials.storeId ? 'success' : 'error',
+    return res.status(credentials.configured ? 200 : 503).json({
+      status: credentials.configured ? 'success' : 'error',
+      message:credentials.configurationError||(!credentials.configured?`Falta configurar ${[...(!credentials.token?['Token']:[]),...(!credentials.storeId?['Store ID de la tienda']:[])].join(' y ')} para PayPhone.`:'Configuración local completa. Este diagnóstico no realiza cobros ni valida credenciales contra PayPhone.'),
       data: {
         provider: 'PayPhone',
         environment: credentials.environment,
-        readyForProduction: credentials.environment === 'live' && Boolean(credentials.token) && Boolean(credentials.storeId),
+        readyForProduction: credentials.environment === 'live' && credentials.configured,
         tokenConfigured: Boolean(credentials.token),
         storeIdConfigured: Boolean(credentials.storeId),
         sdkVersion: '2.0',
+        credentialSource:credentials.source,
+        missing:[...(!credentials.token?['Token']:[]),...(!credentials.storeId?['Store ID']:[])],
+        configurationError:credentials.configurationError||undefined,
         responseUrl: `${String(process.env.APP_PUBLIC_SITE_URL || '').replace(/\/$/, '')}/payment-result`,
       },
     });
@@ -102,10 +96,10 @@ router.post('/box-session', async (req, res) => {
   }
 
   const credentials = getActivePayphoneCredentials(company?.settings?.paymentSettings || {});
-  if (!credentials.token || !credentials.storeId) {
+  if (!credentials.configured) {
     return res.status(503).json({
       status: 'error',
-      message: `PayPhone ${credentials.environment} no tiene Token y Store ID completos. Revisa Pagos en el administrador.`,
+      message: credentials.configurationError||`PayPhone ${credentials.environment}: falta ${[...(!credentials.token?['Token']:[]),...(!credentials.storeId?['Store ID de la tienda']:[])].join(' y ')}. Revisa las variables de entorno o Pagos en el administrador.`,
     });
   }
 
@@ -197,8 +191,8 @@ router.post('/confirm', async (req, res) => {
       select: { settings: true },
     });
     const credentials = getActivePayphoneCredentials(company?.settings?.paymentSettings || {});
-    if (!credentials.token) {
-      return res.status(503).json({ status: 'error', message: 'PayPhone no tiene un token activo configurado.' });
+    if (credentials.configurationError||!credentials.token) {
+      return res.status(503).json({ status: 'error', message: credentials.configurationError||'PayPhone no tiene un token activo configurado.' });
     }
 
     const confirmation = await requestPayphoneConfirmation({

@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { buildGaItem, trackGaEvent } from "@/lib/analytics";
 import { trackFacebookEvent } from "@/lib/facebook-pixel";
 import { getResponsiveImageSrcSet } from "@/lib/media";
+import { getStorefrontProductImage } from '@/lib/storefront-artwork';
 import { DEFAULT_COMPANY, canonicalUrl } from "@/lib/site";
 import { formatCategoryDisplayName, getNumericPriceValue, getProductPath, getProductSku, getStockLabel } from "@shared/catalog";
 
@@ -25,7 +26,10 @@ export function ProductCard({ product, priority = false, showBestSellerBadge = t
   const { toast } = useToast();
   const [isBuying, setIsBuying] = React.useState(false);
   const categoryLabel = formatCategoryDisplayName(product.category);
-  const imageSrcSet = getResponsiveImageSrcSet(product.image, [320, 480, 640, 768]);
+  const artwork = getStorefrontProductImage(product);
+  const imageSrcSet = artwork === product.image ? getResponsiveImageSrcSet(product.image, [320, 480, 640, 768]) : undefined;
+  const [imageFailed, setImageFailed] = React.useState(false);
+  React.useEffect(() => setImageFailed(false), [artwork]);
   const acceptOrders = company?.settings?.acceptOrders !== false;
   const productPath = getProductPath(product);
   const productUrl = canonicalUrl(productPath);
@@ -105,7 +109,7 @@ export function ProductCard({ product, priority = false, showBestSellerBadge = t
 
   return (
     <article
-      className="surface-card group flex h-full flex-col overflow-hidden border-foreground/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(16,22,20,0.12)]"
+      className="zx-catalog-card surface-card group flex h-full flex-col overflow-hidden border-foreground/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(16,22,20,0.12)]"
       itemScope
       itemType="https://schema.org/Product"
     >
@@ -113,9 +117,10 @@ export function ProductCard({ product, priority = false, showBestSellerBadge = t
         href={productPath}
         className="relative block aspect-square overflow-hidden border-b border-primary/20 bg-white"
       >
-        <img
+        {imageFailed ? <div className="zx-catalog-image-fallback" role="img" aria-label={product.name}>Imagen no disponible</div> : <img
           itemProp="image"
-          src={product.image}
+          src={artwork}
+          onError={() => setImageFailed(true)}
           srcSet={imageSrcSet}
           alt={`${product.name} - Zetatech`}
           loading={priority ? "eager" : "lazy"}
@@ -125,7 +130,7 @@ export function ProductCard({ product, priority = false, showBestSellerBadge = t
           height={720}
           sizes="(min-width: 1280px) 360px, (min-width: 640px) 44vw, 92vw"
           className="h-full w-full object-contain object-center p-4 transition-transform duration-500 group-hover:scale-105"
-        />
+        />}
 
         {product.isBestSeller && showBestSellerBadge && !product.originalPrice && (
           <div className="absolute top-6 left-6 z-10 rounded-full bg-accent px-4 py-1.5 text-[9px] font-black uppercase tracking-widest text-white shadow-lg">
@@ -165,12 +170,12 @@ export function ProductCard({ product, priority = false, showBestSellerBadge = t
            )}
         </div> */}
 
-        <div className="mb-5 flex items-center gap-2 text-sm font-semibold text-foreground/75">
+        <div className="zx-card-delivery mb-5 flex items-center gap-2 text-sm font-semibold text-foreground/75">
           <Clock3 className="h-4 w-4 text-accent" />
           Envío gratis en Guayaquil · 24 horas
         </div>
 
-        <div className="mt-auto flex w-full flex-wrap items-end justify-between gap-4 border-t border-primary/30 pt-4" itemProp="offers" itemScope itemType="https://schema.org/Offer">
+        <div className="zx-card-pricing mt-auto flex w-full flex-wrap items-end justify-between gap-4 border-t border-primary/30 pt-4" itemProp="offers" itemScope itemType="https://schema.org/Offer">
           <meta itemProp="url" content={productUrl} />
           <meta itemProp="priceCurrency" content="USD" />
           <meta itemProp="price" content={productPrice} />
@@ -185,7 +190,7 @@ export function ProductCard({ product, priority = false, showBestSellerBadge = t
         <div className="mt-5 flex w-full flex-col gap-2.5">
           {/* Una linea de confianza en vez de dos cajas: la misma senal ocupando
               la mitad de alto en una vitrina de mas de cien productos. */}
-          <p className="flex items-center justify-center gap-2 text-[10px] font-extrabold uppercase tracking-[0.1em] text-foreground/60">
+          <p className="zx-card-trust flex items-center justify-center gap-2 text-[10px] font-extrabold uppercase tracking-[0.1em] text-foreground/60">
             <ShieldCheck className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
             Pago seguro
             <span aria-hidden="true">·</span>

@@ -5,7 +5,8 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { CategoryScene, EditorialScene, ProductJourney } from '../client/src/components/StorefrontScenes';
 import { defaultSite } from '../shared/website';
 import type { Product } from '../client/src/data/mock';
-import { getCategoryArtwork, getStorefrontProductImage } from '../client/src/lib/storefront-artwork';
+import { getCategoryArtwork, getStorefrontProductImage, getHeroImage, getEditorialImage } from '../client/src/lib/storefront-artwork';
+import { arrangeStorefrontBlocks } from '../client/src/lib/storefront-layout';
 
 const hero = defaultSite.blocks.find(block => block.type === 'hero')!;
 const product: Product = {
@@ -24,21 +25,27 @@ assert.match(featured, /loading="eager"/);
 assert.match(featured, /fetchPriority="high"/);
 
 const empty = renderToStaticMarkup(<ProductJourney block={hero} />);
-assert.doesNotMatch(empty, /zx-product-facts|\$89|Producto &lt;real&gt;/);
-assert.match(empty, /La tecnología se vive/);
-assert.match(empty, /Sigue la conexión/);
+assert.doesNotMatch(empty, /zx-hero-product|\$89|Producto &lt;real&gt;/);
+assert.match(empty, /asus-vivobook-cutout/);
+assert.match(empty, /zx-scene-detail/);
+assert.match(empty, /zx-stage-rail/, 'Keep the original scroll transition with a fixed campaign image');
+assert.equal(getHeroImage('/assets/zetatech-hero.png'),getHeroImage(''));
+assert.equal(getHeroImage('/custom-campaign.webp'),'/custom-campaign.webp');
+assert.equal(getEditorialImage('/assets/zetatech-audio.jpg'),'/assets/storefront/audio-cutout.png');
 
 const unknown = renderToStaticMarkup(<ProductJourney block={hero} product={{ ...product, stock: null, originalPrice: null }} />);
 assert.match(unknown, /Consultar disponibilidad/);
 assert.doesNotMatch(unknown, /class="zx-offer"/);
 
 const categories = defaultSite.blocks.find(block => block.type === 'benefits')!;
-const categoryMarkup = renderToStaticMarkup(<CategoryScene block={categories} products={[product]} />);
+const categoryMarkup = renderToStaticMarkup(<CategoryScene block={categories} products={[]} />);
 assert.match(categoryMarkup, /audio-cutout\.png/);
 assert.match(categoryMarkup, /wearables-cutout\.png/);
 assert.match(categoryMarkup, /accessories-cutout\.png/);
 assert.match(categoryMarkup, /href="#audio"/);
 assert.doesNotMatch(categoryMarkup, /zx-category-orbit/, 'Every default category has a real photographic illustration');
+const realCategoryMarkup=renderToStaticMarkup(<CategoryScene block={categories} products={[{...product,category:'Computadoras › Laptops'}]}/>);
+assert.match(realCategoryMarkup,/href="\/categoria\/computadoras"/,'Default category links follow the real inventory hierarchy');
 const customCategory = renderToStaticMarkup(<CategoryScene block={{...categories,items:[{title:'Audio',text:'',image:'/custom-photo.png',href:'/shop'}]}} products={[]} />);
 assert.match(customCategory, /custom-photo\.png/, 'Explicitly configured imagery remains authoritative');
 const asusSource='https://geniosbot.com/plataforma-recursos/images/1792202388007-otebook-asus-vivobook-15-x1504vap-c38128.png';
@@ -58,5 +65,12 @@ assert.match(editorialMarkup, /zx-editorial-reverse/);
 assert.match(editorialMarkup, /media="\(max-width: 640px\)"/);
 assert.match(editorialMarkup, /srcSet="\/mobile.png"/);
 assert.match(editorialMarkup, /loading="lazy"/);
+
+const original=JSON.stringify(defaultSite);
+const arranged=arrangeStorefrontBlocks(defaultSite.blocks);
+assert.ok(arranged.findIndex(block=>block.type==='products')<arranged.findIndex(block=>block.type==='brands'));
+assert.equal(JSON.stringify(defaultSite),original,'Presentation reordering must not mutate administrator content');
+const custom={...hero,id:'custom',type:'text' as const};
+assert.equal(arrangeStorefrontBlocks([hero,custom,...defaultSite.blocks.slice(1)])[1],custom);
 
 console.log('PASS: public scenes, real price/stock/offers, safe names, empty catalogue, unknown stock, category links, responsive and lazy images.');

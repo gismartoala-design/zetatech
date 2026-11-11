@@ -17,9 +17,10 @@ const SPLASH_VIDEO_RATE=1.5;
 const SPLASH_VISIBLE_MS=5000;
 const SPLASH_LEAVE_MS=520;
 const SPLASH_SESSION_KEY='zt-splash-video-seen-v1';
-function BrandSplash({brand}:{brand:string}) {
+export function BrandSplash({brand,skippable=false}:{brand:string;skippable?:boolean}) {
   const [phase,setPhase]=useState<'idle'|'visible'|'leaving'|'hidden'>('idle');
   const videoRef=useRef<HTMLVideoElement>(null);
+  const dismissed=useRef(false);
   useEffect(()=>{
     if (typeof window==='undefined') return;
     const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -27,12 +28,12 @@ function BrandSplash({brand}:{brand:string}) {
     try {seen=Boolean(sessionStorage.getItem(SPLASH_SESSION_KEY));}catch{/* Private browsing can disable storage. */}
     if (seen||reduceMotion) {setPhase('hidden');return;}
     setPhase('visible');
-    const leave=window.setTimeout(()=>setPhase('leaving'),SPLASH_VISIBLE_MS);
+    const leave=window.setTimeout(()=>{if(!dismissed.current)setPhase('leaving');},SPLASH_VISIBLE_MS);
     const hide=window.setTimeout(()=>{setPhase('hidden');try{sessionStorage.setItem(SPLASH_SESSION_KEY,'1');}catch{/* almacenamiento no disponible: no pasa nada, se repite la próxima vez */}},SPLASH_VISIBLE_MS+SPLASH_LEAVE_MS);
     return ()=>{window.clearTimeout(leave);window.clearTimeout(hide);};
   },[]);
   if (phase==='idle'||phase==='hidden') return null;
-  return <div className={`zt-splash${phase==='leaving'?' zt-splash-leaving':''}`} role="presentation" aria-hidden="true">
+  return <div className={`zt-splash${phase==='leaving'?' zt-splash-leaving':''}`} role={skippable?'region':'presentation'} aria-label={skippable?'Presentación de la tienda':undefined} aria-hidden={skippable?undefined:true}>
     <div className="zt-splash-stage">
       <video
         ref={videoRef}
@@ -45,6 +46,7 @@ function BrandSplash({brand}:{brand:string}) {
       />
       <strong className="zt-splash-word">{brand}</strong>
     </div>
+    {skippable&&<button type="button" className="zx-splash-skip" onClick={()=>{dismissed.current=true;setPhase('hidden');try{sessionStorage.setItem(SPLASH_SESSION_KEY,'1');}catch{/* Storage can be disabled. */}}}>Entrar a la tienda →</button>}
   </div>;
 }
 export function SiteHeader({theme:t,cart,resolveImage=(url)=>url}:{theme:SiteDocument['theme'];cart?:ReactNode;resolveImage?:(url:string)=>string}) {
@@ -211,11 +213,11 @@ export function BrandCarousel({items,resolveImage=(url)=>url}:{items:SiteBlock['
     </div>
   </div>;
 }
-export function SiteRenderer({document,renderProducts,cart,resolveImage=(url)=>url,preview=false,editor=preview,onSelectBlock,renderBlock,className='',showSplash=true}:{document:SiteDocument;renderProducts?:(block:SiteBlock)=>ReactNode;cart?:ReactNode;resolveImage?:(url:string)=>string;preview?:boolean;editor?:boolean;onSelectBlock?:(id:string)=>void;renderBlock?:(block:SiteBlock)=>ReactNode;className?:string;showSplash?:boolean}) {
+export function SiteRenderer({document,renderProducts,cart,resolveImage=(url)=>url,preview=false,editor=preview,onSelectBlock,renderBlock,className='',showSplash=true,header}:{document:SiteDocument;renderProducts?:(block:SiteBlock)=>ReactNode;cart?:ReactNode;resolveImage?:(url:string)=>string;preview?:boolean;editor?:boolean;onSelectBlock?:(id:string)=>void;renderBlock?:(block:SiteBlock)=>ReactNode;className?:string;showSplash?:boolean;header?:ReactNode}) {
   const t=document.theme;
   return <div className={`zt-site ${className}`} style={{'--zt-accent':t.accent,'--zt-radius':`${t.radius}px`,fontFamily:siteFonts[t.font],fontSize:t.fontSize,background:t.background,color:t.foreground} as CSSProperties} onClick={preview?e=>{if((e.target as HTMLElement).closest('a'))e.preventDefault();}:undefined}>
     {!preview&&showSplash&&<BrandSplash brand={t.brand}/>}
-    <SiteHeader theme={t} cart={cart} resolveImage={resolveImage}/>
+    {header??<SiteHeader theme={t} cart={cart} resolveImage={resolveImage}/>}
     <main>{document.blocks.filter(b=>!b.hidden).map(b=><Fragment key={b.id}>{renderBlock?.(b)??<AnimatedBlock block={b} editor={editor} onSelect={onSelectBlock}>
       {(b.type==='hero'||b.type==='image')?<div className="zt-feature"><div className="zt-copy">{b.type==='hero'?<InlineEditable tag="h1" value={b.title} blockId={b.id} field="title" editor={editor}/>:<InlineEditable tag="h2" value={b.title} blockId={b.id} field="title" editor={editor}/>}<InlineEditable tag="p" value={b.text} blockId={b.id} field="text" editor={editor}/>{b.button&&<a className="zt-button" href={b.href||'/shop'}>{b.button}<span aria-hidden="true">↗</span></a>}</div>{b.image&&<picture>{b.mobileImage&&<source media="(max-width: 640px)" srcSet={resolveImage(b.mobileImage)}/>}<img src={resolveImage(b.image)} alt={b.alt} loading={b.type==='hero'?'eager':'lazy'}/></picture>}</div>:<>
       <div className="zt-heading"><InlineEditable tag="h2" value={b.title} blockId={b.id} field="title" editor={editor}/>{b.text&&<InlineEditable tag="p" value={b.text} blockId={b.id} field="text" editor={editor}/>}</div>

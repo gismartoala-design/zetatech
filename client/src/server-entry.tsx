@@ -16,6 +16,7 @@ function createStaticLocationHook(path: string): BaseLocationHook {
 interface RenderAppOptions {
   path: string;
   queryClient: QueryClient;
+  search?: string;
 }
 
 export interface RenderAppResult {
@@ -24,7 +25,7 @@ export interface RenderAppResult {
   seo: SeoState;
 }
 
-export function renderApp({ path, queryClient }: RenderAppOptions): RenderAppResult {
+export function renderApp({ path, queryClient, search = '' }: RenderAppOptions): RenderAppResult {
   const routerHook = createStaticLocationHook(path);
   const dehydratedState = dehydrate(queryClient);
   const seoManager = createSeoManager();
@@ -34,6 +35,7 @@ export function renderApp({ path, queryClient }: RenderAppOptions): RenderAppRes
       queryClient={queryClient}
       dehydratedState={dehydratedState}
       routerHook={routerHook}
+      routerSearch={search}
       seoManager={seoManager}
     >
       <AppFrame Routes={ServerRoutes} fallback={null} />

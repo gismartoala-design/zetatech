@@ -1,7 +1,10 @@
 const ALL_METHODS=['Datafast','PayPal','Payphone','Banco','Zelle','Contra entrega'];
 const DEFAULT_METHODS=['Datafast','PayPal','Banco','Zelle','Contra entrega'];
 function enabledPaymentMethods(settings={}) {
-  return Array.isArray(settings?.enabledMethods)?ALL_METHODS.filter(name=>settings.enabledMethods.includes(name)):[...DEFAULT_METHODS];
+  let methods=Array.isArray(settings?.enabledMethods)?ALL_METHODS.filter(name=>settings.enabledMethods.includes(name)):[...DEFAULT_METHODS];
+  if(process.env.PAYPHONE_ENABLED==='false')methods=methods.filter(name=>name!=='Payphone');
+  if(process.env.PAYPHONE_ENABLED==='true'&&require('../services/payphoneConfig').getActivePayphoneCredentials(settings).configured&&!methods.includes('Payphone'))methods.push('Payphone');
+  return methods;
 }
 function assertPaymentMethodEnabled(settings,method) {
   if(!ALL_METHODS.includes(method)){const e=new Error('Selecciona un método de pago válido.');e.statusCode=400;throw e;}

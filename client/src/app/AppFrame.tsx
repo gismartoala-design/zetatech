@@ -7,6 +7,8 @@ import { useCompany } from "@/hooks/useCompany";
 import { useCart } from "@/context/CartContext";
 import { initGoogleAnalytics, trackGaEvent } from "@/lib/analytics";
 import { getPublicAppConfig } from "@/lib/runtime-config";
+import '@/styles/storefront-experience.css';
+import '@/styles/storefront-refinement.css';
 
 const Toaster = lazy(() =>
   import("@/components/ui/toaster").then((module) => ({ default: module.Toaster })),
@@ -280,9 +282,9 @@ export function AppFrame({ Routes, fallback = <RouteFallback /> }: AppFrameProps
         ) : null}
         {!hideNavbar && location !== '/' && <Navbar />}
         {hideNavbar && <header className="flex justify-center bg-[#09150f] px-6 py-4"><a href="/" aria-label="ZettaTech: volver al inicio"><Logo size="sm"/></a></header>}
-        <Suspense fallback={fallback}>
+        <div id="storefront-content" tabIndex={-1}><Suspense fallback={fallback}>
           <Routes />
-        </Suspense>
+        </Suspense></div>
       </div>
       {shouldLoadFloatingWhatsApp ? (
         <Suspense fallback={null}>

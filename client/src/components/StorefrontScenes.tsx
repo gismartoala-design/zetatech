@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { SiteBlock } from '@shared/website';
 import type { Product } from '@/data/mock';
-import { areSameCategory, getProductPath, getStockLabel } from '@shared/catalog';
+import { buildCategoryTree, formatCategoryDisplayName, getCategoryPath, isProductInCategory, getProductPath, getStockLabel } from '@shared/catalog';
+import { defaultSite } from '@shared/website';
 import { toPublicImageUrl } from '@/lib/media';
-import { getCategoryArtwork, getStorefrontProductImage } from '@/lib/storefront-artwork';
+import { getCategoryArtwork, getStorefrontProductImage, getHeroImage, getEditorialImage } from '@/lib/storefront-artwork';
 import {PriceDisplay} from '@shared/PriceDisplay';
 
 export function EnergyOrbit({ className = '' }: { className?: string }) {
@@ -90,14 +91,15 @@ export function ProductJourney({ block, product }: { block: SiteBlock; product?:
       cancelAnimationFrame(frame);
     };
   }, [product?.id]);
-  const src = product ? getStorefrontProductImage(product) : toPublicImageUrl(block.image) || '';
+  const src = product ? getStorefrontProductImage(product) : getHeroImage(block.image);
+  const alt = product?.name || (src.includes('asus-vivobook-cutout') ? 'Laptop ASUS Vivobook sobre fondo transparente' : block.alt || 'Tecnología ZettaTech');
   const href = product ? getProductPath(product) : block.href || '/shop';
-  return <section ref={ref} id={block.id} className={`zx-journey${product ? ' zx-journey-product' : ''}`} aria-label="Descubre ZettaTech">
+  return <section ref={ref} id={block.id} className="zx-journey zx-journey-product" aria-label="Descubre ZettaTech">
     <div className="zx-journey-grid" aria-hidden="true" />
     <div className="zx-stage-rail"><div className="zx-stage">
       <EnergyOrbit />
       <div className="zx-product-halo" aria-hidden="true" />
-      <div className="zx-product-visual"><SceneImage src={src} alt={product?.name || block.alt} priority /></div>
+      <div className="zx-product-visual"><picture>{!product && block.mobileImage && <source media="(max-width: 640px)" srcSet={getHeroImage(block.mobileImage)} />}<SceneImage src={src} alt={alt} priority /></picture></div>
       <span className="zx-stage-caption">{product?.category || 'Diseñado para tu día a día'}<span aria-hidden="true"> ↗</span></span>
       <span className="zx-stage-coordinate" aria-hidden="true">ZT / CONECTA</span>
     </div></div>
@@ -116,10 +118,7 @@ export function ProductJourney({ block, product }: { block: SiteBlock; product?:
         <span className="zx-eyebrow">02 / Un poco más cerca</span>
         <h2>{product ? product.name : 'La tecnología se vive. No solo se mira.'}</h2>
         <p>{product ? 'Conoce sus detalles, consulta su disponibilidad y encuentra tu próxima conexión.' : 'Explora audio, wearables y accesorios. Encuentra lo que acompaña tu ritmo, tu espacio y tu forma de disfrutar.'}</p>
-        {product && <div className="zx-product-facts">
-          <div><PriceDisplay price={product.price} originalPrice={product.originalPrice}/></div>
-          <div><span>Disponibilidad</span><strong className="zx-stock">{getStockLabel(product.stock)}</strong></div>
-        </div>}
+        {product && <div className="zx-product-facts"><div><PriceDisplay price={product.price} originalPrice={product.originalPrice}/></div><div><span>Disponibilidad</span><strong className="zx-stock">{getStockLabel(product.stock)}</strong></div></div>}
         <a className="zx-text-link" href={href}>{product ? 'Ver el producto' : 'Encuentra tu próxima conexión'} <span aria-hidden="true">↗</span></a>
       </div>
       <span className="zx-scene-number" aria-hidden="true">02 — CONECTA</span>
@@ -129,17 +128,21 @@ export function ProductJourney({ block, product }: { block: SiteBlock; product?:
 }
 
 export function CategoryScene({ block, products }: { block: SiteBlock; products: Product[] }) {
+  const defaults = defaultSite.blocks.find(item => item.type === 'benefits')!;
+  const isDefault = JSON.stringify(block.items) === JSON.stringify(defaults.items);
+  const roots = buildCategoryTree(products.map(product => product.category));
+  const items = isDefault && roots.length ? roots.slice(0,6).map(root => ({title:root.name,text:'Explorar colección',image:'',href:getCategoryPath(root.name)})) : block.items;
   return <section id={block.id} className="zx-categories zx-section" style={{ background: block.background, color: block.foreground }}>
     <div className="zx-section-heading" data-zx-reveal><span className="zx-eyebrow">03 / Elige tu mundo</span><h2>{block.title}</h2>{block.text && <p>{block.text}</p>}</div>
-    <div className="zx-category-grid">{block.items.map((item, index) => {
-      const matchingProduct = products.find(product => areSameCategory(product.category, item.title) && product.image);
+    <div className="zx-category-grid">{items.map((item, index) => {
+      const matchingProduct = products.find(product => isProductInCategory(product.category, item.title) && product.image);
       const artwork = getCategoryArtwork(item.title);
       const matchingCutout = matchingProduct && getStorefrontProductImage(matchingProduct);
       const image = toPublicImageUrl(item.image) || (matchingCutout && matchingCutout !== matchingProduct?.image ? matchingCutout : artwork);
       return <a className="zx-category" key={`${item.title}-${index}`} href={item.href || '/shop'} data-zx-reveal>
         <div className="zx-category-top"><span>{String(index + 1).padStart(2, '0')}</span><span className="zx-round-arrow" aria-hidden="true">↗</span></div>
         <div className="zx-category-art" aria-hidden="true"><SceneImage src={image || artwork} fallbackSrc={artwork} alt="" /></div>
-        <div className="zx-category-copy"><h3>{item.title}</h3>{item.text && <p>{item.text}</p>}</div>
+        <div className="zx-category-copy"><h3>{formatCategoryDisplayName(item.title)}</h3>{item.text && <p>{item.text}</p>}</div>
       </a>;
     })}</div>
   </section>;
@@ -147,7 +150,7 @@ export function CategoryScene({ block, products }: { block: SiteBlock; products:
 
 export function EditorialScene({ block, index }: { block: SiteBlock; index: number }) {
   return <section id={block.id} className={`zx-editorial zx-section ${index % 2 ? 'zx-editorial-reverse' : ''}`} style={{ background: block.background, color: block.foreground, '--zx-editorial-zoom': block.zoom } as CSSProperties}>
-    <div className="zx-editorial-art" data-zx-reveal><EnergyOrbit /><picture>{block.mobileImage && <source media="(max-width: 640px)" srcSet={toPublicImageUrl(block.mobileImage) || block.mobileImage} />}<SceneImage src={toPublicImageUrl(block.image) || ''} alt={block.alt || block.title} /></picture><span className="zx-art-tag" aria-hidden="true">ZT / {String(index + 1).padStart(2, '0')}</span></div>
+    <div className="zx-editorial-art" data-zx-reveal><EnergyOrbit /><picture>{block.mobileImage && <source media="(max-width: 640px)" srcSet={getEditorialImage(block.mobileImage)} />}<SceneImage src={getEditorialImage(block.image)} alt={block.alt || block.title} /></picture><span className="zx-art-tag" aria-hidden="true">ZT / {String(index + 1).padStart(2, '0')}</span></div>
     <div className="zx-editorial-copy" data-zx-reveal><span className="zx-eyebrow">Conecta con lo que te mueve</span><h2>{block.title}</h2>{block.text && <p>{block.text}</p>}{block.button && <a className="zx-text-link" href={block.href || '/shop'}>{block.button} <span aria-hidden="true">↗</span></a>}</div>
   </section>;
 }

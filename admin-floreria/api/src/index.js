@@ -12,6 +12,7 @@ const sharedEnvPath = require('path').resolve(__dirname, '../../../.env');
 if (require('fs').existsSync(sharedEnvPath)) {
   const sharedEnv = dotenv.parse(require('fs').readFileSync(sharedEnvPath));
   require('./services/storageConfig').loadSharedStorageEnv(sharedEnv, process.env, inheritedEnvKeys);
+  require('./services/payphoneConfig').loadSharedPayphoneEnv(sharedEnv,process.env,inheritedEnvKeys);
 }
 
 const path = require('path');
