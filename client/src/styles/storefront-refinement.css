@@ -1,10 +1,20 @@
 /* Public shop design system. Does not load in the administration application. */
 :root{--shop-space:clamp(20px,5vw,72px);--shop-width:1280px;--shop-line:#1637251a;--shop-ease:cubic-bezier(.2,.8,.2,1)}
 .zx-product-visual>picture{display:block;width:100%;height:100%}
-.zx-navigation{position:sticky;top:var(--closed-store-banner-height,0px);z-index:50}
-.zx-navigation>.zt-header-dock{position:relative;top:auto}
+.zx-navigation{position:sticky;top:var(--closed-store-banner-height,0px);z-index:50;display:grid;grid-template-rows:36px auto;pointer-events:none}
+.zx-delivery-strip{height:36px;transition:opacity .2s ease,transform .3s ease;overflow:hidden}
+.zx-delivery-strip>div{min-height:36px;padding-block:4px;font-size:clamp(10px,2.8vw,12px);line-height:1.3}
+.zx-navigation[data-scrolled=true]>.zx-delivery-strip{opacity:0;visibility:hidden;transform:translateY(-100%)}
+.zx-navigation>.zt-header-dock{position:relative;top:auto;transition:transform .3s var(--shop-ease)}
+.zx-navigation[data-scrolled=true]>.zt-header-dock{transform:translateY(-36px)}
+.zx-navigation .zt-header{pointer-events:auto}
+.zx-navigation .zt-brand-group{display:flex;flex-direction:column;gap:4px;flex-shrink:0;min-width:0}
+.zx-delivery-inline{display:flex;align-items:center;gap:5px;background:#081b10;border:1px solid #ffffff12;border-radius:5px;padding:3px 7px;color:#def2dc;font-size:10px;line-height:1.4;font-weight:400;white-space:nowrap}
+.zx-delivery-inline svg{width:12px;height:12px;flex-shrink:0;color:#a8ed89}
 .zx-nav-shell+#storefront-content .page-shell{padding-top:calc(160px + var(--closed-store-banner-height,0px))}
 @media(max-width:900px){.zx-nav-shell+#storefront-content .page-shell{padding-top:calc(190px + var(--closed-store-banner-height,0px))}}
+@media(max-width:600px){.zx-delivery-inline{font-size:8px;gap:4px;padding:3px 5px}.zx-delivery-inline svg{width:10px;height:10px}}
+@media(prefers-reduced-motion:reduce){.zx-delivery-strip,.zx-navigation>.zt-header-dock{transition:none}}
 #storefront-content{scroll-margin-top:140px;outline:none}
 .zx-storefront{font-family:var(--font-sans);--zx-lime:#a8ed89}
 .zx-storefront :is(h1,h2,h3){letter-spacing:-.035em}

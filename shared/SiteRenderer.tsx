@@ -49,7 +49,7 @@ export function BrandSplash({brand,skippable=false}:{brand:string;skippable?:boo
     {skippable&&<button type="button" className="zx-splash-skip" onClick={()=>{dismissed.current=true;setPhase('hidden');try{sessionStorage.setItem(SPLASH_SESSION_KEY,'1');}catch{/* Storage can be disabled. */}}}>Entrar a la tienda →</button>}
   </div>;
 }
-export function SiteHeader({theme:t,cart,resolveImage=(url)=>url}:{theme:SiteDocument['theme'];cart?:ReactNode;resolveImage?:(url:string)=>string}) {
+export function SiteHeader({theme:t,cart,resolveImage=(url)=>url,brandCaption}:{theme:SiteDocument['theme'];cart?:ReactNode;resolveImage?:(url:string)=>string;brandCaption?:ReactNode}) {
   const [scrolled,setScrolled]=useState(false);
   useEffect(()=>{
     const onScroll=()=>setScrolled(window.scrollY>24);
@@ -57,7 +57,8 @@ export function SiteHeader({theme:t,cart,resolveImage=(url)=>url}:{theme:SiteDoc
     window.addEventListener('scroll',onScroll,{passive:true});
     return ()=>window.removeEventListener('scroll',onScroll);
   },[]);
-  return <div className="zt-header-dock"><header className="zt-header" data-scrolled={scrolled}><a href="/" className="zt-brand"><img src={resolveImage(t.logo||BRAND_LOGO)} alt={t.brand} width="244" height="60"/></a><nav aria-label="Navegación principal">{t.links.map((l,i)=><a key={i} href={l.href.startsWith('#')?`/${l.href}`:l.href}>{l.label}</a>)}</nav><div className="zt-header-actions"><a href="/shop" aria-label={t.searchLabel}>{t.searchLabel}</a>{cart}</div></header></div>;
+  const brand=<a href="/" className="zt-brand"><img src={resolveImage(t.logo||BRAND_LOGO)} alt={t.brand} width="244" height="60"/></a>;
+  return <div className="zt-header-dock"><header className="zt-header" data-scrolled={scrolled}>{brandCaption?<div className="zt-brand-group">{brand}{brandCaption}</div>:brand}<nav aria-label="Navegación principal">{t.links.map((l,i)=><a key={i} href={l.href.startsWith('#')?`/${l.href}`:l.href}>{l.label}</a>)}</nav><div className="zt-header-actions"><a href="/shop" aria-label={t.searchLabel}>{t.searchLabel}</a>{cart}</div></header></div>;
 }
 function AnimatedBlock({block,children,editor,onSelect}:{block:SiteBlock;children:ReactNode;editor?:boolean;onSelect?:(id:string)=>void}) {
   const ref = useRef<HTMLElement>(null);
