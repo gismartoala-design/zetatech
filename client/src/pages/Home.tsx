@@ -1,4 +1,4 @@
-import { SiteRenderer, BrandSplash } from '@shared/SiteRenderer';
+import { SiteRenderer } from '@shared/SiteRenderer';
 import { defaultSite, ensureBrandBlock, type SiteBlock } from '@shared/website';
 import { useWebsite } from '@/hooks/useWebsite';
 import { Seo } from '@/components/Seo';
@@ -27,7 +27,7 @@ export default function Home(){
   const {data:products=[]}=useStorefrontProducts();
   const {cartItemCount,setIsCartOpen}=useCart();
   const sceneRef=useSceneMotion(document.blocks.map(block=>`${block.id}:${block.type}:${block.hidden}`).join('|'));
-  return <div ref={sceneRef}><Seo title={`${document.theme.brand} | Tecnología`} description={document.theme.description} path="/"/><BrandSplash brand={document.theme.brand} skippable/><SiteRenderer document={document} className="zx-storefront" header={<StorefrontNavigation theme={document.theme} cart={<button onClick={()=>setIsCartOpen(true)}>{document.theme.cartLabel} ({cartItemCount})</button>}/>} showSplash={false} resolveImage={url=>toPublicImageUrl(url)||url} renderBlock={block=>{
+  return <div ref={sceneRef}><Seo title={`${document.theme.brand} | Tecnología`} description={document.theme.description} path="/"/><SiteRenderer document={document} className="zx-storefront" header={<StorefrontNavigation theme={document.theme} cart={<button onClick={()=>setIsCartOpen(true)}>{document.theme.cartLabel} ({cartItemCount})</button>}/>} showSplash={false} resolveImage={url=>toPublicImageUrl(url)||url} renderBlock={block=>{
     // Only an explicitly selected hero product may replace the fixed campaign.
     if(block.type==='hero')return <ProductJourney block={block} product={block.productIds[0]?products.find(product=>product.id===block.productIds[0]):undefined}/>;
     if(block.type==='benefits')return <CategoryScene block={block} products={products}/>;

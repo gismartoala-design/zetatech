@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { CheckCircle, Mail, Printer, Download, MessageSquare } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DEFAULT_COMPANY } from "@/lib/site";
 
 export type ConfirmationDetails = {
   orderNumber: string;
@@ -26,6 +27,9 @@ export function OrderConfirmation({ details }: { details: ConfirmationDetails })
     : details.email
     ? `Revisa tu correo ${details.email}, incluida la carpeta de spam, para encontrar la confirmación del pedido. Si no llega en unos minutos, contáctanos.`
     : "Puedes consultar la confirmación de tu pedido con nuestro equipo por WhatsApp.";
+  const whatsappUrl = `https://wa.me/${DEFAULT_COMPANY.phoneDigits}?text=${encodeURIComponent(
+    `Hola, soy ${details.customerName || "cliente"} y quiero coordinar mi pedido ${details.orderNumber}.`,
+  )}`;
   const downloadReceipt=()=>{
     if(!details.receipt)return;
     const bytes=Uint8Array.from(atob(details.receipt.base64),char=>char.charCodeAt(0));
@@ -52,6 +56,7 @@ export function OrderConfirmation({ details }: { details: ConfirmationDetails })
       <p className="mt-5 flex items-start gap-2 text-sm"><Mail className="h-4 w-4 shrink-0" />{emailNotice}</p>
       <div className="confirmation-actions mt-6 flex flex-wrap gap-3">
         {details.receipt&&<button type="button" className="ui-btn-primary" onClick={downloadReceipt}><Download className="h-4 w-4"/>Descargar comprobante PDF</button>}
+        <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="ui-btn-secondary"><MessageSquare className="h-4 w-4" />Coordinar por WhatsApp</a>
         <button type="button" className="ui-btn-secondary" onClick={() => window.print()}><Printer className="h-4 w-4" />Imprimir pedido</button>
         <Link href="/shop" className="ui-btn-primary">Volver a la tienda</Link>
       </div>
