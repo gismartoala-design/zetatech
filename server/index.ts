@@ -412,6 +412,18 @@ function buildPublicConfigScript() {
 }
 
 function getFallbackSeoState(path: string): SeoState {
+  // El portal del cliente nunca debe indexarse: el HTML inicial ya sale con
+  // noindex, sin esperar a que el navegador lo corrija al hidratar.
+  if (path === "/mi-cuenta" || path.startsWith("/mi-cuenta/")) {
+    return {
+      ...DEFAULT_SEO_STATE,
+      title: "Mi cuenta | Zetatech",
+      description: "Consulta tus pedidos de Zetatech.",
+      robots: "noindex, nofollow",
+      path,
+    };
+  }
+
   if (path === "/") {
     return {
       ...DEFAULT_SEO_STATE,
@@ -485,11 +497,17 @@ const NON_SSR_APP_PATHS = [
   "/payment-result",
 ];
 
+// El portal de clientes no se renderiza en el servidor: son datos de una
+// persona y aquí no hay sesión suya. Se sirve el shell y el navegador pide su
+// cuenta. Mientras el portal esté apagado la ruta no existe y cae en 404.
+const customerPortalEnabled = process.env.VITE_CUSTOMER_PORTAL === "true";
+
 function isKnownAppPath(path: string) {
   return (
     shouldSsrPath(path) ||
     NON_SSR_APP_PATHS.includes(path) ||
-    path.startsWith("/product/")
+    path.startsWith("/product/") ||
+    (customerPortalEnabled && (path === "/mi-cuenta" || path.startsWith("/mi-cuenta/")))
   );
 }
 

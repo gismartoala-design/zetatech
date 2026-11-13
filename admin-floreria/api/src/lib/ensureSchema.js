@@ -22,6 +22,17 @@ const AJUSTES = [
       `CREATE INDEX IF NOT EXISTS "products_sortOrder_idx" ON "public"."products" ("sortOrder");`,
     ],
   },
+  {
+    nombre: "customers.cuenta",
+    descripcion: "cuenta del portal de clientes: contraseña y correo confirmado",
+    sentencias: [
+      `ALTER TABLE "public"."customers" ADD COLUMN IF NOT EXISTS "password" TEXT;`,
+      `ALTER TABLE "public"."customers" ADD COLUMN IF NOT EXISTS "emailVerifiedAt" TIMESTAMP(3);`,
+      `ALTER TABLE "public"."customers" ADD COLUMN IF NOT EXISTS "verificationCodeHash" TEXT;`,
+      `ALTER TABLE "public"."customers" ADD COLUMN IF NOT EXISTS "verificationExpiresAt" TIMESTAMP(3);`,
+      `ALTER TABLE "public"."customers" ADD COLUMN IF NOT EXISTS "lastLoginAt" TIMESTAMP(3);`,
+    ],
+  },
 ];
 
 async function asegurarEsquema({ silencioso = false } = {}) {

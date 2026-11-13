@@ -134,6 +134,9 @@ app.use("/api/external/store-orders/abandoned", abandonedOrdersRoutes);
 app.use("/api/external/payphone", payphoneRoutes);
 app.use("/api/external/paypal", paypalRoutes);
 app.use("/api/external/datafast", require("./routes/external/datafast"));
+// Portal de clientes. Responde 404 completo mientras CUSTOMER_PORTAL_ENABLED
+// no esté en "true": todavía no está enlazado desde la tienda.
+app.use("/api/external/account", require("./routes/external/account"));
 
 // Rutas externas genéricas (viejas)
 const externalRoutes = require("./routes/external/index");

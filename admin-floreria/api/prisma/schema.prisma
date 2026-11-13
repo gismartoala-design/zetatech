@@ -501,8 +501,17 @@ model customers {
   totalSpent       Float           @default(0)
   purchaseCount    Int             @default(0)
   lastPurchaseAt   DateTime?
+  // Portal de clientes: solo las filas con contraseña tienen cuenta. El resto
+  // siguen siendo contactos de marketing creados a partir de sus compras.
+  // El historial solo se abre con el correo verificado: si no, bastaría
+  // conocer el correo de alguien para registrarse y leer sus compras.
+  password              String?
+  emailVerifiedAt       DateTime?
+  verificationCodeHash  String?
+  verificationExpiresAt DateTime?
+  lastLoginAt           DateTime?
   createdAt        DateTime        @default(now())
-  updatedAt        DateTime
+  updatedAt        DateTime        @updatedAt
   coupon_usages    coupon_usages[]
   coupons          coupons[]
   email_logs       email_logs[]

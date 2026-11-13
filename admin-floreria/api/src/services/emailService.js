@@ -542,6 +542,26 @@ class EmailService {
     }
   }
 
+  /** Código de un solo uso para confirmar que el correo es de quien se registra. */
+  async sendCustomerVerificationCode({ email, name, code, minutes }) {
+    const companyName = process.env.COMPANY_NAME || "Zetatech";
+    const html = `<div style="font-family:Arial,Helvetica,sans-serif;max-width:520px;margin:auto;color:#17251c">
+      ${EMAIL_LOGO_HTML_SMALL}
+      <h2 style="color:#176333;margin:18px 0 10px">Confirma tu correo</h2>
+      <p style="line-height:1.6">Hola ${String(name || "").trim() || "cliente"}, usa este código para terminar de crear tu cuenta en ${companyName}:</p>
+      <p style="font-size:32px;font-weight:bold;letter-spacing:8px;color:#176333;margin:24px 0">${code}</p>
+      <p style="line-height:1.6;color:#526557;font-size:13px">El código vence en ${minutes} minutos. Si no intentaste crear una cuenta, ignora este mensaje: nadie puede entrar sin este código.</p>
+    </div>`;
+    const result = await this.transporter.sendMail({
+      from: getDefaultFrom(),
+      to: email,
+      subject: `Tu código para ${companyName}: ${code}`,
+      html,
+      attachments: EMAIL_LOGO_ATTACHMENT,
+    });
+    return { success: true, messageId: result.messageId };
+  }
+
   async verifyConnection() {
     const { ok } = await this.verifyConnectionDetailed();
     return ok;
