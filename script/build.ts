@@ -46,7 +46,7 @@ async function buildAll() {
   ];
   const externals = allDeps.filter((dep) => !allowlist.includes(dep));
 
-  await esbuild({
+  const result = await esbuild({
     entryPoints: ["server/index.ts"],
     platform: "node",
     bundle: true,
@@ -54,6 +54,12 @@ async function buildAll() {
     outfile: "dist/index.cjs",
     define: {
       "process.env.NODE_ENV": '"production"',
+      // El servidor comparte módulos con el cliente, y en el cliente las
+      // variables se leen con `import.meta.env`. En CommonJS `import.meta` no
+      // existe: esbuild lo deja vacío y leer cualquier variable revienta el
+      // render. Aquí se apunta al entorno del proceso, que es de donde el
+      // servidor las toma de todos modos.
+      "import.meta.env": "process.env",
     },
     minify: true,
     external: externals,
@@ -62,6 +68,25 @@ async function buildAll() {
     },
     logLevel: "info",
   });
+
+  // `import.meta` no existe en el formato CommonJS: esbuild lo deja como un
+  // objeto vacío y el código que lo lee revienta en el primer render, con la
+  // tienda devolviendo 500 en todas las páginas. Es un aviso fácil de pasar por
+  // alto entre cientos de líneas de build, así que aquí se trata como error.
+  const importMetaWarnings = result.warnings.filter((w) => w.id === "empty-import-meta");
+  if (importMetaWarnings.length > 0) {
+    console.error(
+      "\n❌ Hay código de cliente que lee import.meta dentro del paquete del servidor:",
+    );
+    for (const warning of importMetaWarnings) {
+      const where = warning.location;
+      console.error(`   ${where ? `${where.file}:${where.line}` : "?"} — ${warning.text}`);
+    }
+    console.error(
+      "   Léelo con un respaldo de process.env (ver client/src/lib/customer-portal.ts).\n",
+    );
+    process.exit(1);
+  }
 }
 
 buildAll().catch((err) => {
