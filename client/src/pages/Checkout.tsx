@@ -1211,29 +1211,6 @@ export default function Checkout() {
           </p>
         </div>
 
-        <p className="mx-auto mb-5 max-w-2xl rounded-2xl border border-[#E5D7EF] bg-white/95 px-4 py-3 text-center text-sm font-black text-[#4A3362] shadow-[0_12px_32px_rgba(74,51,98,0.06)] sm:text-base">
-          Todo está en una sola página: tus datos, entrega, pago y resumen. Completa de arriba hacia abajo y confirma al final.
-        </p>
-        <div className="mx-auto mb-5 flex max-w-2xl flex-col items-center justify-between gap-3 rounded-2xl border border-[#25D366]/25 bg-[#F2FFF7] px-4 py-4 text-center shadow-[0_12px_32px_rgba(37,211,102,0.10)] sm:flex-row sm:text-left">
-          <div>
-            <p className="text-sm font-black uppercase tracking-[0.12em] text-[#168A43]">
-              ¿Necesitas ayuda?
-            </p>
-            <p className="mt-1 text-sm font-bold text-[#255E3A]">
-              Te guiamos por WhatsApp para llenar datos, entrega o pago.
-            </p>
-          </div>
-          <a
-            href={checkoutWhatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-[#25D366] px-5 py-3 text-sm font-black text-white shadow-lg shadow-[#25D366]/20 transition hover:bg-[#1ebe5d]"
-          >
-            <MessageSquare className="h-4 w-4" />
-            Ayuda por WhatsApp
-          </a>
-        </div>
-
         <div className="mx-auto mb-5 grid max-w-4xl gap-3 sm:grid-cols-3">
           {CHECKOUT_TRUST_BADGES.map(({ title, copy, Icon }) => (
             <div
