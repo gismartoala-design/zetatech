@@ -78,6 +78,7 @@
 .zt-button:active{transform:translateY(-1px) scale(.98)}
 
 /* Containers */
+.zt-eyebrow{display:inline-block;margin-bottom:14px;font-size:10px;font-weight:650;letter-spacing:.18em;text-transform:uppercase;opacity:.65}
 .zt-heading,.zt-tiles,.zt-block details{max-width:1240px;margin-left:auto;margin-right:auto}
 .zt-heading h2{max-width:18ch}
 .zt-heading p{max-width:56ch}

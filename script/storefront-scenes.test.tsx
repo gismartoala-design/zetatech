@@ -6,7 +6,6 @@ import { CategoryScene, EditorialScene, ProductJourney } from '../client/src/com
 import { defaultSite } from '../shared/website';
 import type { Product } from '../client/src/data/mock';
 import { getCategoryArtwork, getStorefrontProductImage, getHeroImage, getEditorialImage } from '../client/src/lib/storefront-artwork';
-import { arrangeStorefrontBlocks } from '../client/src/lib/storefront-layout';
 
 const hero = defaultSite.blocks.find(block => block.type === 'hero')!;
 const product: Product = {
@@ -66,11 +65,13 @@ assert.match(editorialMarkup, /media="\(max-width: 640px\)"/);
 assert.match(editorialMarkup, /srcSet="\/mobile.png"/);
 assert.match(editorialMarkup, /loading="lazy"/);
 
-const original=JSON.stringify(defaultSite);
-const arranged=arrangeStorefrontBlocks(defaultSite.blocks);
-assert.ok(arranged.findIndex(block=>block.type==='products')<arranged.findIndex(block=>block.type==='brands'));
-assert.equal(JSON.stringify(defaultSite),original,'Presentation reordering must not mutate administrator content');
-const custom={...hero,id:'custom',type:'text' as const};
-assert.equal(arrangeStorefrontBlocks([hero,custom,...defaultSite.blocks.slice(1)])[1],custom);
+// El orden del documento es el que manda: la tienda ya no reacomoda bloques,
+// así que arrastrarlos en el editor es lo único que cambia la portada.
+const order=defaultSite.blocks.map(block=>block.type);
+assert.ok(order.indexOf('products')<order.indexOf('brands'));
+assert.equal(order[0],'hero');
+
+assert.match(renderToStaticMarkup(<EditorialScene block={{...editorial,eyebrow:'Etiqueta propia'}} index={0}/>),/Etiqueta propia/);
+assert.match(renderToStaticMarkup(<EditorialScene block={{...editorial,eyebrow:''}} index={0}/>),/Conecta con lo que te mueve/);
 
 console.log('PASS: public scenes, real price/stock/offers, safe names, empty catalogue, unknown stock, category links, responsive and lazy images.');

@@ -143,3 +143,9 @@
 }
 @media(prefers-reduced-motion:reduce){.zx-brands-belt{animation:none;transform:none}.zx-brands-set[inert]{display:none}.zx-brands-window{overflow:auto;mask-image:none}.zx-brand-pause{display:none}.zx-brands-set{min-width:0}.zx-header,.zx-storefront .zt-button{transition:none}}
 @media(max-width:600px){.zx-catalog-card .zt-pricing-current strong{font-size:20px}.zx-catalog-card .zx-card-pricing{gap:10px;padding-top:12px}.zx-catalog-card .zx-card-delivery{font-size:10px}.zx-catalog-card .zx-card-pricing>div{width:100%}.zx-catalog-card .zt-pricing-current{flex-direction:row;align-items:baseline;gap:6px}.zx-catalog-card .zt-pricing small{font-size:8px;letter-spacing:.05em}.zx-catalog-card .zt-pricing-saving{align-self:center}.zx-catalog-card .absolute.top-6{top:12px;left:12px;padding:5px 9px;font-size:8px}.zx-storefront .zx-header-dock{height:124px}}
+
+/* Vista previa del editor: cada sección se puede señalar con el cursor para
+   seleccionarla en el panel. Solo se activa dentro del iframe del editor. */
+[data-zt-editor] section[id]{position:relative;cursor:pointer;outline:2px dashed transparent;outline-offset:-6px;transition:outline-color .15s ease}
+[data-zt-editor] section[id]:hover{outline-color:#188b4299}
+[data-zt-editor] section[id][data-zt-selected]{outline:2px solid #188b42;outline-offset:-6px}

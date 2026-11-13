@@ -105,7 +105,7 @@ export function ProductJourney({ block, product }: { block: SiteBlock; product?:
     </div></div>
     <div className="zx-scene zx-scene-intro">
       <div className="zx-scene-copy">
-        <span className="zx-eyebrow"><i aria-hidden="true" /> Tecnología que va contigo</span>
+        <span className="zx-eyebrow"><i aria-hidden="true" /> {block.eyebrow || 'Tecnología que va contigo'}</span>
         <h1>{block.title}</h1>
         {block.text && <p>{block.text}</p>}
         <a className="zt-button zx-primary" href={block.href || '/shop'}>{block.button || 'Explorar la tienda'}<span aria-hidden="true">↗</span></a>
@@ -133,7 +133,7 @@ export function CategoryScene({ block, products }: { block: SiteBlock; products:
   const roots = buildCategoryTree(products.map(product => product.category));
   const items = isDefault && roots.length ? roots.slice(0,6).map(root => ({title:root.name,text:'Explorar colección',image:'',href:getCategoryPath(root.name)})) : block.items;
   return <section id={block.id} className="zx-categories zx-section" style={{ background: block.background, color: block.foreground }}>
-    <div className="zx-section-heading" data-zx-reveal><span className="zx-eyebrow">03 / Elige tu mundo</span><h2>{block.title}</h2>{block.text && <p>{block.text}</p>}</div>
+    <div className="zx-section-heading" data-zx-reveal><span className="zx-eyebrow">{block.eyebrow || 'Elige tu mundo'}</span><h2>{block.title}</h2>{block.text && <p>{block.text}</p>}</div>
     <div className="zx-category-grid">{items.map((item, index) => {
       const matchingProduct = products.find(product => isProductInCategory(product.category, item.title) && product.image);
       const artwork = getCategoryArtwork(item.title);
@@ -151,6 +151,6 @@ export function CategoryScene({ block, products }: { block: SiteBlock; products:
 export function EditorialScene({ block, index }: { block: SiteBlock; index: number }) {
   return <section id={block.id} className={`zx-editorial zx-section ${index % 2 ? 'zx-editorial-reverse' : ''}`} style={{ background: block.background, color: block.foreground, '--zx-editorial-zoom': block.zoom } as CSSProperties}>
     <div className="zx-editorial-art" data-zx-reveal><EnergyOrbit /><picture>{block.mobileImage && <source media="(max-width: 640px)" srcSet={getEditorialImage(block.mobileImage)} />}<SceneImage src={getEditorialImage(block.image)} alt={block.alt || block.title} /></picture><span className="zx-art-tag" aria-hidden="true">ZT / {String(index + 1).padStart(2, '0')}</span></div>
-    <div className="zx-editorial-copy" data-zx-reveal><span className="zx-eyebrow">Conecta con lo que te mueve</span><h2>{block.title}</h2>{block.text && <p>{block.text}</p>}{block.button && <a className="zx-text-link" href={block.href || '/shop'}>{block.button} <span aria-hidden="true">↗</span></a>}</div>
+    <div className="zx-editorial-copy" data-zx-reveal><span className="zx-eyebrow">{block.eyebrow || 'Conecta con lo que te mueve'}</span><h2>{block.title}</h2>{block.text && <p>{block.text}</p>}{block.button && <a className="zx-text-link" href={block.href || '/shop'}>{block.button} <span aria-hidden="true">↗</span></a>}</div>
   </section>;
 }

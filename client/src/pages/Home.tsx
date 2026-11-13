@@ -10,7 +10,6 @@ import {StorefrontNavigation} from '@/components/StorefrontNavigation';
 import { ProductCard } from '@/components/ProductCard';
 import { useCart } from '@/context/CartContext';
 import { StorefrontBrands } from '@/components/StorefrontBrands';
-import { arrangeStorefrontBlocks } from '@/lib/storefront-layout';
 function Products({block}:{block:SiteBlock}) {
   const {data=[],isLoading,isError,refetch}=useStorefrontProducts();
   if(isLoading)return <div className="zx-home-grid" aria-busy="true" aria-label="Cargando productos">{[0,1,2,3].map(i=><div className="product-skeleton" key={i}/>)}</div>;
@@ -22,8 +21,9 @@ function Products({block}:{block:SiteBlock}) {
 }
 export default function Home(){
   const {data}=useWebsite();
-  const source=ensureBrandBlock(data||defaultSite);
-  const document={...source,blocks:arrangeStorefrontBlocks(source.blocks)};
+  // El orden es el que el administrador dejó en el editor: no se reacomoda
+  // aquí, porque entonces arrastrar bloques en el panel no serviría de nada.
+  const document=ensureBrandBlock(data||defaultSite);
   const {data:products=[]}=useStorefrontProducts();
   const {cartItemCount,setIsCartOpen}=useCart();
   const sceneRef=useSceneMotion(document.blocks.map(block=>`${block.id}:${block.type}:${block.hidden}`).join('|'));
