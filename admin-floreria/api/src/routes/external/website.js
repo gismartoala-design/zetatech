@@ -29,7 +29,7 @@ router.get('/products', async (req,res,next)=>{
   try {
     const company=await resolveCompany(req);
     if (!company) return res.status(404).json({ message: 'Sitio no configurado' });
-    const products=await db.product.findMany({where:{companyId:company.id,isActive:true,isDeleted:false},orderBy:[{sortOrder:'asc'},{createdAt:'desc'}],select:{id:true,name:true,description:true,price:true,image:true,category:true,stock:true,featured:true,sortOrder:true,hasVariants:true,variants:{where:{isActive:true,isDeleted:false}},discounts_products:{include:{discounts:true}}}});
+    const products=await db.product.findMany({where:{companyId:company.id,isActive:true,isDeleted:false},orderBy:[{sortOrder:'asc'},{createdAt:'desc'}],select:{id:true,name:true,description:true,price:true,image:true,category:true,stock:true,featured:true,sortOrder:true,hasVariants:true,createdAt:true,variants:{where:{isActive:true,isDeleted:false}},discounts_products:{include:{discounts:true}}}});
     res.set('Cache-Control','no-store');
     res.json({data:products.map(p=>{
       const offer=getProductOffer(p);

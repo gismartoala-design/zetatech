@@ -36,6 +36,7 @@ export function ProductCard({ product, priority = false, showBestSellerBadge = t
   const productPrice = getNumericPriceValue(product.price);
   const productSku = getProductSku(product);
   const soldOut = product.stock === 0;
+  const isNewArrival = product.createdAt != null && Date.now() - new Date(product.createdAt).getTime() < 14 * 24 * 60 * 60 * 1000;
 
   const trackAddToCart = () => {
     const gaItem = buildGaItem({
@@ -138,6 +139,11 @@ export function ProductCard({ product, priority = false, showBestSellerBadge = t
           </div>
         )}
         {comparePrices(product.price,product.originalPrice).active && <span className="absolute right-3 top-3 rounded-full bg-accent px-3 py-1 text-xs font-bold text-white">Oferta</span>}
+        {isNewArrival && (
+          <div className="absolute bottom-3 left-3 z-10 rounded-full bg-foreground px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-white shadow-lg">
+            Recién llegado
+          </div>
+        )}
       </Link>
 
       <div className="flex flex-1 flex-col p-5 sm:p-6">

@@ -9,6 +9,7 @@ export interface Product {
   image: string;
   additionalImages?: string[];
   isBestSeller: boolean;
+  createdAt?: string;
   /** Posición elegida en el panel. Nulo si aún no se ha ordenado a mano. */
   sortOrder?: number | null;
   stock: number | null;

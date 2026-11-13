@@ -163,6 +163,7 @@ router.get('/', async (req, res) => {
         image: p.image || '',
         category: getCanonicalCategory(p.category),
         isBestSeller: p.featured,
+        createdAt: p.createdAt,
         stock: p.stock,
         hasVariants: p.hasVariants,
         variants: p.variants.map((v) => ({
