@@ -621,6 +621,27 @@ async function proxyToBackend(req: Request, res: Response) {
   const cacheControl = req.get("Cache-Control");
   const cookie = req.get("Cookie");
   const authorization = req.get("Authorization");
+  // El panel vive bajo /admin de este mismo dominio y la API interna solo
+  // escucha en el loopback del contenedor: todo lo que escribe el editor pasa
+  // por aqui. La API exige la cabecera X-Site-Editor y un Origin de confianza
+  // para aceptar una escritura; si este proxy no las reenvia, guardar la web
+  // responde 403 "Solicitud de edicion invalida".
+  const siteEditor = req.get("X-Site-Editor");
+  const browserOrigin = req.get("Origin");
+  // La API compara el Origin con su propio Host, y su Host siempre es
+  // 127.0.0.1: el dominio publico solo se conoce aqui. Asi que la comprobacion
+  // de mismo origen se hace en este borde, y solo cuando pasa se le presenta a
+  // la API su propio origen. Un Origin ajeno viaja tal cual y la API lo
+  // rechaza con su propia lista CORS_ORIGIN, como hasta ahora.
+  const isWrite = !["GET", "HEAD"].includes(req.method);
+  const sameOriginWrite = (() => {
+    if (!isWrite || !browserOrigin) return false;
+    try {
+      return new URL(browserOrigin).host.toLowerCase() === String(req.get("Host") || "").toLowerCase();
+    } catch {
+      return false;
+    }
+  })();
   const abortController = new AbortController();
   const abortRequest = () => abortController.abort();
 
@@ -659,7 +680,16 @@ async function proxyToBackend(req: Request, res: Response) {
         ...(cookie ? { Cookie: cookie } : {}),
         ...(authorization ? { Authorization: authorization } : {}),
         "X-Forwarded-For": req.ip || "",
-        ...(req.originalUrl.startsWith('/api/external/website') ? { Origin: req.get('Origin') || `${req.protocol}://${req.get('host')}` } : {}),
+        ...(siteEditor ? { "X-Site-Editor": siteEditor } : {}),
+        ...(isWrite
+          ? sameOriginWrite
+            ? { Origin: BACKEND_ORIGIN }
+            : browserOrigin
+              ? { Origin: browserOrigin }
+              : {}
+          : req.originalUrl.startsWith('/api/external/website')
+            ? { Origin: browserOrigin || `${req.protocol}://${req.get('host')}` }
+            : {}),
       },
       signal: abortController.signal,
       ...bodyOptions,
