@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import axios from 'axios';
 import { useUserStore } from '@/store/use-user-store';
 import { ADMIN_API_URL, STOREFRONT_URL } from '@/core/config/public-env';
-import { defaultSite, ensureBrandBlock, newBlock, blockLabels, type SiteDocument, type SiteBlock, type BlockType } from '@site/website';
+import { defaultSite, ensureBrandBlock, newBlock, blockLabels, type SiteDocument, type SiteBlock, type SiteItem, type BlockType } from '@site/website';
 import './website-editor.css';
 import './website-editor-polish.css';
 import './website-editor-inline.css';
@@ -19,7 +19,7 @@ const blockHints:Record<BlockType,string>={
   benefits:'Las tarjetas de categorías. Si no editas los elementos, se muestran solas tus categorías reales del catálogo.',
   products:'La vitrina de productos. Eliges categoría, cantidad o productos concretos.',
   image:'Sección con imagen grande a un lado y texto al otro.',
-  brands:'Cinta de marcas en movimiento.',
+  brands:'Cinta de marcas en movimiento. Sube el logo de cada marca; la que no tenga logo aparece con su nombre escrito.',
   faq:'Preguntas frecuentes desplegables.',
   gallery:'Cuadrícula de imágenes con título y texto.',
   text:'Bloque de texto suelto.',
@@ -97,9 +97,15 @@ function WebsiteEditor(){
     setFocusMode(true);
     try{await previewRef.current?.requestFullscreen();}catch{/* el modo visual de pantalla completa ya quedó activo */}
   }
-  const edit=(next:SiteDocument)=>{setHistory(h=>[...h.slice(-29),copy(doc)]);setFuture([]);setDoc(next);setMessage('');};
-  const updateBlock=(patch:Partial<SiteBlock>)=>edit({...doc,blocks:doc.blocks.map(b=>b.id===selected?{...b,...patch}:b)});
-  const theme=(patch:Partial<SiteDocument['theme']>)=>edit({...doc,theme:{...doc.theme,...patch}});
+  // `edit` acepta una funcion para que un cambio que ocurre despues de esperar
+  // al servidor (subir una imagen) parta del documento actual y no de la copia
+  // que tenia el componente cuando empezo la subida.
+  type Change=SiteDocument|((d:SiteDocument)=>SiteDocument);
+  const edit=(next:Change)=>{setHistory(h=>[...h.slice(-29),copy(doc)]);setFuture([]);setDoc(d=>typeof next==='function'?next(d):next);setMessage('');};
+  const patchBlock=(d:SiteDocument,patch:Partial<SiteBlock>):SiteDocument=>({...d,blocks:d.blocks.map(b=>b.id===selected?{...b,...patch}:b)});
+  const patchItem=(d:SiteDocument,index:number,patch:Partial<SiteItem>):SiteDocument=>({...d,blocks:d.blocks.map(b=>b.id===selected?{...b,items:b.items.map((x,n)=>n===index?{...x,...patch}:x)}:b)});
+  const updateBlock=(patch:Partial<SiteBlock>)=>edit(d=>patchBlock(d,patch));
+  const theme=(patch:Partial<SiteDocument['theme']>)=>edit(d=>({...d,theme:{...d.theme,...patch}}));
   const move=(id:string,index:number)=>{const blocks=[...doc.blocks];const current=blocks.findIndex(b=>b.id===id);if(current<0||index<0||index>=blocks.length)return;const [item]=blocks.splice(current,1);blocks.splice(index,0,item);edit({...doc,blocks});};
   async function persist(action:'save'|'publish'|'restore',versionId?:string){
     if(!state)return;
@@ -108,20 +114,43 @@ function WebsiteEditor(){
     try{const r=await api.post(`/cms/website/${action}`,{revision:state.revision,document:doc,versionId});setState(r.data.data);setDoc(r.data.data.draft);setSaved(JSON.stringify(r.data.data.draft));setMessage(action==='publish'?'Sitio publicado. La tienda mostrará esta versión.':action==='restore'?'Versión recuperada como borrador. Publícala cuando esté lista.':'Borrador guardado. La tienda publicada no ha cambiado.');}
     catch(e){setError(axios.isAxiosError(e)?e.response?.data?.message||'No se pudo guardar. Tus cambios siguen en el editor.':'No se pudo guardar.');}finally{setBusy(false);}
   }
-  async function upload(file?:File){
-    if(!file)return;if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>5*1024*1024){setError('Usa JPG, PNG o WebP de hasta 5 MB.');return;}
-    setBusy(true);setError('');try{const form=new FormData();form.append('file',file);const r=await api.post('/cms/website/media',form);if(!r.data.url)throw new Error();edit({...doc,media:Array.from(new Set([...doc.media,r.data.url]))});setMessage('Imagen subida. Selecciónala en el bloque y guarda el borrador.');}catch{setError('No se pudo subir la imagen.');}finally{setBusy(false);}
+  /** Sube una imagen a la biblioteca. Con `set` ademas la deja puesta en el
+   *  campo desde el que se subio, en un solo paso del historial: subir el logo
+   *  de una marca y tener que volver a buscarlo en una lista era el paso que
+   *  sobraba. El servidor solo acepta JPG, PNG y WebP, y lo comprueba por los
+   *  bytes del archivo, no por su nombre. */
+  async function upload(file?:File,set?:(d:SiteDocument,url:string)=>SiteDocument){
+    if(!file)return;
+    if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>5*1024*1024){setError('Usa JPG, PNG o WebP de hasta 5 MB.');return;}
+    setBusy(true);setError('');
+    try{
+      const form=new FormData();form.append('file',file);
+      const r=await api.post('/cms/website/media',form);
+      const url:string=r.data.url;
+      if(!url)throw new Error();
+      edit(d=>{const next={...d,media:Array.from(new Set([...d.media,url]))};return set?set(next,url):next;});
+      setMessage(set?'Imagen subida y puesta en su campo. Guarda el borrador para conservarla.':'Imagen subida. Selecciónala en el bloque y guarda el borrador.');
+    }catch{setError('No se pudo subir la imagen.');}finally{setBusy(false);}
   }
-  const imageField=(label:string,value:string,onChange:(v:string)=>void)=><div className="we-image-field"><Field label={label} value={value} onChange={onChange}/><select aria-label={`Biblioteca: ${label}`} value="" onChange={e=>onChange(e.target.value)}><option value="">Elegir de la biblioteca…</option>{doc.media.map((url,i)=><option key={url} value={url}>Imagen {i+1} · {url.split('/').pop()}</option>)}</select></div>;
-  const itemsEditor=(current:SiteBlock,labels:{title:string;text:string;add:string},withImage:boolean,withLink:boolean)=><Group title="Elementos">
+  const imageField=(label:string,value:string,set:(d:SiteDocument,url:string)=>SiteDocument,hint?:string)=><div className="we-image-field">
+    <Field label={label} value={value} onChange={v=>edit(d=>set(d,v))} hint={hint}/>
+    <div className="we-image-tools">
+      <label className="we-upload">{busy?'Subiendo…':'Subir imagen'}<input type="file" accept="image/jpeg,image/png,image/webp" disabled={busy||doc.media.length>=100} onChange={e=>{upload(e.target.files?.[0],set);e.target.value='';}}/></label>
+      <select aria-label={`Biblioteca: ${label}`} value="" onChange={e=>{const url=e.target.value;if(url)edit(d=>set(d,url));}}><option value="">Elegir de la biblioteca…</option>{doc.media.map((url,i)=><option key={url} value={url}>Imagen {i+1} · {url.split('/').pop()}</option>)}</select>
+      {value&&<button type="button" onClick={()=>edit(d=>set(d,''))}>Quitar</button>}
+    </div>
+    {value&&<img className="we-image-preview" src={asset(value)} alt=""/>}
+  </div>;
+  type ItemLabels={group?:string;title:string;text?:string;image?:string;imageHint?:string;add:string;addLabel?:string};
+  const itemsEditor=(current:SiteBlock,labels:ItemLabels,withImage:boolean,withLink:boolean)=><Group title={labels.group||'Elementos'}>
     {current.items.map((item,i)=><div className="we-item" key={i}>
-      <Field label={labels.title} value={item.title} onChange={v=>updateBlock({items:current.items.map((x,n)=>n===i?{...x,title:v}:x)})}/>
-      <label className="we-field">{labels.text}<textarea rows={2} value={item.text} onChange={e=>updateBlock({items:current.items.map((x,n)=>n===i?{...x,text:e.target.value}:x)})}/></label>
-      {withImage&&imageField('Imagen',item.image,v=>updateBlock({items:current.items.map((x,n)=>n===i?{...x,image:v}:x)}))}
-      {withLink&&<Field label="Enlace" value={item.href} onChange={v=>updateBlock({items:current.items.map((x,n)=>n===i?{...x,href:v}:x)})} hint="Ej: /categoria/smartwatches"/>}
+      <Field label={labels.title} value={item.title} onChange={v=>edit(d=>patchItem(d,i,{title:v}))}/>
+      {labels.text&&<label className="we-field">{labels.text}<textarea rows={2} value={item.text} onChange={e=>{const text=e.target.value;edit(d=>patchItem(d,i,{text}));}}/></label>}
+      {withImage&&imageField(labels.image||'Imagen',item.image,(d,url)=>patchItem(d,i,{image:url}),labels.imageHint)}
+      {withLink&&<Field label="Enlace" value={item.href} onChange={v=>edit(d=>patchItem(d,i,{href:v}))} hint="Ej: /categoria/smartwatches"/>}
       <button onClick={()=>updateBlock({items:current.items.filter((_,n)=>n!==i)})}>Eliminar</button>
     </div>)}
-    <button disabled={current.items.length>=12} onClick={()=>updateBlock({items:[...current.items,{title:labels.add,text:'',image:'',href:'/shop'}]})}>Agregar elemento</button>
+    <button disabled={current.items.length>=12} onClick={()=>updateBlock({items:[...current.items,{title:labels.add,text:'',image:'',href:'/shop'}]})}>{labels.addLabel||'Agregar elemento'}</button>
   </Group>;
 
   return <div className="we-editor"><header className="we-toolbar"><div><h1>Editor de Zetatech</h1><small>{dirty?'Cambios sin guardar':'Cambios guardados'} · {state?.publishedAt?`Última publicación: ${new Date(state.publishedAt).toLocaleString('es-EC')}`:'Sin publicar'}</small></div><div className="we-actions"><button disabled={!history.length||busy} onClick={()=>{setFuture(f=>[copy(doc),...f]);setDoc(history[history.length-1]);setHistory(h=>h.slice(0,-1));}}>Deshacer</button><button disabled={!future.length||busy} onClick={()=>{setHistory(h=>[...h,copy(doc)]);setDoc(future[0]);setFuture(f=>f.slice(1));}}>Rehacer</button><button disabled={busy||!state} onClick={()=>persist('save')}>Guardar borrador</button><button className="we-primary" disabled={busy||!state} onClick={()=>persist('publish')}>{busy?'Procesando…':'Publicar'}</button></div></header>
@@ -139,7 +168,7 @@ function WebsiteEditor(){
         <Group title="Marca">
           <Field label="Nombre de la marca" value={doc.theme.brand} onChange={v=>theme({brand:v})}/>
           <Field label="Descripción SEO" value={doc.theme.description} onChange={v=>theme({description:v})}/>
-          {imageField('Logo',doc.theme.logo,v=>theme({logo:v}))}{imageField('Favicon',doc.theme.favicon,v=>theme({favicon:v}))}
+          {imageField('Logo',doc.theme.logo,(d,url)=>({...d,theme:{...d.theme,logo:url}}))}{imageField('Favicon',doc.theme.favicon,(d,url)=>({...d,theme:{...d.theme,favicon:url}}))}
         </Group>
         <Group title="Menú y pie">
           <Field label="Texto del carrito" value={doc.theme.cartLabel} onChange={v=>theme({cartLabel:v})}/>
@@ -164,8 +193,8 @@ function WebsiteEditor(){
         </Group>
 
         {(block.type==='hero'||block.type==='image')&&<Group title="Imagen">
-          {imageField('Imagen',block.image,v=>updateBlock({image:v}))}
-          {imageField('Imagen para celular (opcional)',block.mobileImage,v=>updateBlock({mobileImage:v}))}
+          {imageField('Imagen',block.image,(d,url)=>patchBlock(d,{image:url}))}
+          {imageField('Imagen para celular (opcional)',block.mobileImage,(d,url)=>patchBlock(d,{mobileImage:url}))}
           <Field label="Descripción de la imagen" value={block.alt} onChange={v=>updateBlock({alt:v})} hint="Para buscadores y lectores de pantalla."/>
           {block.type==='image'&&<label className="we-field">Acercamiento al pasar el cursor ({block.zoom.toFixed(2)}×)<input type="range" min={1} max={1.2} step={.01} value={block.zoom} onChange={e=>updateBlock({zoom:Number(e.target.value)})}/></label>}
         </Group>}
@@ -189,9 +218,9 @@ function WebsiteEditor(){
         </Group>}
 
         {block.type==='benefits'&&itemsEditor(block,{title:'Categoría',text:'Texto breve',add:'Nueva categoría'},true,true)}
-        {block.type==='brands'&&itemsEditor(block,{title:'Marca',text:'Texto breve',add:'Nueva marca'},true,true)}
+        {block.type==='brands'&&itemsEditor(block,{group:'Marcas y sus logos',title:'Nombre de la marca',image:'Logo',imageHint:'PNG con fondo transparente se ve mejor sobre el fondo oscuro. Sin logo se muestra el nombre escrito.',add:'Nueva marca',addLabel:'Agregar marca'},true,true)}
         {block.type==='gallery'&&itemsEditor(block,{title:'Título',text:'Texto',add:'Nuevo elemento'},true,true)}
-        {block.type==='faq'&&itemsEditor(block,{title:'Pregunta',text:'Respuesta',add:'Nueva pregunta'},false,false)}
+        {block.type==='faq'&&itemsEditor(block,{group:'Preguntas',title:'Pregunta',text:'Respuesta',add:'Nueva pregunta',addLabel:'Agregar pregunta'},false,false)}
 
         {block.type!=='hero'&&<Group title="Colores">
           <Field label="Fondo" type="color" value={block.background} onChange={v=>updateBlock({background:v})}/>

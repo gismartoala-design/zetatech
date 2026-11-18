@@ -23,3 +23,14 @@
 .we-block-row>button{display:flex;flex-direction:column;gap:2px}
 .we-block-row>button small{font-size:10px;color:#7b8d82;font-weight:500}
 .we-preview-loading{margin:0 0 8px;font-size:12px;color:#607367}
+
+/* Subir una imagen desde el propio campo (logos de marcas, portada, logo del
+   sitio) en vez de tener que ir a la biblioteca y volver a buscarla. */
+.we-image-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:6px}
+.we-image-tools select{flex:1;min-width:150px;margin-top:0}
+.we-upload{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid #cbd7cf;border-radius:7px;background:#fff;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.we-upload:hover{border-color:#188b42;color:#146c35}
+.we-upload input{display:none}
+/* El fondo oscuro imita la cinta de marcas: un logo blanco sobre blanco no se
+   veria y parecería que la subida fallo. */
+.we-image-preview{display:block;margin-top:8px;height:58px;width:auto;max-width:100%;object-fit:contain;border:1px solid #e4ebe7;border-radius:7px;background:#16251c;padding:7px;box-sizing:border-box}
