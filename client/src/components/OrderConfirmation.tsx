@@ -43,7 +43,10 @@ export function OrderConfirmation({ details }: { details: ConfirmationDetails })
       <h1 className="mb-3 text-2xl font-bold">¡Muchas gracias por tu compra!</h1>
       <p className="mb-2 font-semibold">{details.orderNumber}</p>
       <p className="mb-6 text-sm text-foreground/70">{details.paymentStatus === "PAID" ? "Pago aprobado. Tu pedido está confirmado." : coordinateWithSales ? 'Tu pedido quedó registrado. No se ha realizado ningún cobro. Nuestro equipo de ventas te contactará por teléfono o WhatsApp para coordinar contigo la entrega y el pago.' : cashOnDelivery ? "Pedido registrado. Pagarás el monto indicado cuando recibas tu compra." : "Pedido registrado. El pago está pendiente de validación; todavía no figura como pagado."}</p>
-      {coordinateWithSales&&<div className="mb-5 rounded-xl border border-accent/20 bg-accent/5 p-4 text-sm"><MessageSquare className="mb-2 h-5 w-5 text-accent"/><strong>¿Qué sigue?</strong><ol className="mt-2 list-decimal space-y-1 pl-5"><li>Conserva tu número de pedido y descarga el comprobante.</li><li>Ventas te contactará en el celular que registraste.</li><li>Acuerden la entrega y la forma de pago antes del despacho.</li></ol></div>}
+      {/* Lo que pasa después de comprar. Va en todos los pedidos, no solo en
+          los que se coordinan con ventas: los plazos y la cobertura de envío
+          son los mismos pague como pague el cliente. */}
+      <div className="mb-5 rounded-xl border border-accent/20 bg-accent/5 p-4 text-sm"><MessageSquare className="mb-2 h-5 w-5 text-accent"/><strong>¿Qué sigue?</strong><ol className="mt-2 list-decimal space-y-1 pl-5"><li>Conserva tu número de pedido y descarga el comprobante.</li><li>El departamento de ventas se contactará contigo para confirmar el pago y el punto de entrega.</li><li>Entrega en menos de 24 horas en Guayaquil, Durán y Samborondón.</li><li>Envíos a nivel nacional mediante Servientrega.</li></ol></div>
       <dl className="grid grid-cols-2 gap-3 border-y border-border py-4 text-sm">
         <dt>Método de pago</dt><dd className="text-right font-semibold">{details.paymentMethod}</dd>
         {details.total != null && <><dt>{cashOnDelivery ? "Pendiente al recibir" : "Total del pedido"}</dt><dd className="text-right font-bold">${details.total.toFixed(2)}</dd></>}
