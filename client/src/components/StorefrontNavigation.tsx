@@ -3,6 +3,7 @@ import { User } from 'lucide-react';
 import type { SiteDocument } from '@shared/website';
 import { SiteHeader } from '@shared/SiteRenderer';
 import { toPublicImageUrl } from '@/lib/media';
+import { CUSTOMER_PORTAL_ENABLED } from '@/lib/customer-portal';
 import { DeliveryNotice } from './DeliveryNotice';
 
 /** Full announcement at the top; compact black caption inside the floating bar. */
@@ -25,9 +26,14 @@ export function StorefrontNavigation({ theme, cart }: { theme: SiteDocument['the
         brandCaption={<div hidden={!scrolled}><DeliveryNotice inline /></div>}
         cart={
           <div className="zt-header-icons">
-            <a href="/mi-cuenta" className="zt-header-icon-btn" aria-label="Mi cuenta" title="Mi cuenta">
-              <User size={20} strokeWidth={1.9} />
-            </a>
+            {/* El portal de clientes todavia no esta activo (ver
+                client/src/lib/customer-portal.ts): mostrar este icono antes de
+                tiempo llevaba a /mi-cuenta a una pagina que no existe. */}
+            {CUSTOMER_PORTAL_ENABLED && (
+              <a href="/mi-cuenta" className="zt-header-icon-btn" aria-label="Mi cuenta" title="Mi cuenta">
+                <User size={20} strokeWidth={1.9} />
+              </a>
+            )}
             {cart}
           </div>
         }

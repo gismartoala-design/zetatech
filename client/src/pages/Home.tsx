@@ -12,7 +12,6 @@ import { ProductCard } from '@/components/ProductCard';
 import { useCart } from '@/context/CartContext';
 import { StorefrontBrands } from '@/components/StorefrontBrands';
 import { StoreFooter } from '@/components/StoreFooter';
-import { FloatingFaq } from '@/components/FloatingFaq';
 
 function Products({ block }: { block: SiteBlock }) {
   const { data = [], isLoading, isError, refetch } = useStorefrontProducts();
@@ -32,7 +31,6 @@ export default function Home() {
   const { data: products = [] } = useStorefrontProducts();
   const { cartItemCount, setIsCartOpen } = useCart();
   const sceneRef = useSceneMotion(document.blocks.map(block => `${block.id}:${block.type}:${block.hidden}`).join('|'));
-  const faqBlock = document.blocks.find(block => block.type === 'faq');
 
   return (
     <div ref={sceneRef}>
@@ -71,7 +69,6 @@ export default function Home() {
         }}
         renderProducts={block => <Products block={block} />}
       />
-      <FloatingFaq items={faqBlock?.items} />
     </div>
   );
 }

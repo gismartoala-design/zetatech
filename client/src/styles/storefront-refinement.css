@@ -147,10 +147,25 @@
 /* ═══════════════════════════════════════════════════════
    Header icon buttons (User + Cart, solo iconos)
    ═══════════════════════════════════════════════════════ */
-.zt-header-icons{display:flex;align-items:center;gap:6px}
-.zt-header-icon-btn{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:10px;background:#ffffff0d;border:1px solid #ffffff30;color:#fff;cursor:pointer;position:relative;transition:background .15s;text-decoration:none}
-.zt-header-icon-btn:hover{background:#ffffff20}
-.zt-cart-badge{position:absolute;top:4px;right:4px;min-width:17px;height:17px;border-radius:9px;background:#ffffffeb;color:#124c2b;font-size:10px;font-weight:700;display:grid;place-items:center;line-height:1}
+.zt-header-icons{display:flex;align-items:center;gap:8px}
+/* Escrito como ".zt-header-icons .zt-header-icon-btn" (dos clases) a proposito:
+   shared/website.css trae ".zt-header button{border:1px solid #ffffff33}" para
+   los botones de texto del tema, y esa regla (clase+etiqueta) gana por
+   especificidad a un simple ".zt-header-icon-btn" (una clase) sobre cualquier
+   boton, sin importar el orden de los archivos. El carrito es un <button> y
+   quedaba con el borde del tema en vez del suyo; el de cuenta, al ser un <a>,
+   no se veia afectado. Anidar bajo ".zt-header-icons" sube la especificidad
+   por encima de esa regla de forma explicita, no por casualidad del orden. */
+.zt-header-icons .zt-header-icon-btn{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:999px;background:#ffffff0d;border:1px solid #ffffff2a;color:#fff;cursor:pointer;position:relative;transition:background .18s,border-color .18s,transform .18s;text-decoration:none}
+.zt-header-icons .zt-header-icon-btn:hover{background:#ffffff1f;border-color:#ffffff4a;transform:translateY(-1px)}
+.zt-header-icons .zt-header-icon-btn:active{transform:translateY(0)}
+/* El carrito es la accion principal del header: un trazo de marca lo separa
+   del icono de cuenta, que es secundario y solo informativo. */
+.zt-header-icons .zt-cart-icon-btn{border-color:color-mix(in srgb,var(--zt-accent) 55%,#ffffff30)}
+.zt-header-icons .zt-cart-icon-btn:hover{background:color-mix(in srgb,var(--zt-accent) 28%,#ffffff12);border-color:var(--zt-accent)}
+.zt-cart-badge{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;padding:0 4px;border-radius:999px;background:#9df477;color:#0d2016;font-size:10px;font-weight:800;display:grid;place-items:center;line-height:1;border:2px solid #0f2518;animation:zt-cart-badge-pop .25s ease-out}
+@keyframes zt-cart-badge-pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+@media(prefers-reduced-motion:reduce){.zt-header-icon-btn{transition:none}.zt-cart-badge{animation:none}}
 
 /* ═══════════════════════════════════════════════════════
    Store Footer

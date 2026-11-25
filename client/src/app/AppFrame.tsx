@@ -4,6 +4,7 @@ import { Navbar } from "@/components/Navbar";
 import { Logo } from '@/components/Logo';
 import { WebsiteTheme } from '@/components/WebsiteTheme';
 import { useCompany } from "@/hooks/useCompany";
+import { useWebsite } from "@/hooks/useWebsite";
 import { useCart } from "@/context/CartContext";
 import { initGoogleAnalytics, trackGaEvent } from "@/lib/analytics";
 import { getPublicAppConfig } from "@/lib/runtime-config";
@@ -15,6 +16,9 @@ const Toaster = lazy(() =>
 );
 const FloatingWhatsApp = lazy(() =>
   import("@/components/FloatingWhatsApp").then((module) => ({ default: module.FloatingWhatsApp })),
+);
+const FloatingFaq = lazy(() =>
+  import("@/components/FloatingFaq").then((module) => ({ default: module.FloatingFaq })),
 );
 const CartSheet = lazy(() =>
   import("@/components/CartSheet").then((module) => ({ default: module.CartSheet })),
@@ -50,6 +54,12 @@ export function AppFrame({ Routes, fallback = <RouteFallback /> }: AppFrameProps
   const [shouldFetchCompany, setShouldFetchCompany] = useState(false);
   const [shouldLoadFloatingWhatsApp, setShouldLoadFloatingWhatsApp] = useState(false);
   const { isCartOpen } = useCart();
+  // Antes esta burbuja solo vivia en Home: quien llegaba por un enlace directo
+  // a un producto o a /shop nunca la veia. useWebsite() ya esta en cache (Home
+  // y el Navbar la piden con la misma clave), asi que pedirla aqui de nuevo no
+  // cuesta una peticion extra.
+  const { data: siteDocument } = useWebsite();
+  const faqBlock = siteDocument?.blocks.find(block => block.type === 'faq');
   const gaMeasurementId = getPublicAppConfig().gaMeasurementId;
   const hideNavbar = location === "/checkout" || location === "/payment-gateway" || location === "/datafast-payment" || location === "/payment-result";
   const { data: company } = useCompany(shouldFetchCompany && !hideNavbar);
@@ -221,11 +231,14 @@ export function AppFrame({ Routes, fallback = <RouteFallback /> }: AppFrameProps
     };
   }, [hideNavbar, shouldFetchCompany]);
 
+  const [shouldLoadFloatingFaq, setShouldLoadFloatingFaq] = useState(false);
+
   useEffect(() => {
-    if (shouldLoadFloatingWhatsApp || hideNavbar || typeof window === "undefined") return;
+    if ((shouldLoadFloatingWhatsApp && shouldLoadFloatingFaq) || hideNavbar || typeof window === "undefined") return;
 
     const enableFloatingWhatsApp = () => {
       setShouldLoadFloatingWhatsApp(true);
+      setShouldLoadFloatingFaq(true);
     };
 
     const interactionEvents: Array<keyof WindowEventMap> = [
@@ -255,7 +268,7 @@ export function AppFrame({ Routes, fallback = <RouteFallback /> }: AppFrameProps
         window.removeEventListener(eventName, onInteraction);
       });
     };
-  }, [hideNavbar, shouldLoadFloatingWhatsApp]);
+  }, [hideNavbar, shouldLoadFloatingWhatsApp, shouldLoadFloatingFaq]);
 
   useEffect(() => {
     if (!hasTrackedInitialPageView.current) {
@@ -289,6 +302,11 @@ export function AppFrame({ Routes, fallback = <RouteFallback /> }: AppFrameProps
       {shouldLoadFloatingWhatsApp ? (
         <Suspense fallback={null}>
           <FloatingWhatsApp />
+        </Suspense>
+      ) : null}
+      {shouldLoadFloatingFaq && !hideNavbar ? (
+        <Suspense fallback={null}>
+          <FloatingFaq items={faqBlock?.items} />
         </Suspense>
       ) : null}
       {!hideNavbar && isCartOpen ? (

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, HelpCircle, X } from 'lucide-react';
+import { BotMessageSquare, ChevronDown, X } from 'lucide-react';
 import type { SiteItem } from '@shared/website';
 import { useCart } from '@/context/CartContext';
 
@@ -48,7 +48,7 @@ export function FloatingFaq({ items = [] }: { items?: SiteItem[] }) {
         >
           <header className="flex items-center justify-between bg-[#0f2518] px-4 py-3 text-white">
             <div className="flex items-center gap-2">
-              <HelpCircle size={18} className="text-[#a8ed89]" />
+              <BotMessageSquare size={18} className="text-[#a8ed89]" />
               <strong className="text-sm font-semibold">Preguntas frecuentes</strong>
             </div>
             <button
@@ -90,15 +90,17 @@ export function FloatingFaq({ items = [] }: { items?: SiteItem[] }) {
         </section>
       )}
 
+      {/* Burbuja icono-solo, igual tamano y estilo que la de WhatsApp (FloatingWhatsApp.tsx)
+          pero del lado izquierdo: misma idea de "un boton, un proposito" en todo el sitio. */}
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
         aria-expanded={open}
         aria-label="Preguntas frecuentes"
-        className="inline-flex h-12 items-center gap-2 rounded-full border border-white/25 bg-[#0f2518] px-4 text-xs font-semibold text-white shadow-[0_14px_34px_rgba(8,22,14,0.34)] transition hover:scale-105 hover:bg-[#143522]"
+        title="Preguntas frecuentes"
+        className="inline-flex h-14 w-14 items-center justify-center rounded-full border border-white/25 bg-[#0f2518] text-white shadow-[0_18px_38px_rgba(8,22,14,0.38)] ring-4 ring-[#188b42]/15 transition hover:scale-105 hover:bg-[#143522] sm:h-16 sm:w-16"
       >
-        <HelpCircle size={18} className="text-[#a8ed89]" />
-        <span>Preguntas frecuentes</span>
+        <BotMessageSquare size={26} className="shrink-0 text-[#a8ed89]" />
       </button>
     </div>
   );
