@@ -255,7 +255,7 @@ export default function PaymentGateway() {
     return (
       <div className="min-h-screen bg-[#FBF7FD] flex items-center justify-center px-6">
         <Seo
-          title="Preparando pago | Zetatech"
+          title="Preparando pago | ZettaTech"
           description="Preparando el botón de pago PayPhone."
           path="/payment-gateway"
           robots="noindex, nofollow"
@@ -276,7 +276,7 @@ export default function PaymentGateway() {
     return (
       <div className="min-h-screen bg-[#FBF7FD] flex items-center justify-center px-6">
         <Seo
-          title="Error de pago | Zetatech"
+          title="Error de pago | ZettaTech"
           description="No se pudo preparar el Payment Box."
           path="/payment-gateway"
           robots="noindex, nofollow"
@@ -297,7 +297,7 @@ export default function PaymentGateway() {
               Reintentar pago
             </button>
             <a
-              href={`https://wa.me/${DEFAULT_COMPANY.phoneDigits}?text=${encodeURIComponent("Hola, necesito ayuda con mi pago Zetatech.")}`}
+              href={`https://wa.me/${DEFAULT_COMPANY.phoneDigits}?text=${encodeURIComponent("Hola, necesito ayuda con mi pago ZettaTech.")}`}
               target="_blank"
               rel="noopener noreferrer"
               className="w-full inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1ebe5d] text-white py-4 rounded-3xl font-black text-base transition-all shadow-xl"
@@ -320,7 +320,7 @@ export default function PaymentGateway() {
   return (
     <div className="min-h-screen bg-[#FBF7FD] flex items-center justify-center px-6 py-12">
       <Seo
-        title="Pago con tarjeta | Zetatech"
+        title="Pago con tarjeta | ZettaTech"
         description="Completa tu pago con PayPhone."
         path="/payment-gateway"
         robots="noindex, nofollow"
@@ -339,7 +339,7 @@ export default function PaymentGateway() {
             Completa tu pago con PayPhone desde esta página protegida.
           </p>
           <div className="mt-5 grid gap-2 sm:grid-cols-3">
-            {["Sesión segura", "Pedido guardado", "Soporte Zetatech"].map((label) => (
+            {["Sesión segura", "Pedido guardado", "Soporte ZettaTech"].map((label) => (
               <span key={label} className="inline-flex items-center justify-center gap-1.5 rounded-full border border-[#E5D7EF] bg-[#FBF7FD] px-3 py-2 text-xs font-black text-[#4B1F6F]">
                 <ShieldCheck className="h-3.5 w-3.5 text-[#C6539B]" />
                 {label}

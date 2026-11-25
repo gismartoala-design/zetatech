@@ -36,13 +36,13 @@ export default function Contact() {
   // "Mensaje enviado" sin mandar nada a ninguna parte: cada consulta se perdía.
   // Ahora abre WhatsApp, que es el canal por el que realmente se atiende.
   const whatsappHref = `https://wa.me/${phoneDigits}?text=${encodeURIComponent(
-    `Hola Zetatech, soy ${name || "un cliente"}. ${message || "Quisiera hacer una consulta sobre un pedido."}`,
+    `Hola ZettaTech, soy ${name || "un cliente"}. ${message || "Quisiera hacer una consulta sobre un pedido."}`,
   )}`;
 
   return (
     <div className="page-shell">
       <Seo
-        title="Contacto | Zetatech"
+        title="Contacto | ZettaTech"
         description="Escríbenos por WhatsApp o correo para pedidos de gadgets y accesorios tecnológicos a domicilio en Guayaquil. Atención todos los días."
         path="/contacto"
       />

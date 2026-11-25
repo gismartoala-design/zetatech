@@ -139,7 +139,7 @@ function OrdersPanel({ name }: { name: string }) {
 export default function Account() {
   const { data: account, isLoading } = useCustomerAccount();
   return <>
-    <Seo title="Mi cuenta | Zetatech" description="Consulta tus pedidos de Zetatech." path="/mi-cuenta" robots="noindex, nofollow"/>
+    <Seo title="Mi cuenta | ZettaTech" description="Consulta tus pedidos de ZettaTech." path="/mi-cuenta" robots="noindex, nofollow"/>
     {isLoading
       ? <main className="flex min-h-screen items-center justify-center"><div className="h-10 w-10 animate-spin rounded-full border-4 border-accent border-t-transparent"/></main>
       : account ? <OrdersPanel name={account.name}/> : <AuthPanel/>}

@@ -1,7 +1,7 @@
 import { getPublicAppConfig } from "@/lib/runtime-config";
 
 export const DEFAULT_COMPANY = {
-  name: "ZETATECH",
+  name: "ZETTATECH",
   email: "hello@zetatech.ec",
   phoneDisplay: "+593 99 798 4583",
   phoneDigits: "593997984583",

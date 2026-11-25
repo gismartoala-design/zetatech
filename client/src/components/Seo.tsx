@@ -37,14 +37,14 @@ export interface SeoManager {
 }
 
 export const DEFAULT_SEO_STATE: SeoState = {
-  title: "Zetatech | Tecnología para tu día a día",
+  title: "ZettaTech | Tecnología para tu día a día",
   description:
     "Compra gadgets, accesorios y tecnología útil con envíos rápidos, pagos seguros y soporte experto.",
-  keywords: "tecnología, gadgets, accesorios tecnológicos, Zetatech",
+  keywords: "tecnología, gadgets, accesorios tecnológicos, ZettaTech",
   path: "/",
   robots: INDEXABLE_ROBOTS,
   image: DEFAULT_SEO_IMAGE,
-  imageAlt: "Productos tecnológicos Zetatech",
+  imageAlt: "Productos tecnológicos ZettaTech",
   type: "website",
   locale: "es_EC",
 };

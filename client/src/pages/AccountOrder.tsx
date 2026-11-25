@@ -45,7 +45,7 @@ export default function AccountOrder() {
   if (!account) return <main className="mx-auto min-h-screen max-w-md px-5 py-32 text-center"><p className="mb-4">Inicia sesión para ver este pedido.</p><Link href="/mi-cuenta" className="ui-btn-primary">Entrar a mi cuenta</Link></main>;
 
   return <>
-    <Seo title={`Pedido ${orderNumber} | Zetatech`} description="Detalle de tu pedido." path={`/mi-cuenta/${orderNumber}`} robots="noindex, nofollow"/>
+    <Seo title={`Pedido ${orderNumber} | ZettaTech`} description="Detalle de tu pedido." path={`/mi-cuenta/${orderNumber}`} robots="noindex, nofollow"/>
     <main className="mx-auto min-h-screen max-w-2xl px-5 pb-20 pt-40">
       <Link href="/mi-cuenta" className="mb-6 inline-flex items-center gap-2 text-sm text-accent"><ArrowLeft className="h-4 w-4"/>Volver a mis pedidos</Link>
 

@@ -11,7 +11,6 @@ import PaymentResult from "@/pages/PaymentResult";
 import DatafastPayment from "@/pages/DatafastPayment";
 import Account from "@/pages/Account";
 import AccountOrder from "@/pages/AccountOrder";
-import { CUSTOMER_PORTAL_ENABLED } from "@/lib/customer-portal";
 
 export function ServerRoutes() {
   return (
@@ -20,8 +19,8 @@ export function ServerRoutes() {
           el navegador tome el control. El servidor no tiene sesión de cliente,
           así que solo dibuja el estado de carga: nada personal se renderiza
           ni se cachea en el HTML. */}
-      {CUSTOMER_PORTAL_ENABLED && <Route path="/mi-cuenta" component={Account} />}
-      {CUSTOMER_PORTAL_ENABLED && <Route path="/mi-cuenta/:orderNumber" component={AccountOrder} />}
+      <Route path="/mi-cuenta" component={Account} />
+      <Route path="/mi-cuenta/:orderNumber" component={AccountOrder} />
       <Route path="/" component={Home} />
       <Route path="/shop" component={Shop} />
       <Route path="/categoria/:slug" component={CategoryPage} />

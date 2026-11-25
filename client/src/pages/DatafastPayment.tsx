@@ -30,7 +30,7 @@ export default function DatafastPayment() {
     return () => { script?.remove(); validations?.remove(); container.current?.replaceChildren(); };
   }, []);
   return <main className="mx-auto min-h-screen max-w-xl px-5 py-12">
-    <Seo title="Pago con Datafast | Zetatech" description="Completa el pago seguro de tu pedido." path="/datafast-payment" robots="noindex, nofollow" />
+    <Seo title="Pago con Datafast | ZettaTech" description="Completa el pago seguro de tu pedido." path="/datafast-payment" robots="noindex, nofollow" />
     <h1 className="mb-3 text-2xl font-bold">Pago con Datafast</h1><p className="mb-6 text-sm">Pedido {orderNumber}. Ingresa los datos de la tarjeta en el formulario seguro.</p>
     {error ? <p role="alert" className="mb-5 rounded-xl bg-red-50 p-4 text-sm text-red-700">{error}</p> : <div ref={container} />}
     <Link href="/checkout" className="ui-btn-secondary mt-6">Volver al checkout</Link>

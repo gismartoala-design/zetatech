@@ -62,7 +62,7 @@ const CATEGORY_DESCRIPTIONS: Record<string, string> = {
   "regalos-con-vino": "Accesorios esenciales para tu setup y tu día a día.",
   cumpleanos: "Tecnología gaming para jugar mejor y más cómodo.",
   "amor-y-aniversario": "Herramientas y accesorios para trabajar con más productividad.",
-  [BEST_SELLERS_CATEGORY_SLUG]: "La selección de tecnología más buscada en Zetatech.",
+  [BEST_SELLERS_CATEGORY_SLUG]: "La selección de tecnología más buscada en ZettaTech.",
 };
 
 function repairMojibake(value: string) {

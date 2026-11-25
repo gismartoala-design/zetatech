@@ -6,7 +6,7 @@ export default function NotFound() {
   return (
     <div className="page-shell flex items-center justify-center">
       <Seo
-        title="Página no encontrada | Zetatech"
+        title="Página no encontrada | ZettaTech"
         description="La página solicitada no existe."
         robots="noindex, nofollow"
       />

@@ -156,7 +156,7 @@ export default function ProductDetails() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Seo
-          title="Cargando producto | Zetatech"
+          title="Cargando producto | ZettaTech"
           description="Cargando información del producto."
           path={routePath}
           robots="noindex, nofollow"
@@ -170,7 +170,7 @@ export default function ProductDetails() {
     return (
       <div className="page-shell">
         <Seo
-          title="Producto no encontrado | Zetatech"
+          title="Producto no encontrado | ZettaTech"
           description="La ficha del producto solicitado no está disponible."
           path={routePath}
           robots="noindex, nofollow"
@@ -295,7 +295,7 @@ export default function ProductDetails() {
   return (
     <div className="page-shell">
       <Seo
-        title={`${product.name} | Tecnología Zetatech`}
+        title={`${product.name} | Tecnología ZettaTech`}
         description={product.description}
         path={productPath}
         image={product.image}

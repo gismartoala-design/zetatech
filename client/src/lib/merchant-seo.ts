@@ -8,7 +8,7 @@ export function getMerchantShippingServiceSchema() {
   return {
     "@type": "ShippingService",
     "@id": MERCHANT_SHIPPING_ID,
-    name: "Envíos Zetatech",
+    name: "Envíos ZettaTech",
     description: "Entrega coordinada de gadgets, accesorios y equipos tecnológicos dentro de Guayaquil. El costo y horario se confirman según sector antes del despacho.",
     fulfillmentType: "https://schema.org/FulfillmentTypeDelivery",
     shippingConditions: {
@@ -37,10 +37,10 @@ export function getMerchantReturnPolicySchema() {
   return {
     "@type": "MerchantReturnPolicy",
     "@id": MERCHANT_RETURN_POLICY_ID,
-    name: "Política de cambios y cancelaciones Zetatech",
+    name: "Política de cambios y cancelaciones ZettaTech",
     applicableCountry: "EC",
     returnPolicyCategory: "https://schema.org/MerchantReturnNotPermitted",
-    description: "Los cambios o cancelaciones se coordinan con el equipo Zetatech antes del despacho.",
+    description: "Los cambios o cancelaciones se coordinan con el equipo ZettaTech antes del despacho.",
   };
 }
 
@@ -55,7 +55,7 @@ export function getMerchantOrganizationSchema() {
     telephone: `+${DEFAULT_COMPANY.phoneDigits}`,
     email: DEFAULT_COMPANY.email,
     priceRange: "$$",
-    description: "Zetatech ofrece gadgets, accesorios y tecnología para tu día a día con atención personalizada y pagos seguros.",
+    description: "ZettaTech ofrece gadgets, accesorios y tecnología para tu día a día con atención personalizada y pagos seguros.",
     address: {
       "@type": "PostalAddress",
       addressLocality: DEFAULT_COMPANY.city,

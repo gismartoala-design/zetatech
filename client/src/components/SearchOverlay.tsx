@@ -126,7 +126,7 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                 {isLoading && shouldSearch ? (
                   <div className="col-span-full rounded-[2rem] border border-primary/50 bg-white p-8 text-center shadow-sm">
                     <p className="text-[#5A3F73] text-sm font-black uppercase tracking-[0.18em]">Buscando productos...</p>
-                    <p className="mt-2 text-foreground/60 text-sm font-bold">Estamos cargando el catálogo Zetatech.</p>
+                    <p className="mt-2 text-foreground/60 text-sm font-bold">Estamos cargando el catálogo ZettaTech.</p>
                   </div>
                 ) : null}
 

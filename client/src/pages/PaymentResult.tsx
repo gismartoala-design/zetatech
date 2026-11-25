@@ -231,7 +231,7 @@ export default function PaymentResult() {
     return (
       <div className="min-h-screen bg-[#FBF7FD] flex items-center justify-center px-6">
         <Seo
-          title="Resultado de pago | Zetatech"
+          title="Resultado de pago | ZettaTech"
           description="Resultado del proceso de pago."
           path="/payment-result"
           robots="noindex, nofollow"
@@ -249,14 +249,14 @@ export default function PaymentResult() {
   }
 
   if (status === "success") {
-    return <><Seo title="Confirmación de pedido | Zetatech" description="Pago aprobado y pedido confirmado." path="/payment-result" robots="noindex, nofollow" /><OrderConfirmation details={confirmationDetails || { orderNumber, paymentMethod: new URLSearchParams(window.location.search).get("provider") === "paypal" ? "PayPal" : "Payphone", paymentStatus: "PAID", email: sessionStorage.getItem("zetatech_order_email") || undefined }} /></>;
+    return <><Seo title="Confirmación de pedido | ZettaTech" description="Pago aprobado y pedido confirmado." path="/payment-result" robots="noindex, nofollow" /><OrderConfirmation details={confirmationDetails || { orderNumber, paymentMethod: new URLSearchParams(window.location.search).get("provider") === "paypal" ? "PayPal" : "Payphone", paymentStatus: "PAID", email: sessionStorage.getItem("zetatech_order_email") || undefined }} /></>;
   }
 
   if (status === "cancelled") {
     return (
       <div className="min-h-screen bg-[#FBF7FD] flex items-center justify-center px-6">
         <Seo
-          title="Pago cancelado | Zetatech"
+          title="Pago cancelado | ZettaTech"
           description="Resultado del proceso de pago."
           path="/payment-result"
           robots="noindex, nofollow"
@@ -290,7 +290,7 @@ export default function PaymentResult() {
   return (
     <div className="min-h-screen bg-[#FBF7FD] flex items-center justify-center px-6">
       <Seo
-        title="Error de pago | Zetatech"
+        title="Error de pago | ZettaTech"
         description="Resultado del proceso de pago."
         path="/payment-result"
         robots="noindex, nofollow"
@@ -331,7 +331,7 @@ export default function PaymentResult() {
             </button>
           </Link>
           <a
-          href={`https://wa.me/${DEFAULT_COMPANY.phoneDigits}?text=${encodeURIComponent("Hola, necesito ayuda para finalizar mi pago Zetatech.")}`}
+          href={`https://wa.me/${DEFAULT_COMPANY.phoneDigits}?text=${encodeURIComponent("Hola, necesito ayuda para finalizar mi pago ZettaTech.")}`}
             target="_blank"
             rel="noopener noreferrer"
             className="w-full inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1ebe5d] text-white py-5 rounded-3xl font-black text-base transition-all shadow-xl"

@@ -58,7 +58,7 @@ export function SiteHeader({theme:t,cart,resolveImage=(url)=>url,brandCaption}:{
     return ()=>window.removeEventListener('scroll',onScroll);
   },[]);
   const brand=<a href="/" className="zt-brand"><img src={resolveImage(t.logo||BRAND_LOGO)} alt={t.brand} width="244" height="60"/></a>;
-  return <div className="zt-header-dock"><header className="zt-header" data-scrolled={scrolled}>{brandCaption?<div className="zt-brand-group">{brand}{brandCaption}</div>:brand}<nav aria-label="Navegación principal">{t.links.map((l,i)=><a key={i} href={l.href.startsWith('#')?`/${l.href}`:l.href}>{l.label}</a>)}</nav><div className="zt-header-actions"><a href="/shop" aria-label={t.searchLabel}>{t.searchLabel}</a>{cart}</div></header></div>;
+  return <div className="zt-header-dock"><header className="zt-header" data-scrolled={scrolled}>{brandCaption?<div className="zt-brand-group">{brand}{brandCaption}</div>:brand}<nav aria-label="Navegación principal">{t.links.map((l,i)=><a key={i} href={l.href.startsWith('#')?`/${l.href}`:l.href}>{l.label}</a>)}</nav><div className="zt-header-actions">{cart}</div></header></div>;
 }
 function AnimatedBlock({block,children,editor,onSelect}:{block:SiteBlock;children:ReactNode;editor?:boolean;onSelect?:(id:string)=>void}) {
   const ref = useRef<HTMLElement>(null);
@@ -201,7 +201,7 @@ export function ProductCarousel({products,resolveImage=(url)=>url}:{products:Car
 }
 export function BrandCarousel({items,resolveImage=(url)=>url}:{items:SiteBlock['items'];resolveImage?:(url:string)=>string}) {
   if (!items.length) return null;
-  return <div className="zt-brands-carousel" aria-label="Marcas disponibles en Zetatech">
+  return <div className="zt-brands-carousel" aria-label="Marcas disponibles en ZettaTech">
     <div className="zt-brands-viewport">
       <div className="zt-brands-track">
         {[0,1].map(copy=><div className="zt-brands-group" key={copy} aria-hidden={copy===1?true:undefined}>
@@ -214,7 +214,7 @@ export function BrandCarousel({items,resolveImage=(url)=>url}:{items:SiteBlock['
     </div>
   </div>;
 }
-export function SiteRenderer({document,renderProducts,cart,resolveImage=(url)=>url,preview=false,editor=preview,onSelectBlock,renderBlock,className='',showSplash=true,header}:{document:SiteDocument;renderProducts?:(block:SiteBlock)=>ReactNode;cart?:ReactNode;resolveImage?:(url:string)=>string;preview?:boolean;editor?:boolean;onSelectBlock?:(id:string)=>void;renderBlock?:(block:SiteBlock)=>ReactNode;className?:string;showSplash?:boolean;header?:ReactNode}) {
+export function SiteRenderer({document,renderProducts,cart,resolveImage=(url)=>url,preview=false,editor=preview,onSelectBlock,renderBlock,className='',showSplash=true,header,footer}:{document:SiteDocument;renderProducts?:(block:SiteBlock)=>ReactNode;cart?:ReactNode;resolveImage?:(url:string)=>string;preview?:boolean;editor?:boolean;onSelectBlock?:(id:string)=>void;renderBlock?:(block:SiteBlock)=>ReactNode;className?:string;showSplash?:boolean;header?:ReactNode;footer?:ReactNode}) {
   const t=document.theme;
   return <div className={`zt-site ${className}`} style={{'--zt-accent':t.accent,'--zt-radius':`${t.radius}px`,fontFamily:siteFonts[t.font],fontSize:t.fontSize,background:t.background,color:t.foreground} as CSSProperties} onClick={preview?e=>{if((e.target as HTMLElement).closest('a'))e.preventDefault();}:undefined}>
     {!preview&&showSplash&&<BrandSplash brand={t.brand}/>}
@@ -228,6 +228,6 @@ export function SiteRenderer({document,renderProducts,cart,resolveImage=(url)=>u
       {b.type==='faq'&&b.items.map((item,i)=><details key={i}><summary>{item.title}</summary><p>{item.text}</p></details>)}
       {b.button&&b.type!=='faq'&&<a className="zt-button" href={b.href||'/shop'}>{b.button} ↗</a>}
       </>}
-    </AnimatedBlock>}</Fragment>)}</main><footer className="zt-footer"><a href="/" aria-label={`${t.brand}: inicio`}><img className="zt-footer-logo" src={resolveImage(t.logo||BRAND_LOGO)} alt={t.brand} width="280" height="69" loading="lazy"/></a><p>{t.footer}</p>{t.links.map((l,i)=><a key={i} href={l.href}>{l.label}</a>)}</footer>
+    </AnimatedBlock>}</Fragment>)}</main>{footer??<footer className="zt-footer"><a href="/" aria-label={`${t.brand}: inicio`}><img className="zt-footer-logo" src={resolveImage(t.logo||BRAND_LOGO)} alt={t.brand} width="280" height="69" loading="lazy"/></a><p>{t.footer}</p>{t.links.map((l,i)=><a key={i} href={l.href}>{l.label}</a>)}</footer>}
   </div>;
 }

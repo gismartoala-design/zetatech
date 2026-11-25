@@ -39,7 +39,7 @@ function fixture(){
   return {request,published,companies,conflict:()=>{forceConflict=true;}};
 }
 test('default document is valid; script URLs, malformed items and excessive motion are rejected',()=>{
-  assert.equal(validateDocument(clone(defaultSite)).theme.brand,'Zetatech');
+  assert.equal(validateDocument(clone(defaultSite)).theme.brand,'ZettaTech');
   for(const mutate of [(d:any)=>d.blocks[0].href='javascript:alert(1)',(d:any)=>d.blocks[0].image='//evil.test/x',(d:any)=>d.theme.links=[null],(d:any)=>d.blocks[0].duration=999999,(d:any)=>d.blocks.push(d.blocks[0])]){const d=clone(defaultSite);mutate(d);assert.throws(()=>validateDocument(d));}
 });
 test('anonymous, viewer, editor, deleted and disabled users cannot read or write the editor',async()=>{
@@ -59,10 +59,10 @@ test('drafts stay private, publication is explicit, restore produces a draft onl
   const f=fixture();const a=clone(defaultSite);const b=clone(defaultSite);b.theme.brand='Nueva versión';
   await f.request('POST','/save',{revision:0,document:a});assert.equal((await f.published()).payload.data,null);
   await f.request('POST','/publish',{revision:1,document:a});
-  await f.request('POST','/save',{revision:2,document:b});assert.equal((await f.published()).payload.data.theme.brand,'Zetatech');
+  await f.request('POST','/save',{revision:2,document:b});assert.equal((await f.published()).payload.data.theme.brand,'ZettaTech');
   await f.request('POST','/publish',{revision:3,document:b});assert.equal((await f.published()).payload.data.theme.brand,'Nueva versión');
   const state=(await f.request('GET','/')).payload.data;
-  await f.request('POST','/restore',{revision:4,versionId:state.history[0].id});assert.equal((await f.request('GET','/')).payload.data.draft.theme.brand,'Zetatech');assert.equal((await f.published()).payload.data.theme.brand,'Nueva versión');
+  await f.request('POST','/restore',{revision:4,versionId:state.history[0].id});assert.equal((await f.request('GET','/')).payload.data.draft.theme.brand,'ZettaTech');assert.equal((await f.published()).payload.data.theme.brand,'Nueva versión');
   assert.equal((await f.published('b.test')).payload.data,null);assert.equal((await f.published('unknown.test')).code,404);
   assert.equal(publicSettings(f.companies[0].settings).websiteEditor,undefined);assert.equal(f.companies[0].settings.acceptOrders,true);
 });

@@ -35,9 +35,9 @@ export const TESTIMONIALS = [
 
 export const COMPANY_INFO = {
   description: "Tienda de tecnología con gadgets, accesorios y equipos para trabajar, crear y disfrutar mejor.",
-  history: "Zetatech: acercando tecnología útil y confiable a cada persona desde 2024.",
+  history: "ZettaTech: acercando tecnología útil y confiable a cada persona desde 2024.",
   calidad: "Calidad Garantizada: Productos seleccionados y probados para tu día a día.",
-  personalizacion: "Asesoría Zetatech: Te ayudamos a elegir lo que realmente necesitas."
+  personalizacion: "Asesoría ZettaTech: Te ayudamos a elegir lo que realmente necesitas."
 };
 
 export const FAQS = [

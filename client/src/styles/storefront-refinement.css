@@ -144,6 +144,43 @@
 @media(prefers-reduced-motion:reduce){.zx-brands-belt{animation:none;transform:none}.zx-brands-set[inert]{display:none}.zx-brands-window{overflow:auto;mask-image:none}.zx-brand-pause{display:none}.zx-brands-set{min-width:0}.zx-header,.zx-storefront .zt-button{transition:none}}
 @media(max-width:600px){.zx-catalog-card .zt-pricing-current strong{font-size:20px}.zx-catalog-card .zx-card-pricing{gap:10px;padding-top:12px}.zx-catalog-card .zx-card-delivery{font-size:10px}.zx-catalog-card .zx-card-pricing>div{width:100%}.zx-catalog-card .zt-pricing-current{flex-direction:row;align-items:baseline;gap:6px}.zx-catalog-card .zt-pricing small{font-size:8px;letter-spacing:.05em}.zx-catalog-card .zt-pricing-saving{align-self:center}.zx-catalog-card .absolute.top-6{top:12px;left:12px;padding:5px 9px;font-size:8px}.zx-storefront .zx-header-dock{height:124px}}
 
+/* ═══════════════════════════════════════════════════════
+   Header icon buttons (User + Cart, solo iconos)
+   ═══════════════════════════════════════════════════════ */
+.zt-header-icons{display:flex;align-items:center;gap:6px}
+.zt-header-icon-btn{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:10px;background:#ffffff0d;border:1px solid #ffffff30;color:#fff;cursor:pointer;position:relative;transition:background .15s;text-decoration:none}
+.zt-header-icon-btn:hover{background:#ffffff20}
+.zt-cart-badge{position:absolute;top:4px;right:4px;min-width:17px;height:17px;border-radius:9px;background:#ffffffeb;color:#124c2b;font-size:10px;font-weight:700;display:grid;place-items:center;line-height:1}
+
+/* ═══════════════════════════════════════════════════════
+   Store Footer
+   ═══════════════════════════════════════════════════════ */
+.zx-footer-shell{background:#08110c;color:#dfe8dc;padding:48px clamp(24px,6vw,100px);border-top:1px solid #ffffff15;font-size:13px}
+.zx-footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:32px 28px;max-width:var(--shop-width);margin:0 auto 32px}
+.zx-footer-brand-col{display:flex;flex-direction:column;gap:14px}
+.zx-footer-tagline{font-size:12px;line-height:1.7;opacity:.7;max-width:30ch}
+.zx-footer-col h3{font-size:11px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;opacity:.6}
+.zx-footer-col ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+.zx-footer-col a,.zx-footer-col button{color:#dfe8dc;text-decoration:none;font-size:12px;background:none;border:none;cursor:pointer;padding:0;text-align:left}
+.zx-footer-col a:hover,.zx-footer-col button:hover{color:#a8ed89}
+.zx-footer-policy-box{max-width:var(--shop-width);margin:0 auto 24px;padding:16px 20px;background:#ffffff0a;border:1px solid #ffffff15;border-radius:10px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.zx-footer-policy-box strong{font-size:13px;display:block;margin-bottom:6px}
+.zx-footer-policy-box p{font-size:12px;opacity:.7;margin:0;line-height:1.6}
+.zx-footer-policy-box button{color:#a8ed89;background:none;border:none;cursor:pointer;font-size:12px;white-space:nowrap}
+.zx-footer-social-row{max-width:var(--shop-width);margin:0 auto 24px;display:flex;align-items:center;gap:14px;font-size:12px;opacity:.7}
+.zx-footer-socials{display:flex;gap:12px}
+.zx-footer-socials a{color:#dfe8dc;transition:color .15s}
+.zx-footer-socials a:hover{color:#a8ed89}
+.zx-footer-bottom{max-width:var(--shop-width);margin:auto;border-top:1px solid #ffffff12;padding-top:20px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.zx-footer-payments{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:11px;opacity:.6}
+.zx-footer-cards{display:flex;flex-wrap:wrap;gap:6px}
+.zx-card-pill{padding:3px 8px;border:1px solid #ffffff20;border-radius:4px;font-size:9px;font-weight:600;letter-spacing:.03em}
+.zx-footer-copy{font-size:11px;opacity:.5}
+
+/* Responsive footer */
+@media(max-width:800px){.zx-footer-grid{grid-template-columns:1fr 1fr;gap:24px}}
+@media(max-width:600px){.zx-footer-grid{grid-template-columns:1fr}.zx-footer-bottom{flex-direction:column;align-items:flex-start}}
+
 /* Vista previa del editor: cada sección se puede señalar con el cursor para
    seleccionarla en el panel. Solo se activa dentro del iframe del editor. */
 [data-zt-editor] section[id]{position:relative;cursor:pointer;outline:2px dashed transparent;outline-offset:-6px;transition:outline-color .15s ease}

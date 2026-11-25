@@ -74,7 +74,7 @@ export default function Shop() {
     "@graph": [
       {
         "@type": "CollectionPage",
-        name: "Catálogo Zetatech",
+        name: "Catálogo ZettaTech",
         url: canonicalUrl("/shop"),
         description: "Catálogo de gadgets, accesorios y tecnología con entrega a domicilio en Guayaquil.",
         image: absoluteUrl("/opengraph.jpg"),
@@ -106,7 +106,7 @@ export default function Shop() {
             {
               "@type": "ItemList",
               "@id": `${canonicalUrl("/shop")}#itemlist`,
-              name: "Productos disponibles Zetatech",
+              name: "Productos disponibles ZettaTech",
               itemListElement: allProducts.slice(0, 24).map((product, index) => ({
                 "@type": "ListItem",
                 position: index + 1,
@@ -122,8 +122,8 @@ export default function Shop() {
   return (
     <div className="page-shell zx-shop">
       <Seo
-        title="Catálogo de tecnología | Zetatech"
-        description="Explora el catálogo de Zetatech con gadgets, accesorios y tecnología para tu día a día."
+        title="Catálogo de tecnología | ZettaTech"
+        description="Explora el catálogo de ZettaTech con gadgets, accesorios y tecnología para tu día a día."
         path="/shop"
         schema={shopSchema}
       />

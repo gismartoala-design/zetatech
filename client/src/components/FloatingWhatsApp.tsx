@@ -7,7 +7,7 @@ export function FloatingWhatsApp() {
   if (isCartOpen) return null;
   return (
     <a
-      href={`https://wa.me/${DEFAULT_COMPANY.phoneDigits}?text=${encodeURIComponent("Hola, necesito soporte de ventas de Zetatech.")}`}
+      href={`https://wa.me/${DEFAULT_COMPANY.phoneDigits}?text=${encodeURIComponent("Hola, necesito soporte de ventas de ZettaTech.")}`}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Soporte de ventas por WhatsApp"

@@ -197,7 +197,7 @@ const PAYMENT_METHODS: {
     label: "PayPal",
     description: "Pago internacional o con tarjeta de crédito",
     trustLabel: "Pasarela segura",
-    nextStep: "Te llevamos a PayPal; Zetatech no guarda los datos de tu tarjeta.",
+    nextStep: "Te llevamos a PayPal; ZettaTech no guarda los datos de tu tarjeta.",
     Icon: Globe2,
   },
   {
@@ -245,7 +245,7 @@ const CHECKOUT_TRUST_BADGES = [
   },
   {
     title: "Confirmación directa",
-    copy: "El equipo Zetatech valida la orden y coordina contigo.",
+    copy: "El equipo ZettaTech valida la orden y coordina contigo.",
     Icon: BadgeCheck,
   },
   {
@@ -329,7 +329,7 @@ export default function Checkout() {
   });
   const payphoneBoxStorageKey = "pp_box_payload";
   const checkoutWhatsappUrl = `https://wa.me/${DEFAULT_COMPANY.phoneDigits}?text=${encodeURIComponent(
-    "Hola, necesito ayuda para completar mi pedido en Zetatech."
+    "Hola, necesito ayuda para completar mi pedido en ZettaTech."
   )}`;
   const transferInstructions = normalizeTransferInstructions(
     company?.settings?.paymentSettings?.transferInstructions ||
@@ -1158,7 +1158,7 @@ export default function Checkout() {
     return (
       <div className="checkout-shell flex min-h-screen items-center justify-center bg-white px-6">
         <Seo
-          title="Cargando carrito | Zetatech"
+          title="Cargando carrito | ZettaTech"
           description="Cargando el carrito antes de continuar con el checkout."
           path="/checkout"
           robots="noindex, nofollow"
@@ -1181,14 +1181,14 @@ export default function Checkout() {
   }
 
   if (orderStatus === "success" && confirmationDetails) {
-    return <><Seo title="Confirmación de pedido | Zetatech" description="Tu pedido ha sido registrado." path="/checkout" robots="noindex, nofollow" /><OrderConfirmation details={confirmationDetails} /></>;
+    return <><Seo title="Confirmación de pedido | ZettaTech" description="Tu pedido ha sido registrado." path="/checkout" robots="noindex, nofollow" /><OrderConfirmation details={confirmationDetails} /></>;
   }
 
   return (
     <div className="checkout-shell min-h-screen bg-white px-3 pb-20 pt-8 sm:px-6 sm:pt-16">
       <Seo
-        title="Checkout | Zetatech"
-        description="Proceso de checkout de Zetatech."
+        title="Checkout | ZettaTech"
+        description="Proceso de checkout de ZettaTech."
         path="/checkout"
         robots="noindex, nofollow"
       />
@@ -1893,7 +1893,7 @@ export default function Checkout() {
                   </button>
                 </div>
                 <p className="rounded-2xl bg-[#FBF7FD] px-4 py-3 text-center text-sm font-black leading-relaxed text-[#4A3362]">
-                  {paymentMethod==='Coordinar con ventas'?'Al generar el pedido recibirás tu comprobante PDF. Ventas se comunicará contigo para coordinar la entrega y el pago.':'Después de confirmar te guiamos al pago o guardamos tu comprobante. Zetatech revisa la orden y coordina el envío contigo.'}
+                  {paymentMethod==='Coordinar con ventas'?'Al generar el pedido recibirás tu comprobante PDF. Ventas se comunicará contigo para coordinar la entrega y el pago.':'Después de confirmar te guiamos al pago o guardamos tu comprobante. ZettaTech revisa la orden y coordina el envío contigo.'}
                 </p>
               </div>
             </div>

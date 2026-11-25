@@ -44,7 +44,7 @@ export default function CategoryPage() {
   }, [allProducts, categoryName, isBestSellers]);
 
   const loading = isLoadingCategories || isLoadingProducts;
-  const description = categoryName ? getCategoryDescription(categoryName) : "Colección Zetatech";
+  const description = categoryName ? getCategoryDescription(categoryName) : "Colección ZettaTech";
   const categoryPath = getCategoryPath(slug);
   const schema = categoryName
     ? {
@@ -89,7 +89,7 @@ export default function CategoryPage() {
                 {
                   "@type": "ItemList",
                   "@id": `${canonicalUrl(categoryPath)}#itemlist`,
-                  name: `${categoryLabel} Zetatech`,
+                  name: `${categoryLabel} ZettaTech`,
                   itemListElement: products.slice(0, 24).map((product, index) => ({
                     "@type": "ListItem",
                     position: index + 1,
@@ -108,8 +108,8 @@ export default function CategoryPage() {
       <Seo
         title={
           categoryName
-            ? `${categoryLabel} | Tecnología Zetatech`
-            : "Categoría no encontrada | Zetatech"
+            ? `${categoryLabel} | Tecnología ZettaTech`
+            : "Categoría no encontrada | ZettaTech"
         }
         description={categoryName ? description : "La categoría solicitada no está disponible."}
         path={categoryPath}
@@ -141,7 +141,7 @@ export default function CategoryPage() {
         {categoryName ? (
           <>
             <div className="page-header">
-              <div className="page-kicker">Colección Zetatech</div>
+              <div className="page-kicker">Colección ZettaTech</div>
               <h1 className="page-title">{categoryLabel}</h1>
               <p className="page-copy">{description}</p>
             </div>

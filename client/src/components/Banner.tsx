@@ -53,7 +53,7 @@ export function Banner({ onProductsClick }: BannerProps) {
       {
         url: FIXED_BANNER.mobileImage,
         desktopUrl: FIXED_BANNER.desktopImage,
-        alt: `Zetatech - ${FIXED_BANNER.title}`,
+        alt: `ZettaTech - ${FIXED_BANNER.title}`,
       },
     ],
     [],
