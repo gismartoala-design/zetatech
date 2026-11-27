@@ -1168,11 +1168,11 @@ export default function Checkout() {
           animate={{ opacity: 1, y: 0 }}
           className="checkout-panel flex w-full max-w-md flex-col items-center rounded-[2rem] p-10 text-center"
         >
-          <Loader2 className="mb-5 h-12 w-12 animate-spin text-[#4A3362]" />
-          <h1 className="font-serif text-3xl font-black text-[#4A3362]">
+          <Loader2 className="mb-5 h-12 w-12 animate-spin text-[#14281c]" />
+          <h1 className="font-serif text-3xl font-black text-[#14281c]">
             Carrito cargando...
           </h1>
-          <p className="mt-3 text-sm font-black text-[#4A3362]">
+          <p className="mt-3 text-sm font-black text-[#14281c]">
             Estamos preparando tu pedido para continuar con el pago.
           </p>
         </motion.div>
@@ -1197,16 +1197,16 @@ export default function Checkout() {
         <div className="mb-6 flex flex-col items-center text-center sm:mb-10">
           <Link
             href="/shop"
-            className="group mb-5 inline-flex items-center gap-2 font-black text-[#4A3362] transition-colors hover:text-[#4A3362]"
+            className="group mb-5 inline-flex items-center gap-2 font-black text-[#14281c] transition-colors hover:text-[#14281c]"
           >
             <ChevronLeft className="h-5 w-5 transition-transform group-hover:translate-x-[-5px]" />
             Seguir comprando
           </Link>
 
-          <h1 className="text-3xl font-serif font-black text-[#4A3362] sm:text-5xl">
+          <h1 className="text-3xl font-serif font-black text-[#14281c] sm:text-5xl">
             Finaliza tu pedido
           </h1>
-          <p className="mt-3 max-w-2xl text-sm font-bold leading-relaxed text-[#4A3362]/75 sm:text-base">
+          <p className="mt-3 max-w-2xl text-sm font-bold leading-relaxed text-[#14281c]/75 sm:text-base">
             Pedido protegido, datos privados y confirmación directa con nuestro equipo antes de coordinar la entrega.
           </p>
         </div>
@@ -1215,20 +1215,20 @@ export default function Checkout() {
           {CHECKOUT_TRUST_BADGES.map(({ title, copy, Icon }) => (
             <div
               key={title}
-              className="rounded-2xl border border-[#E5D7EF] bg-white/95 px-4 py-4 text-left shadow-[0_12px_32px_rgba(74,51,98,0.06)] ring-1 ring-white/70"
+              className="rounded-2xl border border-[#dbeee0] bg-white/95 px-4 py-4 text-left shadow-[0_12px_32px_rgba(20,40,28,0.06)] ring-1 ring-white/70"
             >
-              <div className="mb-2 flex items-center gap-2 text-sm font-black uppercase tracking-[0.12em] text-[#4B1F6F]">
-                <Icon className="h-5 w-5 text-[#C6539B]" />
+              <div className="mb-2 flex items-center gap-2 text-sm font-black uppercase tracking-[0.12em] text-[#188b42]">
+                <Icon className="h-5 w-5 text-[#188b42]" />
                 {title}
               </div>
-              <p className="text-sm font-bold leading-relaxed text-[#4A3362]">
+              <p className="text-sm font-bold leading-relaxed text-[#14281c]">
                 {copy}
               </p>
             </div>
           ))}
         </div>
 
-        <div className="mb-5 grid grid-cols-3 gap-1.5 rounded-[1.25rem] border border-[#E5D7EF] bg-white p-1.5 shadow-[0_12px_32px_rgba(74,51,98,0.08)] sm:mb-8 sm:gap-2 sm:rounded-[1.5rem] sm:p-2">
+        <div className="mb-5 grid grid-cols-3 gap-1.5 rounded-[1.25rem] border border-[#dbeee0] bg-white p-1.5 shadow-[0_12px_32px_rgba(20,40,28,0.08)] sm:mb-8 sm:gap-2 sm:rounded-[1.5rem] sm:p-2">
           {CHECKOUT_STEPS.map((step, index) => {
             const isActive = step.id === activeStep;
             const isComplete = index < activeStepIndex;
@@ -1242,8 +1242,8 @@ export default function Checkout() {
                 className={cn(
                   "flex min-h-[62px] flex-col items-center justify-center gap-1 rounded-[1rem] px-1.5 text-center transition-all sm:min-h-[78px] sm:flex-row sm:gap-3 sm:px-2 sm:text-left",
                   isActive
-                    ? "bg-[#4B1F6F] text-white shadow-lg shadow-[#4B1F6F]/20"
-                    : "bg-white text-[#4A3362] hover:bg-[#FBF7FD]"
+                    ? "bg-[#188b42] text-white shadow-lg shadow-[#188b42]/20"
+                    : "bg-white text-[#14281c] hover:bg-[#f1f8f4]"
                 )}
               >
                 <span
@@ -1252,8 +1252,8 @@ export default function Checkout() {
                     isActive
                       ? "border-white/40 bg-white/15 text-white"
                       : isComplete
-                        ? "border-[#4B1F6F] bg-[#4B1F6F] text-white"
-                        : "border-[#DCC5E8] bg-[#FBF7FD] text-[#4A3362]"
+                        ? "border-[#188b42] bg-[#188b42] text-white"
+                        : "border-[#cfe6d6] bg-[#f1f8f4] text-[#14281c]"
                   )}
                 >
                   {isComplete ? (
@@ -1269,7 +1269,7 @@ export default function Checkout() {
                   <span
                     className={cn(
                       "hidden text-sm font-bold sm:block",
-                      isActive ? "text-white/75" : "text-[#4A3362]"
+                      isActive ? "text-white/75" : "text-[#14281c]"
                     )}
                   >
                     {step.helper}
@@ -1286,34 +1286,34 @@ export default function Checkout() {
               <div>
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                   <h3 className="checkout-summary-title sm:gap-3">
-                    <ShoppingBag className="h-7 w-7 shrink-0 text-[#4B1F6F] sm:h-8 sm:w-8" /> <span className="min-w-0 break-words">Resumen</span>
+                    <ShoppingBag className="h-7 w-7 shrink-0 text-[#188b42] sm:h-8 sm:w-8" /> <span className="min-w-0 break-words">Resumen</span>
                   </h3>
                   <button
                     type="button"
                     onClick={handleOpenCart}
                     disabled={isCartOpening || isCheckoutBusy}
-                    className="inline-flex max-w-full items-center justify-center gap-2 rounded-full border border-white/25 bg-gradient-to-r from-[#5A2A82] via-[#7B3FB0] to-[#C6539B] px-3 py-2 text-[0.68rem] font-black uppercase tracking-[0.08em] text-white shadow-[0_12px_28px_rgba(123,63,176,0.35)] ring-2 ring-[#C6539B]/15 transition-all hover:from-[#6B32A0] hover:via-[#8E49C8] hover:to-[#D65CAB] hover:shadow-[0_16px_34px_rgba(123,63,176,0.45)] disabled:cursor-not-allowed disabled:opacity-60 sm:px-4 sm:py-2.5 sm:text-xs xl:px-5 xl:text-sm xl:tracking-widest"
+                    className="inline-flex max-w-full items-center justify-center gap-2 rounded-full border border-white/25 bg-gradient-to-r from-[#0f6b32] via-[#188b42] to-[#2fae5e] px-3 py-2 text-[0.68rem] font-black uppercase tracking-[0.08em] text-white shadow-[0_12px_28px_rgba(24,139,66,0.35)] ring-2 ring-[#188b42]/15 transition-all hover:from-[#146c35] hover:via-[#1da84e] hover:to-[#52c97e] hover:shadow-[0_16px_34px_rgba(24,139,66,0.45)] disabled:cursor-not-allowed disabled:opacity-60 sm:px-4 sm:py-2.5 sm:text-xs xl:px-5 xl:text-sm xl:tracking-widest"
                   >
                     {isCartOpening ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
                     {isCartOpening ? "Abriendo..." : "Ver / cambiar"}
                   </button>
                 </div>
-                <div className="mb-4 rounded-2xl border border-[#DCC5E8] bg-white px-4 py-3 text-sm font-black leading-relaxed text-[#4A3362]">
+                <div className="mb-4 rounded-2xl border border-[#cfe6d6] bg-white px-4 py-3 text-sm font-black leading-relaxed text-[#14281c]">
                   Tu pedido queda registrado antes del pago para que no pierdas los datos si la pasarela tarda o se recarga.
                 </div>
 
                 <div className="flex gap-3 overflow-x-auto pb-2">
                   {items.length === 0 ? (
-                    <p className="rounded-2xl border border-[#E5D7EF] bg-[#FBF7FD] px-5 py-4 text-base font-black text-[#4A3362]">
+                    <p className="rounded-2xl border border-[#dbeee0] bg-[#f1f8f4] px-5 py-4 text-base font-black text-[#14281c]">
                       Tu carrito esta vacio.
                     </p>
                   ) : (
                     items.map((item, i) => (
                       <div
                         key={i}
-                        className="flex min-w-full items-center gap-3 rounded-2xl border border-[#E5D7EF] bg-[#FBF7FD] p-3 sm:gap-5 sm:p-4"
+                        className="flex min-w-full items-center gap-3 rounded-2xl border border-[#dbeee0] bg-[#f1f8f4] p-3 sm:gap-5 sm:p-4"
                       >
-                        <div className="h-20 w-16 shrink-0 overflow-hidden rounded-xl border border-[#DCC5E8] bg-white sm:h-28 sm:w-24">
+                        <div className="h-20 w-16 shrink-0 overflow-hidden rounded-xl border border-[#cfe6d6] bg-white sm:h-28 sm:w-24">
                           <img
                             src={item.product.image}
                             className="h-full w-full object-contain p-1"
@@ -1330,9 +1330,9 @@ export default function Checkout() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-[#E5D7EF] bg-[#FBF7FD] p-4 sm:p-5">
+              <div className="rounded-2xl border border-[#dbeee0] bg-[#f1f8f4] p-4 sm:p-5">
                 <div className="mb-4">
-                  <label className="mb-2 block text-xs font-black uppercase tracking-widest text-[#4A3362]">
+                  <label className="mb-2 block text-xs font-black uppercase tracking-widest text-[#14281c]">
                     Cupón
                   </label>
                   <div className="flex flex-col gap-2 min-[380px]:flex-row">
@@ -1360,7 +1360,7 @@ export default function Checkout() {
                         type="button"
                         onClick={handleValidateCoupon}
                         disabled={isValidatingCoupon || !couponCode}
-                        className="rounded-xl bg-[#4B1F6F] px-5 py-3 text-sm font-black text-white shadow-lg shadow-[#4B1F6F]/20 disabled:opacity-50"
+                        className="rounded-xl bg-[#188b42] px-5 py-3 text-sm font-black text-white shadow-lg shadow-[#188b42]/20 disabled:opacity-50"
                       >
                         {isValidatingCoupon ? "..." : "Aplicar"}
                       </button>
@@ -1373,7 +1373,7 @@ export default function Checkout() {
                   )}
                 </div>
 
-                <div className="space-y-3.5 border-t border-[#DCC5E8] pt-5">
+                <div className="space-y-3.5 border-t border-[#cfe6d6] pt-5">
                   <div className="checkout-summary-row">
                     <span>Subtotal</span>
                     <span>${cartSubtotal.toFixed(2)}</span>
@@ -1409,11 +1409,11 @@ export default function Checkout() {
                     </span>
                   </div>
                   {deliveryCity===LOCAL_DELIVERY_CITY?<p className="text-right text-sm font-semibold text-green-700">Envío gratis dentro de Guayaquil · Entrega en 24 horas.</p>:shippingResolution.isMatched ? (
-                    <p className="text-right text-[0.82rem] font-black text-[#4A3362]">
+                    <p className="text-right text-[0.82rem] font-black text-[#14281c]">
                       Total con envío adicional de ${shippingCost.toFixed(2)} para {formatSectorLabel(shippingResolution.matchedSector)}.
                     </p>
                   ) : (
-                    <p className="text-right text-[0.82rem] font-black text-[#4A3362]">
+                    <p className="text-right text-[0.82rem] font-black text-[#14281c]">
                       Selecciona una ruta con cobertura o contacta a soporte de ventas antes de continuar.
                     </p>
                   )}
@@ -1422,7 +1422,7 @@ export default function Checkout() {
                   type="button"
                   onClick={handleConfirmOrder}
                   disabled={!canConfirmOrder || isCheckoutBusy}
-                  className="mt-5 flex w-full items-center justify-center gap-3 rounded-2xl bg-[#4B1F6F] px-4 py-4 text-sm font-black uppercase tracking-[0.12em] text-white shadow-lg shadow-[#4B1F6F]/20 transition-all hover:bg-[#4A3362] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 sm:px-6 sm:py-5 sm:text-base sm:tracking-widest"
+                  className="mt-5 flex w-full items-center justify-center gap-3 rounded-2xl bg-[#188b42] px-4 py-4 text-sm font-black uppercase tracking-[0.12em] text-white shadow-lg shadow-[#188b42]/20 transition-all hover:bg-[#146c35] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 sm:px-6 sm:py-5 sm:text-base sm:tracking-widest"
                 >
                   {isCheckoutBusy ? (
                     <>
@@ -1433,7 +1433,7 @@ export default function Checkout() {
                     paymentMethod==='Coordinar con ventas' ? `Generar pedido · $${finalTotal.toFixed(2)}` : `Confirmar pedido $${finalTotal.toFixed(2)}`
                   )}
                 </button>
-                <p className="mt-3 rounded-2xl bg-white px-4 py-3 text-center text-xs font-black leading-relaxed text-[#4A3362]">
+                <p className="mt-3 rounded-2xl bg-white px-4 py-3 text-center text-xs font-black leading-relaxed text-[#14281c]">
                   {paymentMethod==='Coordinar con ventas'?'No pagarás en este paso. Registraremos el pedido y ventas te contactará para acordar la entrega y el pago. Recibirás un comprobante PDF por correo.':'Al confirmar, registramos tu orden y te mostramos el siguiente paso según tu método de pago. El equipo valida los pagos manuales antes del despacho.'}
                 </p>
               </div>
@@ -1461,10 +1461,10 @@ export default function Checkout() {
                 onChange={updateCheckoutProgress}
                 className="checkout-panel scroll-mt-8 space-y-5 rounded-[1.5rem] p-4 sm:space-y-7 sm:rounded-[2rem] sm:p-10"
               >
-                <h3 className="flex items-center gap-2 font-sans text-2xl font-black tracking-tight text-[#4B0082] sm:gap-3 sm:text-4xl">
+                <h3 className="flex items-center gap-2 font-sans text-2xl font-black tracking-tight text-[#14281c] sm:gap-3 sm:text-4xl">
                   <User className="h-7 w-7 sm:h-9 sm:w-9" /> Datos personales
                 </h3>
-                <p className="rounded-2xl bg-[#FBF7FD] p-4 text-sm font-bold text-[#4A3362]">
+                <p className="rounded-2xl bg-[#f1f8f4] p-4 text-sm font-bold text-[#14281c]">
                   Usaremos tu celular para coordinar la entrega y tu correo para enviarte la confirmación. Los campos con * son obligatorios.
                 </p>
                 <div className="grid grid-cols-1 gap-5">
@@ -1530,10 +1530,10 @@ export default function Checkout() {
                 onChange={updateCheckoutProgress}
                 className="checkout-panel scroll-mt-8 space-y-5 rounded-[1.5rem] p-4 sm:space-y-7 sm:rounded-[2rem] sm:p-10"
               >
-                <h3 className="flex items-center gap-2 font-sans text-2xl font-black tracking-tight text-[#4B0082] sm:gap-3 sm:text-4xl">
+                <h3 className="flex items-center gap-2 font-sans text-2xl font-black tracking-tight text-[#14281c] sm:gap-3 sm:text-4xl">
                   <Truck className="h-7 w-7 sm:h-9 sm:w-9" /> Quién recibe
                 </h3>
-                <p className="rounded-2xl bg-[#FBF7FD] p-4 text-sm font-bold text-[#4A3362]">
+                <p className="rounded-2xl bg-[#f1f8f4] p-4 text-sm font-bold text-[#14281c]">
                   Selecciona el sector para calcular el envío. Si no conoces el teléfono de quien recibe, coordinaremos contigo.
                 </p>
                 <button type="button" className="ui-btn-secondary text-sm" onClick={() => {
@@ -1610,7 +1610,7 @@ export default function Checkout() {
                         placeholder="Ej: Urdesa, norte, sur, vía a la costa"
                       />
                     )}
-                    <span className="text-sm font-black text-[#4A3362]">
+                    <span className="text-sm font-black text-[#14281c]">
                       {deliveryCity===LOCAL_DELIVERY_CITY?'Envío gratis. Completa la dirección y las referencias para la entrega.':shippingResolution.isMatched
                         ? `Costo de envío para ${formatSectorLabel(shippingResolution.matchedSector)}: $${shippingCost.toFixed(2)}`
                         : shippingSectorRates.length === 0
@@ -1655,11 +1655,11 @@ export default function Checkout() {
                 id="checkout-payment"
                 className="checkout-panel scroll-mt-8 space-y-5 rounded-[1.5rem] p-4 sm:space-y-8 sm:rounded-[2rem] sm:p-10"
               >
-                <h3 className="flex items-center gap-2 font-sans text-2xl font-black tracking-tight text-[#4B0082] sm:gap-3 sm:text-4xl">
+                <h3 className="flex items-center gap-2 font-sans text-2xl font-black tracking-tight text-[#14281c] sm:gap-3 sm:text-4xl">
                   <CreditCard className="h-7 w-7 sm:h-9 sm:w-9" /> Métodos de pago
                 </h3>
                 {!checkoutReadiness.canChoosePayment ? (
-                  <div className="rounded-2xl border border-[#DCC5E8] bg-[#FBF7FD] p-4 text-sm font-black text-[#4A3362] sm:text-base">
+                  <div className="rounded-2xl border border-[#cfe6d6] bg-[#f1f8f4] p-4 text-sm font-black text-[#14281c] sm:text-base">
                     Puedes revisar y elegir el método ahora. Antes de confirmar te indicaremos cualquier dato obligatorio que falte.
                   </div>
                 ) : null}
@@ -1698,8 +1698,8 @@ export default function Checkout() {
                         className={cn(
                           "flex min-h-[132px] flex-col items-start justify-between rounded-2xl border p-5 text-left transition-all disabled:cursor-not-allowed disabled:opacity-60",
                           paymentMethod === label
-                            ? "border-[#4B1F6F] bg-[#4B1F6F] text-white shadow-lg shadow-[#4B1F6F]/20"
-                            : "border-[#DCC5E8] bg-white text-[#4A3362] hover:border-[#B58CCC] hover:bg-[#FBF7FD]"
+                            ? "border-[#188b42] bg-[#188b42] text-white shadow-lg shadow-[#188b42]/20"
+                            : "border-[#cfe6d6] bg-white text-[#14281c] hover:border-[#79c28d] hover:bg-[#f1f8f4]"
                         )}
                       >
                         <Icon
@@ -1707,7 +1707,7 @@ export default function Checkout() {
                             "h-7 w-7",
                             paymentMethod === label
                               ? "text-white"
-                              : "text-[#4A3362]"
+                              : "text-[#14281c]"
                           )}
                         />
                         <span className="flex w-full flex-wrap items-center justify-between gap-2 text-base font-semibold leading-snug">
@@ -1717,7 +1717,7 @@ export default function Checkout() {
                               "rounded-full px-2.5 py-1 text-[0.62rem] font-black uppercase tracking-[0.08em]",
                               paymentMethod === label
                                 ? "bg-white/15 text-white"
-                                : "bg-[#FBF7FD] text-[#4B1F6F]"
+                                : "bg-[#f1f8f4] text-[#188b42]"
                             )}
                           >
                             {availabilityLabel}
@@ -1728,7 +1728,7 @@ export default function Checkout() {
                             "text-sm font-medium leading-relaxed",
                             paymentMethod === label
                               ? "text-white/80"
-                              : "text-[#4A3362]"
+                              : "text-[#14281c]"
                           )}
                         >
                           {availability?.status === "unavailable" && availability.message
@@ -1746,44 +1746,44 @@ export default function Checkout() {
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
-                    className="checkout-subpanel rounded-2xl border border-dashed border-[#B58CCC] p-6"
+                    className="checkout-subpanel rounded-2xl border border-dashed border-[#79c28d] p-6"
                   >
                     {!paymentMethod && (
-                      <p className="text-base font-black text-[#4A3362]">
+                      <p className="text-base font-black text-[#14281c]">
                         Elige uno de los métodos habilitados por la tienda para conocer los siguientes pasos.
                       </p>
                     )}
                     {selectedPaymentDetails && (
-                      <div className="mb-5 rounded-2xl border border-[#DCC5E8] bg-[#FBF7FD] px-4 py-3">
-                        <p className="text-xs font-black uppercase tracking-[0.14em] text-[#4B1F6F]">
+                      <div className="mb-5 rounded-2xl border border-[#cfe6d6] bg-[#f1f8f4] px-4 py-3">
+                        <p className="text-xs font-black uppercase tracking-[0.14em] text-[#188b42]">
                           Siguiente paso seguro
                         </p>
-                        <p className="mt-1 text-sm font-bold leading-relaxed text-[#4A3362] sm:text-base">
+                        <p className="mt-1 text-sm font-bold leading-relaxed text-[#14281c] sm:text-base">
                           {selectedPaymentDetails.nextStep}
                         </p>
                       </div>
                     )}
                     {paymentMethod === "Banco" && (
                       <>
-                        <p className="mb-4 text-base font-black text-[#4A3362]">
+                        <p className="mb-4 text-base font-black text-[#14281c]">
                           Datos para transferencia bancaria:
                         </p>
-                        <pre className="whitespace-pre-wrap font-sans text-base leading-relaxed text-[#4A3362]">
+                        <pre className="whitespace-pre-wrap font-sans text-base leading-relaxed text-[#14281c]">
                           {transferInstructions}
                         </pre>
-                        <p className="mt-4 text-base font-black text-[#4A3362]">
+                        <p className="mt-4 text-base font-black text-[#14281c]">
                           Puedes adjuntar el comprobante aquí. Cuando confirmes el pedido se subirá automáticamente y el admin lo verá en la orden.
                         </p>
                       </>
                     )}
                     {paymentMethod === "Datafast" && (
                       <div className="flex items-start gap-4">
-                        <Smartphone className="mt-1 h-7 w-7 text-[#4A3362]" />
+                        <Smartphone className="mt-1 h-7 w-7 text-[#14281c]" />
                         <div>
-                          <p className="text-lg font-black text-[#4A3362]">
+                          <p className="text-lg font-black text-[#14281c]">
                             Pago seguro con Datafast
                           </p>
-                          <p className="mt-1 text-base font-black text-[#4A3362]">
+                          <p className="mt-1 text-base font-black text-[#14281c]">
                             Al confirmar serás redirigido a la pasarela para ingresar los datos de tu tarjeta.
                           </p>
                           <label className="mt-4 block text-sm font-semibold">Dirección de facturación del titular *<input className="checkout-input mt-2" value={billingAddress} maxLength={100} onChange={e=>setBillingAddress(e.target.value)} placeholder="Dirección del comprador" /></label>
@@ -1794,17 +1794,17 @@ export default function Checkout() {
                     {paymentMethod === "PayPal" && (
                       <div className="space-y-4">
                         <div className="flex items-start gap-4">
-                          <Globe2 className="mt-1 h-7 w-7 text-[#4A3362]" />
+                          <Globe2 className="mt-1 h-7 w-7 text-[#14281c]" />
                           <div>
-                            <p className="text-lg font-black text-[#4A3362]">
+                            <p className="text-lg font-black text-[#14281c]">
                               Pago internacional o con tarjeta de crédito
                             </p>
-                            <p className="mt-1 text-base font-black text-[#4A3362]">
+                            <p className="mt-1 text-base font-black text-[#14281c]">
                               Al confirmar te redirigiremos a PayPal para completar el pago de forma segura.
                             </p>
                           </div>
                         </div>
-                        <label className="block text-sm font-black text-[#4A3362]">
+                        <label className="block text-sm font-black text-[#14281c]">
                           Correo PayPal (opcional)
                           <input
                             type="email"
@@ -1812,10 +1812,10 @@ export default function Checkout() {
                             onChange={(e) => setPaypalPayerEmail(e.target.value)}
                             placeholder="correo@ejemplo.com"
                             className={cn(
-                              "mt-3 w-full rounded-3xl border bg-[#FAF7FC] px-4 py-3 text-[#4A3362] outline-none transition focus:ring-2",
+                              "mt-3 w-full rounded-3xl border bg-[#f1f8f4] px-4 py-3 text-[#14281c] outline-none transition focus:ring-2",
                               paypalPayerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paypalPayerEmail)
                                 ? "border-red-300 focus:border-red-500 focus:ring-red-200"
-                                : "border-[#DCC5E8] focus:border-[#4B1F6F] focus:ring-[#4B1F6F]/20"
+                                : "border-[#cfe6d6] focus:border-[#188b42] focus:ring-[#188b42]/20"
                             )}
                           />
                           {paypalPayerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paypalPayerEmail) && (
@@ -1823,7 +1823,7 @@ export default function Checkout() {
                               Formato de correo inválido
                             </p>
                           )}
-                          <p className="mt-2 text-sm font-normal text-[#4A3362]">
+                          <p className="mt-2 text-sm font-normal text-[#14281c]">
                             Si lo indicas, nos ayuda a identificar tu pago más rápido. Puedes dejarlo vacío y pagar con la cuenta que prefieras.
                           </p>
                         </label>
@@ -1831,15 +1831,15 @@ export default function Checkout() {
                     )}
                     {paymentMethod === "Zelle" && (
                       <div className="flex items-start gap-4">
-                        <CreditCard className="mt-1 h-7 w-7 text-[#4A3362]" />
+                        <CreditCard className="mt-1 h-7 w-7 text-[#14281c]" />
                         <div>
-                          <p className="text-lg font-black text-[#4A3362]">
+                          <p className="text-lg font-black text-[#14281c]">
                             Pago por Zelle
                           </p>
-                          <pre className="mt-2 whitespace-pre-wrap font-sans text-base leading-relaxed text-[#4A3362]">
+                          <pre className="mt-2 whitespace-pre-wrap font-sans text-base leading-relaxed text-[#14281c]">
                             {zelleInstructions}
                           </pre>
-                          <p className="mt-3 text-base font-black text-[#4A3362]">
+                          <p className="mt-3 text-base font-black text-[#14281c]">
                             Si ya hiciste el pago, adjunta aquí tu comprobante para subirlo automáticamente al confirmar el pedido.
                           </p>
                         </div>
@@ -1848,26 +1848,26 @@ export default function Checkout() {
                     {(paymentMethod === "Banco" ||
                       paymentMethod === "Zelle" ||
                       paymentMethod === "PayPal") && (
-                      <div className="mt-6 rounded-2xl border border-[#DCC5E8] bg-white p-4">
-                        <p className="text-base font-black text-[#4A3362]">
+                      <div className="mt-6 rounded-2xl border border-[#cfe6d6] bg-white p-4">
+                        <p className="text-base font-black text-[#14281c]">
                           Comprobante de pago
                         </p>
-                        <p className="mt-1 text-sm font-black text-[#4A3362]">
+                        <p className="mt-1 text-sm font-black text-[#14281c]">
                           Selecciona la imagen del comprobante. Al confirmar el pedido se guardará automáticamente para que el admin pueda verlo.
                         </p>
                         <input
                           type="file"
                           accept="image/*"
                           onChange={(e) => handleProofFileChange(e.target.files?.[0] || null)}
-                          className="mt-4 block w-full text-sm text-[#4A3362] file:mr-3 file:rounded-xl file:border-0 file:bg-[#4B1F6F] file:px-4 file:py-2 file:text-white"
+                          className="mt-4 block w-full text-sm text-[#14281c] file:mr-3 file:rounded-xl file:border-0 file:bg-[#188b42] file:px-4 file:py-2 file:text-white"
                         />
-                        <p className="mt-3 text-sm font-black text-[#4A3362]">
+                        <p className="mt-3 text-sm font-black text-[#14281c]">
                           {selectedProofFile
                             ? `Archivo listo: ${selectedProofFile.name}`
                             : "Aún no has seleccionado un comprobante."}
                         </p>
                         {proofMessage && (
-                          <p className="mt-2 text-sm text-[#4A3362]">
+                          <p className="mt-2 text-sm text-[#14281c]">
                             {proofMessage}
                           </p>
                         )}
@@ -1880,7 +1880,7 @@ export default function Checkout() {
                     type="button"
                     onClick={handleConfirmOrder}
                     disabled={!canConfirmOrder || isCheckoutBusy}
-                    className="flex flex-1 items-center justify-center gap-3 rounded-2xl bg-[#4B1F6F] px-4 py-4 text-base font-black text-white shadow-lg shadow-[#4B1F6F]/20 transition-all hover:bg-[#4A3362] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 sm:px-6 sm:py-5 sm:text-lg"
+                    className="flex flex-1 items-center justify-center gap-3 rounded-2xl bg-[#188b42] px-4 py-4 text-base font-black text-white shadow-lg shadow-[#188b42]/20 transition-all hover:bg-[#146c35] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 sm:px-6 sm:py-5 sm:text-lg"
                   >
                     {orderStatus === "loading" ? (
                       <>
@@ -1892,7 +1892,7 @@ export default function Checkout() {
                     )}
                   </button>
                 </div>
-                <p className="rounded-2xl bg-[#FBF7FD] px-4 py-3 text-center text-sm font-black leading-relaxed text-[#4A3362]">
+                <p className="rounded-2xl bg-[#f1f8f4] px-4 py-3 text-center text-sm font-black leading-relaxed text-[#14281c]">
                   {paymentMethod==='Coordinar con ventas'?'Al generar el pedido recibirás tu comprobante PDF. Ventas se comunicará contigo para coordinar la entrega y el pago.':'Después de confirmar te guiamos al pago o guardamos tu comprobante. ZettaTech revisa la orden y coordina el envío contigo.'}
                 </p>
               </div>

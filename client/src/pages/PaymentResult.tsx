@@ -229,18 +229,18 @@ export default function PaymentResult() {
 
   if (status === "loading") {
     return (
-      <div className="min-h-screen bg-[#FBF7FD] flex items-center justify-center px-6">
+      <div className="min-h-screen bg-[#f1f8f4] flex items-center justify-center px-6">
         <Seo
           title="Resultado de pago | ZettaTech"
           description="Resultado del proceso de pago."
           path="/payment-result"
           robots="noindex, nofollow"
         />
-        <div className="rounded-[2rem] border border-[#E5D7EF] bg-white p-8 text-center text-[#4A3362] shadow-[0_22px_58px_rgba(74,51,98,0.09)]">
-          <Loader2 className="w-16 h-16 animate-spin mx-auto mb-4 text-[#C6539B]" />
+        <div className="rounded-[2rem] border border-[#dbeee0] bg-white p-8 text-center text-[#14281c] shadow-[0_22px_58px_rgba(74,51,98,0.09)]">
+          <Loader2 className="w-16 h-16 animate-spin mx-auto mb-4 text-[#188b42]" />
           <p className="font-black text-lg">Confirmando tu pago...</p>
-          <p className="text-[#4A3362]/70 text-sm mt-2 font-bold">Por favor no cierres esta ventana.</p>
-          <p className="mt-4 rounded-2xl bg-[#FBF7FD] px-4 py-3 text-xs font-black text-[#4A3362]">
+          <p className="text-[#14281c]/70 text-sm mt-2 font-bold">Por favor no cierres esta ventana.</p>
+          <p className="mt-4 rounded-2xl bg-[#f1f8f4] px-4 py-3 text-xs font-black text-[#14281c]">
             Estamos validando la transacción y protegiendo tu pedido.
           </p>
         </div>
@@ -254,7 +254,7 @@ export default function PaymentResult() {
 
   if (status === "cancelled") {
     return (
-      <div className="min-h-screen bg-[#FBF7FD] flex items-center justify-center px-6">
+      <div className="min-h-screen bg-[#f1f8f4] flex items-center justify-center px-6">
         <Seo
           title="Pago cancelado | ZettaTech"
           description="Resultado del proceso de pago."
@@ -264,15 +264,15 @@ export default function PaymentResult() {
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-white p-8 sm:p-12 rounded-[2.5rem] shadow-2xl border border-[#E5D7EF] text-center max-w-lg w-full"
+          className="bg-white p-8 sm:p-12 rounded-[2.5rem] shadow-2xl border border-[#dbeee0] text-center max-w-lg w-full"
         >
           <XCircle className="w-24 h-24 text-yellow-400 mx-auto mb-6" />
-          <h2 className="text-3xl font-serif font-black text-[#4A3362] mb-3">Pago cancelado</h2>
-          <p className="text-[#4A3362]/70 text-sm font-bold mb-8">
+          <h2 className="text-3xl font-serif font-black text-[#14281c] mb-3">Pago cancelado</h2>
+          <p className="text-[#14281c]/70 text-sm font-bold mb-8">
             Cancelaste el proceso de pago. Puedes volver al checkout y elegir otro método sin iniciar desde cero.
           </p>
           <Link href="/checkout">
-            <button className="w-full bg-[#5A3F73] hover:bg-[#4A3362] text-white py-5 rounded-3xl font-black text-base transition-all shadow-xl">
+            <button className="w-full bg-[#188b42] hover:bg-[#146c35] text-white py-5 rounded-3xl font-black text-base transition-all shadow-xl">
               Volver al checkout
             </button>
           </Link>
@@ -288,7 +288,7 @@ export default function PaymentResult() {
 
   // failed o error
   return (
-    <div className="min-h-screen bg-[#FBF7FD] flex items-center justify-center px-6">
+    <div className="min-h-screen bg-[#f1f8f4] flex items-center justify-center px-6">
       <Seo
         title="Error de pago | ZettaTech"
         description="Resultado del proceso de pago."
@@ -301,18 +301,18 @@ export default function PaymentResult() {
         className={cn("bg-white p-8 sm:p-12 rounded-[2.5rem] shadow-2xl text-center max-w-lg w-full border", pagoSinCompletar ? "border-amber-300/50" : "border-red-500/20")}
       >
         <XCircle className={cn("w-24 h-24 mx-auto mb-6", pagoSinCompletar ? "text-amber-400" : "text-red-400")} />
-        <h2 className="text-3xl font-serif font-black text-[#4A3362] mb-3">
+        <h2 className="text-3xl font-serif font-black text-[#14281c] mb-3">
           {tituloDelResultado}
         </h2>
-        <p className="text-[#4A3362]/70 text-sm font-bold mb-6">
+        <p className="text-[#14281c]/70 text-sm font-bold mb-6">
           {status === "failed" ? (
             resultMessage || "Tu tarjeta fue rechazada. Verifica los datos o intenta con otra tarjeta."
           ) : (
             resultMessage || "Ocurrió un error al procesar el pago. Por favor contáctanos."
           )}
         </p>
-        <p className="mb-8 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#FBF7FD] px-4 py-3 text-xs font-black text-[#4A3362]">
-          <ShieldCheck className="h-4 w-4 text-[#C6539B]" />
+        <p className="mb-8 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#f1f8f4] px-4 py-3 text-xs font-black text-[#14281c]">
+          <ShieldCheck className="h-4 w-4 text-[#188b42]" />
           Tu pedido no se pierde; podemos ayudarte a terminarlo.
         </p>
         <div className="flex flex-col gap-3">
@@ -320,13 +320,13 @@ export default function PaymentResult() {
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="w-full bg-[#C6539B] hover:bg-[#AD3F85] text-white py-5 rounded-3xl font-black text-base transition-all shadow-xl"
+              className="w-full bg-[#188b42] hover:bg-[#146c35] text-white py-5 rounded-3xl font-black text-base transition-all shadow-xl"
             >
               Verificar mi pago nuevamente
             </button>
           )}
           <Link href="/checkout">
-            <button className="w-full bg-[#5A3F73] hover:bg-[#4A3362] text-white py-5 rounded-3xl font-black text-base transition-all shadow-xl">
+            <button className="w-full bg-[#188b42] hover:bg-[#146c35] text-white py-5 rounded-3xl font-black text-base transition-all shadow-xl">
               {status === "failed" ? "Intentar con otro método" : "Volver al checkout"}
             </button>
           </Link>
@@ -340,7 +340,7 @@ export default function PaymentResult() {
             Ayuda por WhatsApp
           </a>
           <Link href="/">
-            <button className="w-full bg-transparent border border-[#5A3F73]/25 text-[#4A3362] py-4 rounded-3xl font-bold text-sm transition-all hover:border-[#5A3F73]">
+            <button className="w-full bg-transparent border border-[#188b42]/25 text-[#14281c] py-4 rounded-3xl font-bold text-sm transition-all hover:border-[#188b42]">
               Volver a la tienda
             </button>
           </Link>

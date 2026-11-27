@@ -253,18 +253,18 @@ export default function PaymentGateway() {
 
   if (gatewayState === "preparing") {
     return (
-      <div className="min-h-screen bg-[#FBF7FD] flex items-center justify-center px-6">
+      <div className="min-h-screen bg-[#f1f8f4] flex items-center justify-center px-6">
         <Seo
           title="Preparando pago | ZettaTech"
           description="Preparando el botón de pago PayPhone."
           path="/payment-gateway"
           robots="noindex, nofollow"
         />
-        <div className="rounded-[2rem] border border-[#E5D7EF] bg-white p-8 text-center text-[#4A3362] shadow-[0_22px_58px_rgba(74,51,98,0.09)] max-w-md">
-          <Loader2 className="w-16 h-16 animate-spin mx-auto mb-4 text-[#C6539B]" />
+        <div className="rounded-[2rem] border border-[#dbeee0] bg-white p-8 text-center text-[#14281c] shadow-[0_22px_58px_rgba(74,51,98,0.09)] max-w-md">
+          <Loader2 className="w-16 h-16 animate-spin mx-auto mb-4 text-[#188b42]" />
           <h2 className="text-3xl font-serif font-black mb-3">Preparando tu pago seguro</h2>
-          <p className="text-[#4A3362]/75 font-bold">Estamos generando la sesión protegida. Normalmente toma pocos segundos.</p>
-          <div className="mt-5 rounded-2xl bg-[#FBF7FD] px-4 py-3 text-sm font-black">
+          <p className="text-[#14281c]/75 font-bold">Estamos generando la sesión protegida. Normalmente toma pocos segundos.</p>
+          <div className="mt-5 rounded-2xl bg-[#f1f8f4] px-4 py-3 text-sm font-black">
             No actualices la página; tus datos del pedido ya están guardados.
           </div>
         </div>
@@ -274,7 +274,7 @@ export default function PaymentGateway() {
 
   if (gatewayState === "error") {
     return (
-      <div className="min-h-screen bg-[#FBF7FD] flex items-center justify-center px-6">
+      <div className="min-h-screen bg-[#f1f8f4] flex items-center justify-center px-6">
         <Seo
           title="Error de pago | ZettaTech"
           description="No se pudo preparar el Payment Box."
@@ -292,7 +292,7 @@ export default function PaymentGateway() {
           <div className="flex flex-col gap-3">
             <button
               onClick={retryGateway}
-              className="w-full bg-[#5A3F73] hover:bg-[#4A3362] text-white py-4 rounded-3xl font-black text-base transition-all shadow-xl"
+              className="w-full bg-[#188b42] hover:bg-[#146c35] text-white py-4 rounded-3xl font-black text-base transition-all shadow-xl"
             >
               Reintentar pago
             </button>
@@ -318,7 +318,7 @@ export default function PaymentGateway() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FBF7FD] flex items-center justify-center px-6 py-12">
+    <div className="min-h-screen bg-[#f1f8f4] flex items-center justify-center px-6 py-12">
       <Seo
         title="Pago con tarjeta | ZettaTech"
         description="Completa tu pago con PayPhone."
@@ -328,25 +328,25 @@ export default function PaymentGateway() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white p-6 sm:p-10 rounded-[2.5rem] shadow-2xl border border-[#E5D7EF] w-full max-w-2xl"
+        className="bg-white p-6 sm:p-10 rounded-[2.5rem] shadow-2xl border border-[#dbeee0] w-full max-w-2xl"
       >
-        <div className="text-center text-[#4A3362] mb-8">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#4B1F6F] text-white shadow-lg shadow-[#4B1F6F]/20">
+        <div className="text-center text-[#14281c] mb-8">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#188b42] text-white shadow-lg shadow-[#188b42]/20">
             <CreditCard className="h-7 w-7" />
           </div>
           <h1 className="text-3xl font-serif font-black mb-2">Pago con tarjeta</h1>
-          <p className="text-[#4A3362]/75 font-bold">
+          <p className="text-[#14281c]/75 font-bold">
             Completa tu pago con PayPhone desde esta página protegida.
           </p>
           <div className="mt-5 grid gap-2 sm:grid-cols-3">
             {["Sesión segura", "Pedido guardado", "Soporte ZettaTech"].map((label) => (
-              <span key={label} className="inline-flex items-center justify-center gap-1.5 rounded-full border border-[#E5D7EF] bg-[#FBF7FD] px-3 py-2 text-xs font-black text-[#4B1F6F]">
-                <ShieldCheck className="h-3.5 w-3.5 text-[#C6539B]" />
+              <span key={label} className="inline-flex items-center justify-center gap-1.5 rounded-full border border-[#dbeee0] bg-[#f1f8f4] px-3 py-2 text-xs font-black text-[#188b42]">
+                <ShieldCheck className="h-3.5 w-3.5 text-[#188b42]" />
                 {label}
               </span>
             ))}
           </div>
-          {reference ? <p className="text-[#4B1F6F] font-black mt-4">{reference}</p> : null}
+          {reference ? <p className="text-[#188b42] font-black mt-4">{reference}</p> : null}
           {clientTransactionId ? (
             <p className="text-foreground/45 text-xs mt-1 break-all">{clientTransactionId}</p>
           ) : null}
