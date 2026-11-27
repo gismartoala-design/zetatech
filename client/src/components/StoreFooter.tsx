@@ -124,13 +124,44 @@ export function StoreFooter({
         <div className="zx-footer-payments">
           <span>Pago con todas las tarjetas de crédito</span>
           <div className="zx-footer-cards" aria-label="Tarjetas aceptadas">
-            <span className="zx-card-pill zx-card-visa">VISA</span>
-            <span className="zx-card-pill zx-card-diners">Diners Club</span>
-            <span className="zx-card-pill zx-card-mc">Mastercard</span>
-            <span className="zx-card-pill zx-card-discover">DISCOVER</span>
-            <span className="zx-card-pill zx-card-amex">AMEX</span>
-            <span className="zx-card-pill zx-card-pacifi">PacifiCard</span>
-            <span className="zx-card-pill zx-card-bankard">BANKARD</span>
+            <span className="zx-card-chip" title="Visa">
+              <svg viewBox="0 0 48 30" aria-hidden="true"><text x="24" y="20" textAnchor="middle" fontFamily="Georgia, serif" fontStyle="italic" fontWeight="700" fontSize="15" fill="#1a1f71">VISA</text></svg>
+            </span>
+            <span className="zx-card-chip" title="Diners Club">
+              <svg viewBox="0 0 48 30" aria-hidden="true">
+                <circle cx="24" cy="15" r="10" fill="#0079be" />
+                <path d="M24 6.5a8.5 8.5 0 0 0 0 17 8.5 8.5 0 0 0 0-17zm-2.1 3.1v10.8a6.8 6.8 0 0 1 0-10.8zm4.2 0a6.8 6.8 0 0 1 0 10.8z" fill="#fff" />
+              </svg>
+            </span>
+            <span className="zx-card-chip" title="Mastercard">
+              <svg viewBox="0 0 48 30" aria-hidden="true">
+                <circle cx="19" cy="15" r="9" fill="#eb001b" />
+                <circle cx="29" cy="15" r="9" fill="#f79e1b" />
+                <path d="M24 8.3a9 9 0 0 1 0 13.4 9 9 0 0 1 0-13.4z" fill="#ff5f00" />
+              </svg>
+            </span>
+            <span className="zx-card-chip" title="Discover">
+              <svg viewBox="0 0 48 30" aria-hidden="true">
+                <text x="4" y="18.5" fontFamily="Arial, sans-serif" fontWeight="700" fontSize="6" fill="#1a1a1a">DISCOVER</text>
+                <circle cx="43" cy="15" r="4" fill="#f68121" />
+              </svg>
+            </span>
+            <span className="zx-card-chip" title="American Express">
+              <svg viewBox="0 0 48 30" aria-hidden="true">
+                <rect x="3" y="5" width="42" height="20" rx="2" fill="#2e77bc" />
+                <text x="24" y="19" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="700" fontSize="8.5" fill="#fff">AMEX</text>
+              </svg>
+            </span>
+            <span className="zx-card-chip" title="PacifiCard">
+              <svg viewBox="0 0 48 30" aria-hidden="true">
+                <text x="24" y="19" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="700" fontSize="7.5" fill="#0a4b8c">Pacifi<tspan fill="#f58220">Card</tspan></text>
+              </svg>
+            </span>
+            <span className="zx-card-chip" title="Bankard">
+              <svg viewBox="0 0 48 30" aria-hidden="true">
+                <text x="24" y="19" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="700" fontSize="8" fill="#101614">BANKARD</text>
+              </svg>
+            </span>
           </div>
         </div>
         <p className="zx-footer-copy">© 2026 ZettaTech. Todos los derechos reservados.</p>
