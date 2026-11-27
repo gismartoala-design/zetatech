@@ -26,6 +26,13 @@ const registerSchema = z.object({
 });
 const loginSchema = z.object({ email: EMAIL, password: z.string().min(1).max(200) });
 const verifySchema = z.object({ email: EMAIL, code: z.string().trim().regex(/^\d{6}$/) });
+const profileSchema = z.object({
+  name: z.string().trim().min(2).max(80),
+  lastName: z.string().trim().max(80).optional().or(z.literal('')),
+  phone: z.string().trim().max(40).optional().or(z.literal('')),
+  city: z.string().trim().max(80).optional().or(z.literal('')),
+});
+const passwordSchema = z.object({ currentPassword: z.string().min(1).max(200), newPassword: PASSWORD });
 
 // Limitador en memoria: frena la prueba de contraseñas a fuerza bruta sin
 // añadir otra dependencia. Se reinicia con el proceso, que para este uso basta.
@@ -50,7 +57,10 @@ const publicCustomer = customer => ({
   name: customer.name,
   lastName: customer.lastName || '',
   phone: customer.phone || '',
+  city: customer.city || '',
   verified: Boolean(customer.emailVerifiedAt),
+  memberSince: customer.createdAt,
+  lastLoginAt: customer.lastLoginAt,
 });
 
 router.use((req, res, next) => {
@@ -164,6 +174,41 @@ router.get('/me', requireCustomer, async (req, res, next) => {
     const customer = await prisma.customers.findUnique({ where: { id: req.customer.customerId } });
     if (!customer?.password) return res.status(401).json({ status: 'error', message: 'Sesión no válida.' });
     res.json({ status: 'success', data: publicCustomer(customer) });
+  } catch (e) { next(e); }
+});
+
+/** El correo no se edita aquí: cambiarlo obligaría a verificar el nuevo y a
+ *  decidir qué pasa con el historial, que se busca justamente por correo. */
+router.put('/me', requireCustomer, async (req, res, next) => {
+  try {
+    const parsed = profileSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ status: 'error', message: 'Revisa los datos. El nombre necesita al menos 2 letras.' });
+    const { name, lastName, phone, city } = parsed.data;
+    const customer = await prisma.customers.update({
+      where: { id: req.customer.customerId },
+      data: { name, lastName: lastName || null, phone: phone || null, city: city || null },
+    });
+    res.json({ status: 'success', data: publicCustomer(customer) });
+  } catch (e) { next(e); }
+});
+
+/** Cambiar la contraseña exige la actual: una sesión robada no debe poder
+ *  dejar a la persona fuera de su propia cuenta. */
+router.post('/password', requireCustomer, async (req, res, next) => {
+  try {
+    if (!rateLimit(`pwd:${clientKey(req)}`, 10, 60 * 60 * 1000)) return res.status(429).json({ status: 'error', message: 'Demasiados intentos. Espera un momento.' });
+    const parsed = passwordSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ status: 'error', message: 'La contraseña nueva necesita al menos 8 caracteres.' });
+    const customer = await prisma.customers.findUnique({ where: { id: req.customer.customerId } });
+    const ok = customer?.password && await bcrypt.compare(parsed.data.currentPassword, customer.password);
+    if (!ok) return res.status(401).json({ status: 'error', message: 'La contraseña actual no es correcta.' });
+    const updated = await prisma.customers.update({
+      where: { id: customer.id },
+      data: { password: await bcrypt.hash(parsed.data.newPassword, 12) },
+    });
+    // Se renueva la cookie para que la sesión siga viva tras el cambio.
+    res.cookie(COOKIE, signCustomerSession(updated), sessionCookieOptions());
+    res.json({ status: 'success', data: { changed: true } });
   } catch (e) { next(e); }
 });
 
