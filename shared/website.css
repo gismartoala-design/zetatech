@@ -25,13 +25,13 @@
   box-shadow:inset 0 1px 0 #ffffff24,inset 0 -1px 0 #00000026;
   border-radius:0;
   transition:width 420ms cubic-bezier(.2,.8,.2,1),margin 420ms cubic-bezier(.2,.8,.2,1),padding 420ms cubic-bezier(.2,.8,.2,1),border-radius 420ms cubic-bezier(.2,.8,.2,1),box-shadow 420ms ease,background-color 420ms ease}
+/* Antes esto encogia la barra en una pastilla flotante con bordes
+   redondeados y un brillo alrededor. Se pidio quitar esa forma: la barra
+   sigue de ancho completo y solo se oscurece un poco al bajar, para que el
+   texto blanco siga leyendose igual de bien. */
 .zt-header[data-scrolled=true]{
-  width:min(1040px,92%);
-  margin-top:14px;
-  padding:10px 24px;
-  border-radius:999px;
+  padding:10px 5%;
   background-color:color-mix(in srgb,var(--zt-accent) 55%,#071b12);
-  box-shadow:inset 0 1px 0 #ffffff30,inset 0 -1px 0 #00000030,0 16px 40px -14px #000a,0 0 0 1px color-mix(in srgb,var(--zt-accent) 35%,transparent);
 }
 .zt-brand{font-weight:800;font-size:1.4em;display:flex;align-items:center;gap:12px;text-decoration:none;letter-spacing:-.02em}
 .zt-brand img{width:clamp(160px,17vw,220px);height:auto;object-fit:contain;display:block}
