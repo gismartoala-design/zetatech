@@ -40,7 +40,7 @@ async function createDatafastCheckout(db, payload) {
   if (names.length < 2 || !details.senderDocument || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(details.senderEmail || '') || !details.senderPhone || !details.exactAddress) fail('Datafast requiere nombre y apellido, documento, correo, celular y dirección.');
   if (details.senderDocumentType === 'RUC') fail('Para pagar con Datafast utiliza la cédula o pasaporte del titular de la tarjeta.');
   if (!String(payload.billingAddress || '').trim() || !/^[A-Z]{2}$/.test(String(payload.billingCountry || ''))) fail('Completa la dirección y el país de facturación para Datafast.');
-  const orderNumber = `ZETATECH-${crypto.randomBytes(12).toString('hex')}`;
+  const orderNumber = `ZETTATECH-${crypto.randomBytes(12).toString('hex')}`;
   const taxableBase = Number(config.vatRate) === 0 ? 0 : money(quote.total / (1 + Number(config.vatRate)));
   const tax = taxableBase ? money(quote.total - taxableBase) : 0;
   const netSubtotal = taxableBase ? money(quote.subtotal / (1 + Number(config.vatRate))) : quote.subtotal;
@@ -90,7 +90,7 @@ async function confirmDatafastPayment(db, resourcePath) {
   }
   if (newlyPaid) {
     const emailService = require('./emailService');
-    try { await emailService.sendOrderConfirmation({ ...order, paymentStatus: 'PAID', companyName: company?.name || 'Zetatech' }); } catch (error) { console.error('Datafast: no se pudo enviar el correo de confirmación.'); }
+    try { await emailService.sendOrderConfirmation({ ...order, paymentStatus: 'PAID', companyName: company?.name || 'ZettaTech' }); } catch (error) { console.error('Datafast: no se pudo enviar el correo de confirmación.'); }
     try { await emailService.sendNewOrderAlert({ ...order, paymentStatus: 'PAID', paymentMethod: 'Datafast', items: order.orderItems.map(i => ({ productName: i.product?.name, quantity: i.quantity, price: i.price })) }); } catch { console.error('Datafast: no se pudo notificar el pedido al administrador.'); }
   }
   return { orderNumber: order.orderNumber, paymentStatus: 'PAID', total: order.total, email: order.customerEmail, customerName: `${order.customerName} ${order.customerLastName}`, receiverName: order.billingContactName, address: order.billingPrincipalAddress, items: order.orderItems.map(i => ({ productName: i.product?.name || 'Producto', quantity: i.quantity })) };

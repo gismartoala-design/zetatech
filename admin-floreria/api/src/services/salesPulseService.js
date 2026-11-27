@@ -157,7 +157,7 @@ async function obtenerPulsoDeVentas({ horasVentana = 5, horaInicio = 8, horaFin 
     horasDesdeUltimaVenta,
     aceptaPedidos: empresa?.settings?.acceptOrders !== false,
     productosActivos,
-    empresa: empresa?.name || "Zetatech",
+    empresa: empresa?.name || "ZettaTech",
     correoEmpresa: empresa?.email || null,
   };
 }

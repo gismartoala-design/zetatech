@@ -436,7 +436,12 @@ export default function Checkout() {
 
   useEffect(() => {
     let active = true;
-    const productionHost = ["zetatech.ec", "www.zetatech.ec"].includes(window.location.hostname) || window.location.hostname.endsWith(".run.app");
+    // El dominio real nunca fue "zetatech.ec" (no existe, ver el correo que
+    // rebotó): esta lista solo reconocía producción por el ".run.app" de
+    // Cloud Run, así que en el dominio propio este bloqueo de seguridad -no
+    // mostrar una pasarela de pago en modo sandbox como si ya estuviera
+    // lista- nunca se activaba.
+    const productionHost = ["zettatechtienda.com", "www.zettatechtienda.com"].includes(window.location.hostname) || window.location.hostname.endsWith(".run.app");
 
     const checkProvider = async (
       method: OnlinePaymentMethod,
@@ -989,7 +994,7 @@ export default function Checkout() {
           throw new Error(errorMessage);
         }
 
-        const createdOrderNumber = result.data?.orderNumber || "ZETATECH-OK";
+        const createdOrderNumber = result.data?.orderNumber || "ZETTATECH-OK";
         const approveUrl = String(result.data?.approveUrl || "").trim();
 
         setOrderNumber(createdOrderNumber);
@@ -1027,7 +1032,7 @@ export default function Checkout() {
       });
 
       if (data.status === "success") {
-        const createdOrderNumber = data.data?.orderNumber || "ZETATECH-OK";
+        const createdOrderNumber = data.data?.orderNumber || "ZETTATECH-OK";
         setOrderNumber(createdOrderNumber);
         setConfirmationDetails({ orderNumber: createdOrderNumber, email: senderEmail, paymentMethod, paymentStatus: "PENDING", total: Number(data.data?.total ?? finalTotal), customerName: senderName, receiverName, address: exactAddress, items: orderItemsPayload, customerNotificationSent:data.data?.customerNotificationSent, receipt:data.data?.receipt });
         setOrderStatus("success");

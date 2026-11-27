@@ -123,7 +123,7 @@ export function ProductCard({ product, priority = false, showBestSellerBadge = t
           src={artwork}
           onError={() => setImageFailed(true)}
           srcSet={imageSrcSet}
-          alt={`${product.name} - Zetatech`}
+          alt={`${product.name} - ZettaTech`}
           loading={priority ? "eager" : "lazy"}
           decoding="async"
           fetchPriority={priority ? "high" : "low"}
@@ -167,7 +167,7 @@ export function ProductCard({ product, priority = false, showBestSellerBadge = t
         <meta itemProp="mpn" content={productSku} />
         <meta itemProp="url" content={productUrl} />
         <div itemProp="brand" itemScope itemType="https://schema.org/Brand">
-          <meta itemProp="name" content="ZETATECH" />
+          <meta itemProp="name" content="ZETTATECH" />
         </div>
 
         {/* <div className="flex flex-wrap justify-center gap-2 mb-6 opacity-60">

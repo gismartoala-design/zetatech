@@ -402,7 +402,7 @@ export default function PaymentsPage() {
       <section className="rounded-xl border bg-white p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900">PayPhone</h2>
         <p className="mt-1 text-sm text-gray-500">
-          Configura en PayPhone Developer la URL pública de Zetatech y su ruta de respuesta: /payment-result.
+          Configura en PayPhone Developer la URL pública de ZettaTech y su ruta de respuesta: /payment-result.
           Si defines PAYPHONE_ENVIRONMENT y las credenciales en el entorno del servidor, tienen prioridad sobre estos campos. Token y Store ID deben pertenecer al mismo ambiente. El Store ID se copia desde Credenciales → Listado de tiendas; no es el RUC ni el Id Cliente.
         </p>
 

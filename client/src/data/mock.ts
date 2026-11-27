@@ -58,6 +58,6 @@ export const FAQS = [
 export const CONTACT_DETAILS = {
   phone: "+(593) 099 7984 583",
   whatsapp: "+(593) 099 7984 583",
-  email: "hello@zetatech.ec",
+  email: "ventaszettatech.ec@gmail.com",
   address: "Guayaquil, Ecuador"
 };

@@ -2,9 +2,9 @@ import { getPublicAppConfig } from "@/lib/runtime-config";
 
 export const DEFAULT_COMPANY = {
   name: "ZETTATECH",
-  email: "hello@zetatech.ec",
-  phoneDisplay: "+593 99 798 4583",
-  phoneDigits: "593997984583",
+  email: "ventaszettatech.ec@gmail.com",
+  phoneDisplay: "+593 99 482 2367",
+  phoneDigits: "593994822367",
   city: "Guayaquil",
   country: "Ecuador",
 };

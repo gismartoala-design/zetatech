@@ -52,7 +52,7 @@ function unwrapImageProxyUrl(source: string) {
   if (!source.startsWith("/image-proxy?")) return source;
 
   try {
-    const parsed = new URL(source, "https://zetatech.ec");
+    const parsed = new URL(source, "https://www.zettatechtienda.com");
     return parsed.searchParams.get("url") || source;
   } catch {
     return source;

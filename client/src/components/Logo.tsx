@@ -61,7 +61,7 @@ export function Logo({
             letterSpacing: isCompactWordmark ? "0.08em" : "0.12em",
           }}
         >
-          ZETATECH
+          ZETTATECH
         </text>
 
         {isCompactWordmark ? null : (

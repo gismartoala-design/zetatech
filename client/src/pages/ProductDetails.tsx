@@ -239,7 +239,7 @@ export default function ProductDetails() {
         category: categoryLabel,
         brand: {
           "@type": "Brand",
-          name: "ZETATECH",
+          name: "ZETTATECH",
         },
         offers: {
           "@type": "Offer",

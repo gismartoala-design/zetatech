@@ -246,7 +246,7 @@ async function createPendingPaypalOrder(prisma, payload) {
   });
 
   const finalTotal = Number(total) - couponDiscountAmount;
-  const orderNumber = `ZETATECH-${Date.now()}`;
+  const orderNumber = `ZETTATECH-${Date.now()}`;
   const clientTransactionId = nanoid(16);
   const senderParts = splitFullName(senderName);
   const normalizedItems = normalizeStorefrontItems(rawItems, {
@@ -465,7 +465,7 @@ async function createPaypalCheckoutOrder(prisma, payload) {
       payment_source: {
         paypal: {
           experience_context: {
-            brand_name: company.name || "Zetatech",
+            brand_name: company.name || "ZettaTech",
             locale: "es-EC",
             landing_page: "LOGIN",
             shipping_preference: "NO_SHIPPING",
@@ -479,7 +479,7 @@ async function createPaypalCheckoutOrder(prisma, payload) {
         {
           reference_id: pendingOrder.order.orderNumber,
           custom_id: pendingOrder.clientTransactionId,
-          description: `Pedido Zetatech ${pendingOrder.order.orderNumber}`,
+          description: `Pedido ZettaTech ${pendingOrder.order.orderNumber}`,
           amount: {
             currency_code: "USD",
             value: formatAmount(pendingOrder.finalTotal),
@@ -770,7 +770,7 @@ async function capturePaypalCheckoutOrder(prisma, payload) {
   }
 
   if (approved && updatedOrder.customerEmail) {
-    try { await emailService.sendOrderConfirmation({ ...updatedOrder, companyName: "Zetatech" }); }
+    try { await emailService.sendOrderConfirmation({ ...updatedOrder, companyName: "ZettaTech" }); }
     catch { console.error("No se pudo enviar la confirmación del pedido por correo."); }
   }
 

@@ -210,7 +210,7 @@ router.post("/", async (req, res) => {
       }
     }
 
-    const orderNumber = `ZETATECH-${Date.now()}`;
+    const orderNumber = `ZETTATECH-${Date.now()}`;
     const cashOnDelivery = paymentMethod === "Contra entrega";
     const storefrontDetails = buildStorefrontOrderDetails({
       senderDocument,
@@ -349,7 +349,7 @@ router.post("/", async (req, res) => {
 
     const customerName =
       [senderName, receiverName].find((value) => value && String(value).trim()) ||
-      "Cliente Zetatech";
+      "Cliente ZettaTech";
 
     const emailData = {
       cashOnDelivery,

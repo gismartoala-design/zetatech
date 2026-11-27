@@ -315,7 +315,7 @@ class EmailService {
         remainingBalance,
         formattedChargedAmount: `$${chargedAmount.toFixed(2)}`,
         formattedRemainingBalance: `$${remainingBalance.toFixed(2)}`,
-        companyName: orderData.companyName || process.env.COMPANY_NAME || "Zetatech",
+        companyName: orderData.companyName || process.env.COMPANY_NAME || "ZettaTech",
         companyEmail: orderData.companyEmail || process.env.COMPANY_EMAIL || process.env.EMAIL_USER,
         companyPhone: orderData.companyPhone || process.env.COMPANY_PHONE || "",
         // createdAt: new Date(orderData.createdAt).toLocaleDateString("es-EC", {
@@ -355,7 +355,7 @@ class EmailService {
 
   async sendNewOrderAlert(orderData) {
     try {
-      const companyName = orderData.companyName || process.env.COMPANY_NAME || "Zetatech";
+      const companyName = orderData.companyName || process.env.COMPANY_NAME || "ZettaTech";
       const recipientEmail =
         getSalesNotificationEmail(orderData.recipientEmail);
       const storeUrl = String(
@@ -544,7 +544,7 @@ class EmailService {
 
   /** Código de un solo uso para confirmar que el correo es de quien se registra. */
   async sendCustomerVerificationCode({ email, name, code, minutes }) {
-    const companyName = process.env.COMPANY_NAME || "Zetatech";
+    const companyName = process.env.COMPANY_NAME || "ZettaTech";
     const html = `<div style="font-family:Arial,Helvetica,sans-serif;max-width:520px;margin:auto;color:#17251c">
       ${EMAIL_LOGO_HTML_SMALL}
       <h2 style="color:#176333;margin:18px 0 10px">Confirma tu correo</h2>

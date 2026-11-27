@@ -23,7 +23,7 @@ type Resultado = {
   ms: number;
 };
 
-const BASE_URL = normalizarBase(process.env.WATCHDOG_BASE_URL || "https://www.zetatech.ec");
+const BASE_URL = normalizarBase(process.env.WATCHDOG_BASE_URL || "https://www.zettatechtienda.com");
 const TIMEOUT_MS = Number(process.env.WATCHDOG_TIMEOUT_MS || 15000);
 const LENTO_MS = Number(process.env.WATCHDOG_LENTO_MS || 4000);
 const SOLO_JSON = process.argv.includes("--json");
@@ -135,7 +135,7 @@ const comprobaciones: Array<() => Promise<Resultado>> = [
     medir("La tienda carga", "CRITICO", async () => {
       const { status, cuerpo } = await pedir("/");
       if (status !== 200) return { ok: false, detalle: `respondió ${status}` };
-      if (!cuerpo.includes("Zetatech")) return { ok: false, detalle: "la página no trae contenido de la tienda" };
+      if (!cuerpo.includes("ZettaTech")) return { ok: false, detalle: "la página no trae contenido de la tienda" };
       return { ok: true, detalle: `${Math.round(cuerpo.length / 1024)} KB` };
     }),
 
@@ -361,7 +361,7 @@ async function main() {
       ),
     );
   } else {
-    console.log(`Vigilante de tienda Zetatech — ${BASE_URL}`);
+    console.log(`Vigilante de tienda ZettaTech — ${BASE_URL}`);
     console.log(new Date().toLocaleString("es-EC"));
     console.log("");
 

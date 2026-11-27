@@ -95,12 +95,12 @@ export function StoreFooter({
       <div className="zx-footer-social-row">
         <span>Síguenos en:</span>
         <div className="zx-footer-socials">
-          <a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook de ZettaTech" title="Facebook">
+          <a href="https://www.facebook.com/share/1CTiDqoUiW/" target="_blank" rel="noopener noreferrer" aria-label="Facebook de ZettaTech" title="Facebook">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
               <path d="M13.5 22v-8h2.7l.4-3h-3.1V9.1c0-.9.3-1.5 1.6-1.5h1.6V4.9c-.3 0-1.3-.1-2.4-.1-2.4 0-4 1.4-4 4.1V11H7.6v3h2.7v8h3.2z" />
             </svg>
           </a>
-          <a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram de ZettaTech" title="Instagram">
+          <a href="https://www.instagram.com/zettatech_ec" target="_blank" rel="noopener noreferrer" aria-label="Instagram de ZettaTech" title="Instagram">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
               <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />

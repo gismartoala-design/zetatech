@@ -28,8 +28,8 @@ router.get('/', async (req, res) => {
       return res.status(200).json({ 
         status: 'success', 
         data: {
-          name: "Zetatech",
-          email: "ventas@zetatech.ec",
+          name: "ZettaTech",
+          email: "ventaszettatech.ec@gmail.com",
           phone: "",
           address: "Guayaquil, Ecuador"
         } 

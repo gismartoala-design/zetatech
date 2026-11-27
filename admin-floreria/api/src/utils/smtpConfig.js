@@ -25,8 +25,8 @@ function getSmtpConfig() {
 }
 
 function getDefaultFrom() {
-  const user = process.env.SMTP_USER || process.env.EMAIL_USER || "noreply@zetatech.ec";
-  const companyName = process.env.COMPANY_NAME || "Zetatech";
+  const user = process.env.SMTP_USER || process.env.EMAIL_USER || "webstorezettatech@gmail.com";
+  const companyName = process.env.COMPANY_NAME || "ZettaTech";
   return process.env.EMAIL_FROM || `"${companyName}" <${user}>`;
 }
 
@@ -35,7 +35,7 @@ function getSalesNotificationEmail(explicitRecipient) {
     explicitRecipient ||
       process.env.OWNER_NOTIFICATION_EMAIL ||
       process.env.SALES_NOTIFICATION_EMAIL ||
-      "ventas@zetatech.ec"
+      "ventaszettatech.ec@gmail.com"
   ).trim();
 }
 

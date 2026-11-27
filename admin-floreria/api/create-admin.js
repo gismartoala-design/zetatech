@@ -1,5 +1,5 @@
 /**
- * Crea o actualiza el administrador inicial de Zetatech.
+ * Crea o actualiza el administrador inicial de ZettaTech.
  * Requiere ADMIN_EMAIL, ADMIN_PASSWORD y DATABASE_URL en el .env.
  */
 require("dotenv").config();
@@ -18,8 +18,8 @@ async function createAdminUser() {
 
   let company = await prisma.company.findFirst({ orderBy: { createdAt: "asc" } });
   if (!company) {
-    company = await prisma.company.create({ data: { name: "Zetatech", slug: "zetatech", email: adminEmail } });
-    console.log("Compañía Zetatech creada.");
+    company = await prisma.company.create({ data: { name: "ZettaTech", slug: "zetatech", email: adminEmail } });
+    console.log("Compañía ZettaTech creada.");
   }
 
   const password = await bcrypt.hash(adminPassword, 12);
@@ -29,7 +29,7 @@ async function createAdminUser() {
     create: {
       companyId: company.id,
       email: adminEmail,
-      name: "Administrador Zetatech",
+      name: "Administrador ZettaTech",
       password,
       role: "ADMIN",
       isActive: true,

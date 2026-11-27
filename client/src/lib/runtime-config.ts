@@ -10,7 +10,7 @@ declare global {
   }
 }
 
-const DEFAULT_SITE_URL = "https://zetatech.ec";
+const DEFAULT_SITE_URL = "https://www.zettatechtienda.com";
 
 function normalizeUrl(value?: string | null) {
   const normalized = String(value || "").trim();

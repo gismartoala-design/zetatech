@@ -14,7 +14,7 @@ function unwrapImageProxyUrl(value = "") {
 
   try {
     if (source.startsWith("/image-proxy?")) {
-      const parsed = new URL(source, "https://zetatech.ec");
+      const parsed = new URL(source, "https://www.zettatechtienda.com");
       return String(parsed.searchParams.get("url") || "").trim();
     }
 

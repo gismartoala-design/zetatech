@@ -11,9 +11,9 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 const COMPANY = {
-  name: "Zetatech",
+  name: "ZettaTech",
   slug: "zetatech",
-  email: "hello@zetatech.ec",
+  email: "ventaszettatech.ec@gmail.com",
   isActive: true,
   isSetup: true,
   allowedDomains: [

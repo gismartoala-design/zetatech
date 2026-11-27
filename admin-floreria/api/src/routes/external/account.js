@@ -235,7 +235,7 @@ router.get('/orders/:orderNumber/receipt', requireCustomer, async (req, res, nex
       shippingCost: order.shipping || 0,
       total: order.total,
       createdAt: new Date(order.createdAt).toLocaleDateString('es-EC', { year: 'numeric', month: 'long', day: 'numeric' }),
-      companyName: process.env.COMPANY_NAME || 'Zetatech',
+      companyName: process.env.COMPANY_NAME || 'ZettaTech',
       items: order.orderItems.map(item => ({
         productName: item.product?.name || 'Producto',
         variantName: item.variantName || null,

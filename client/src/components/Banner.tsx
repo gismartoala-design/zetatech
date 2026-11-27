@@ -174,7 +174,7 @@ export function Banner({ onProductsClick }: BannerProps) {
           <div className="hero-banner-content-padding">
             <div className="hero-banner-content">
               <div className="hero-banner-kicker">
-                ZETATECH STORE
+                ZETTATECH STORE
               </div>
               <h2 className="hero-banner-title">
                 {title}

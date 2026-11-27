@@ -204,7 +204,7 @@ export function getNumericPriceValue(price: string | number | null | undefined) 
 }
 
 export function getProductSku(product: ProductLike) {
-  return `ZETATECH-${String(product.id).replace(/[^a-zA-Z0-9_-]/g, "")}`;
+  return `ZETTATECH-${String(product.id).replace(/[^a-zA-Z0-9_-]/g, "")}`;
 }
 
 export function isPublicCatalogProduct(product: CatalogProductCandidate) {

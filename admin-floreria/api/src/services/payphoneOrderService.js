@@ -97,7 +97,7 @@ async function createPendingPayphoneOrder(prisma, payload) {
 
   const finalTotal = Number(total) - couponDiscountAmount;
   const amountInCents = Math.round(finalTotal * 100);
-  const orderNumber = `ZETATECH-${Date.now()}`;
+  const orderNumber = `ZETTATECH-${Date.now()}`;
   const clientTransactionId = nanoid(16);
   const senderParts = splitFullName(senderName);
   const normalizedItems = normalizeStorefrontItems(rawItems, {
@@ -309,7 +309,7 @@ async function finalizePayphoneOrder(prisma, payload) {
   }
 
   if (approved && updatedOrder.customerEmail) {
-    try { await emailService.sendOrderConfirmation({ ...updatedOrder, companyName: "Zetatech" }); }
+    try { await emailService.sendOrderConfirmation({ ...updatedOrder, companyName: "ZettaTech" }); }
     catch { console.error("No se pudo enviar la confirmación del pedido por correo."); }
   }
 
